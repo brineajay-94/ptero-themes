@@ -20,11 +20,17 @@
                 <form action="{{ route('admin.registration.update') }}" method="POST">
                     @csrf
                     <div class="box-body">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="enabled" value="1" {{ $enabled ? 'checked' : '' }}>
-                                Enable public registration (<code>/auth/register</code>)
-                            </label>
+                        <div class="form-group">
+                            {{-- Stock admin checkbox pattern: checkbox.css hides the native input
+                                 (opacity: 0) and ticks via `input:checked + label::after`, so the
+                                 input and label MUST be siblings, not nested. --}}
+                            <div class="checkbox checkbox-primary no-margin-bottom">
+                                <input id="pEnableRegistration" name="enabled" type="checkbox" value="1"
+                                       {{ old('enabled', $enabled) ? 'checked' : '' }}>
+                                <label for="pEnableRegistration" class="strong">
+                                    Enable public registration (<code>/auth/register</code>)
+                                </label>
+                            </div>
                         </div>
                         <p class="help-block">
                             When enabled the login page shows <strong>&ldquo;Don&rsquo;t have an account? Register

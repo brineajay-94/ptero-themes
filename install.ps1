@@ -1,0 +1,327 @@
+<#
+.SYNOPSIS
+    brine-theme installer for Pterodactyl Panel.
+
+.EXAMPLE
+    .\install.ps1 -PanelPath C:\inetpub\pterodactyl
+.EXAMPLE
+    .\install.ps1 -PanelPath C:\inetpub\pterodactyl -Build
+.EXAMPLE
+    .\install.ps1 -PanelPath C:\inetpub\pterodactyl -Update
+.EXAMPLE
+    .\install.ps1 -PanelPath C:\inetpub\pterodactyl -Uninstall
+.EXAMPLE
+    .\install.ps1 -PanelPath C:\inetpub\pterodactyl -Status
+#>
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [string]$PanelPath,
+
+    [Alias('b')]
+    [switch]$Build,
+
+    [Alias('u')]
+    [switch]$Uninstall,
+
+    [switch]$Update,
+
+    [switch]$Status,
+
+    [Alias('h')]
+    [switch]$Help
+)
+
+$ErrorActionPreference = 'Stop'
+
+$ThemeDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Src = Join-Path $ThemeDir 'theme'
+$ManifestPath = Join-Path $ThemeDir 'manifest.json'
+$ThemeName = 'brine-theme'
+
+function Show-Usage {
+    Write-Host @"
+brine-theme installer
+
+Usage: .\install.ps1 -PanelPath <panel-directory> [-Build] [-Update] [-Uninstall] [-Status]
+
+  -PanelPath   Root of the Pterodactyl panel install (the folder with artisan).
+  -Build       Run yarn install / build:production and clear Laravel caches.
+  -Update      Re-apply the theme over an existing install (keeps the original
+               backup so -Uninstall still restores a clean panel).
+  -Uninstall   Restore the most recent backup and remove created files.
+  -Status      Print the install status (0 = installed, 3 = not installed).
+  -Help        Show this help.
+
+Backups are written to <panel-directory>\.pterodactyl-backup\<timestamp>\
+Install state is written to <panel-directory>\.brine-theme.state
+"@
+}
+
+if ($Help -or (-not $PanelPath -and -not $Help)) {
+    Show-Usage
+    exit $(if ($Help) { 0 } else { 1 })
+}
+
+if (-not (Test-Path -LiteralPath $PanelPath)) {
+    throw "Panel directory not found: $PanelPath"
+}
+
+$PanelPath = (Resolve-Path -LiteralPath $PanelPath).Path
+
+if (-not ((Test-Path -LiteralPath (Join-Path $PanelPath 'artisan')) -and
+          (Test-Path -LiteralPath (Join-Path $PanelPath 'package.json')))) {
+    throw "'$PanelPath' does not look like a Pterodactyl panel root (missing artisan/package.json)."
+}
+
+if (-not (Test-Path -LiteralPath $ManifestPath)) {
+    throw "manifest.json not found next to this script."
+}
+
+$Manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
+$Files = @($Manifest.files)
+$ThemeVersion = $Manifest.version
+
+$BackupRoot = Join-Path $PanelPath '.pterodactyl-backup'
+$StateFile = Join-Path $PanelPath '.brine-theme.state'
+$ThemeMarker = Join-Path $PanelPath 'public\themes\pterodactyl\css\pterodactyl-theme.css'
+
+function Get-LatestBackup {
+    if (-not (Test-Path -LiteralPath $BackupRoot)) { return $null }
+    $latest = Get-ChildItem -LiteralPath $BackupRoot -Directory | Sort-Object Name | Select-Object -Last 1
+    if ($null -eq $latest) { return $null }
+    return $latest.FullName
+}
+
+function Get-ThemePresent {
+    return (Test-Path -LiteralPath $ThemeMarker)
+}
+
+function Get-StatusValue {
+    $marker = Get-ThemePresent
+    $state = Test-Path -LiteralPath $StateFile
+    if ($marker -and $state) { return 'installed' }
+    if ($marker -or $state) { return 'partial' }
+    return 'not-installed'
+}
+
+function Write-State {
+    param([string]$Mode, [string]$Backup = '')
+    $lines = @(
+        "name=$ThemeName"
+        "version=$ThemeVersion"
+        "installed_at=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+        "mode=$Mode"
+        "backup=$Backup"
+    )
+    Set-Content -LiteralPath $StateFile -Value $lines -Encoding ASCII
+}
+
+function Show-Status {
+    $value = Get-StatusValue
+    Write-Host "theme=$ThemeName"
+    Write-Host "panel=$PanelPath"
+
+    switch ($value) {
+        'installed' {
+            $version = $ThemeVersion
+            $since = 'unknown'
+            foreach ($line in (Get-Content -LiteralPath $StateFile -ErrorAction SilentlyContinue)) {
+                if ($line -like 'version=*') { $version = $line.Substring(8) }
+                if ($line -like 'installed_at=*') { $since = $line.Substring(13) }
+            }
+            Write-Host 'status=installed'
+            Write-Host "version=$version"
+            Write-Host "installed_at=$since"
+            exit 0
+        }
+        'partial' {
+            Write-Host 'status=partial'
+            Write-Host 'detail=theme files and state file disagree; run -Update (or -Uninstall) to fix'
+            exit 3
+        }
+        default {
+            Write-Host 'status=not-installed'
+            exit 3
+        }
+    }
+}
+
+function Invoke-Uninstall {
+    $value = Get-StatusValue
+    $latest = Get-LatestBackup
+    if (($value -eq 'not-installed') -and ($null -eq $latest)) {
+        Write-Host "brine-theme is not installed in $PanelPath - nothing to restore."
+        exit 0
+    }
+    if ($null -eq $latest) {
+        throw "No backup found in $BackupRoot"
+    }
+
+    Write-Host "Restoring from: $latest"
+
+    Get-ChildItem -LiteralPath $latest -Recurse -File | ForEach-Object {
+        $relative = $_.FullName.Substring($latest.Length).TrimStart('\', '/')
+        if ($relative -eq 'created.txt') { return }
+        $target = Join-Path $PanelPath $relative
+        $targetDir = Split-Path -Parent $target
+        if (-not (Test-Path -LiteralPath $targetDir)) {
+            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+        }
+        Copy-Item -LiteralPath $_.FullName -Destination $target -Force
+        Write-Host ("restored {0}" -f $relative)
+    }
+
+    $createdList = Join-Path $latest 'created.txt'
+    if (Test-Path -LiteralPath $createdList) {
+        Get-Content -LiteralPath $createdList | ForEach-Object {
+            $relative = $_.Trim()
+            if (-not $relative) { return }
+            $target = Join-Path $PanelPath $relative
+            if (Test-Path -LiteralPath $target) {
+                Remove-Item -LiteralPath $target -Force
+                Write-Host ("removed  {0}" -f $relative)
+            }
+        }
+    }
+
+    # The restore above copies the manifest itself into the panel root.
+    $strayList = Join-Path $PanelPath 'created.txt'
+    if (Test-Path -LiteralPath $strayList) {
+        Remove-Item -LiteralPath $strayList -Force
+    }
+
+    foreach ($file in $Files) {
+        if ($file.action -ne 'create') { continue }
+        $target = Join-Path $PanelPath $file.path
+        if (Test-Path -LiteralPath $target) {
+            Remove-Item -LiteralPath $target -Force
+            Write-Host ("removed  {0}" -f $file.path)
+        }
+    }
+
+    if (Test-Path -LiteralPath $StateFile) {
+        Remove-Item -LiteralPath $StateFile -Force
+    }
+
+    Write-Host ''
+    Write-Host 'brine-theme uninstalled - the panel is back to its original theme. Rebuild the assets:'
+    Write-Host "  cd '$PanelPath'; yarn install --frozen-lockfile; yarn build:production"
+    Write-Host "  php artisan view:clear; php artisan cache:clear"
+}
+
+if ($Status) {
+    Show-Status
+}
+
+if ($Uninstall) {
+    Invoke-Uninstall
+    exit 0
+}
+
+$mode = 'install'
+$Backup = $null
+
+if ($Update) {
+    if (-not (Get-ThemePresent)) {
+        throw "brine-theme is not installed in $PanelPath (run without -Update first)."
+    }
+    $mode = 'update'
+    $Backup = Get-LatestBackup
+    Write-Host "Updating brine-theme in: $PanelPath"
+    if ($null -ne $Backup) {
+        Write-Host "Keeping the original backup (uninstall still restores it): $Backup"
+    }
+    else {
+        Write-Warning "No original backup found - uninstall will not be able to restore this panel."
+    }
+}
+else {
+    if (Get-ThemePresent) {
+        throw "brine-theme already appears to be installed in $PanelPath. Use -Update to re-apply, or .\install.ps1 -PanelPath '$PanelPath' -Uninstall."
+    }
+
+    $Stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $Backup = Join-Path $BackupRoot $Stamp
+    New-Item -ItemType Directory -Path $Backup -Force | Out-Null
+
+    Write-Host "Installing brine-theme into: $PanelPath"
+    Write-Host "Backing up original files to: $Backup"
+}
+Write-Host ''
+
+# Paths with no panel original behind them, so uninstall knows what to delete.
+$CreatedList = if ($null -ne $Backup) { Join-Path $Backup 'created.txt' } else { $null }
+
+foreach ($file in $Files) {
+    $source = Join-Path $Src ($file.path -replace '/', '\')
+    if (-not (Test-Path -LiteralPath $source)) {
+        throw "theme payload missing: $source"
+    }
+
+    $target = Join-Path $PanelPath ($file.path -replace '/', '\')
+    $targetDir = Split-Path -Parent $target
+
+    if ($mode -eq 'install') {
+        if (Test-Path -LiteralPath $target) {
+            $backupTargetDir = Split-Path -Parent (Join-Path $Backup ($file.path -replace '/', '\'))
+            if (-not (Test-Path -LiteralPath $backupTargetDir)) {
+                New-Item -ItemType Directory -Path $backupTargetDir -Force | Out-Null
+            }
+            Copy-Item -LiteralPath $target -Destination (Join-Path $Backup ($file.path -replace '/', '\')) -Force
+        }
+        elseif ($file.action -ne 'create') {
+            Write-Warning "Expected an existing file at $($file.path) but none was found; it will be created."
+            Add-Content -LiteralPath $CreatedList -Value $file.path
+        }
+    }
+
+    if (-not (Test-Path -LiteralPath $targetDir)) {
+        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    }
+
+    Copy-Item -LiteralPath $source -Destination $target -Force
+    Write-Host ('{0,-8} {1}' -f $file.action, $file.path)
+}
+
+Write-State -Mode $mode -Backup $(if ($null -ne $Backup) { $Backup } else { '' })
+
+Write-Host ''
+
+if ($Build) {
+    Write-Host '==> yarn install --frozen-lockfile && yarn build:production'
+    Push-Location $PanelPath
+    try {
+        & yarn install --frozen-lockfile
+        if ($LASTEXITCODE -ne 0) { throw "yarn install failed with exit code $LASTEXITCODE" }
+
+        & yarn build:production
+        if ($LASTEXITCODE -ne 0) { throw "yarn build failed with exit code $LASTEXITCODE" }
+
+        Write-Host '==> clearing Laravel caches'
+        & php artisan view:clear
+        & php artisan cache:clear
+        & php artisan config:clear
+    }
+    finally {
+        Pop-Location
+    }
+}
+else {
+    Write-Host @"
+Files installed. Now rebuild the panel and clear its caches:
+
+  cd '$PanelPath'
+  yarn install --frozen-lockfile; yarn build:production
+  php artisan view:clear; php artisan cache:clear; php artisan config:clear
+
+Then hard-refresh the browser (Ctrl+Shift+R).
+"@
+}
+
+Write-Host ''
+if ($null -ne $Backup) {
+    Write-Host "Backup kept at: $Backup"
+}
+Write-Host "Rollback with:  .\install.ps1 -PanelPath '$PanelPath' -Uninstall"
+Write-Host "Check status:   .\install.ps1 -PanelPath '$PanelPath' -Status"

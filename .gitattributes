@@ -1,0 +1,12 @@
+* text=auto
+
+# Shell entry points must stay LF or bash cannot run them.
+brine text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf
+*.cmd text eol=crlf
+
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,279 @@
+#!/usr/bin/env bash
+#
+# brine-theme manager - the single entry point.
+#
+#   ./brine                     interactive menu (install / status / update / uninstall)
+#   ./brine status [panel]      print status, exit 0 if installed, 3 if not
+#   ./brine install [panel]     install
+#   ./brine update [panel]      update an existing install
+#   ./brine uninstall [panel]   restore the original panel
+#
+set -uo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALLER="$DIR/install.sh"
+MANIFEST="$DIR/manifest.json"
+THEME_NAME="brine-theme"
+THEME_VERSION="$(awk -F'"' '/"version"/ { print $4; exit }' "$MANIFEST" 2>/dev/null || echo dev)"
+
+# ---------------------------------------------------------------- helpers ---
+
+candidates() {
+    for d in \
+        "${BRINE_PANEL:-}" \
+        /var/www/pterodactyl \
+        /usr/local/pterodactyl \
+        /opt/pterodactyl \
+        /srv/pterodactyl \
+        /home/pterodactyl/panel \
+        /home/pterodactyl \
+        /var/www/html/pterodactyl \
+        "$(pwd)"; do
+        [ -n "$d" ] && printf '%s\n' "$d"
+    done
+}
+
+is_panel() {
+    [ -f "$1/artisan" ] && [ -f "$1/package.json" ]
+}
+
+resolve_panel() {
+    local explicit="$1" d
+    if [ -n "$explicit" ]; then
+        if is_panel "$explicit"; then
+            (cd "$explicit" && pwd)
+            return 0
+        fi
+        echo "error: '$explicit' is not a Pterodactyl panel root (missing artisan/package.json)." >&2
+        return 1
+    fi
+
+    while IFS= read -r d; do
+        if [ -n "$d" ] && is_panel "$d"; then
+            (cd "$d" && pwd)
+            return 0
+        fi
+    done < <(candidates)
+
+    if [ -t 0 ]; then
+        printf 'Panel directory (the folder containing artisan): '
+        read -r answer || answer=""
+        if [ -n "$answer" ] && is_panel "$answer"; then
+            (cd "$answer" && pwd)
+            return 0
+        fi
+        echo "error: '$answer' is not a Pterodactyl panel root." >&2
+    else
+        echo "error: no Pterodactyl panel found. Pass the path: ./brine <command> <panel-directory>" >&2
+    fi
+    return 1
+}
+
+# Prints: <state>|<extra line>
+panel_status() {
+    local panel="$1" out rc=0
+    out="$(bash "$INSTALLER" "$panel" --status 2>/dev/null)" || rc=$?
+    if [ "$rc" -eq 0 ]; then
+        printf 'installed|%s\n' "$(printf '%s\n' "$out" | awk -F= '/^installed_at=/ { print $2 }')"
+    elif [ "$rc" -eq 3 ]; then
+        printf '%s|\n' "$(printf '%s\n' "$out" | awk -F= '/^status=/ { print $2 }' | head -n1)"
+    else
+        printf 'unknown|%s\n' "$out"
+    fi
+}
+
+status_label() {
+    case "$1" in
+        installed) echo "INSTALLED" ;;
+        partial)   echo "PARTIAL (run update to repair)" ;;
+        *)         echo "NOT INSTALLED" ;;
+    esac
+}
+
+ask_yn() {
+    # $1 prompt, $2 default (y/n); returns 0 for yes
+    local prompt="$1" def="${2:-y}" reply
+    if [ ! -t 0 ]; then
+        # Non-interactive: opt in with BRINE_BUILD=y, otherwise files only.
+        [ "${BRINE_BUILD:-n}" = "y" ]
+        return
+    fi
+    if [ "$def" = "y" ]; then
+        printf '%s [Y/n] ' "$prompt"
+    else
+        printf '%s [y/N] ' "$prompt"
+    fi
+    read -r reply || reply=""
+    case "$reply" in
+        [Yy]*) return 0 ;;
+        [Nn]*) return 1 ;;
+        *)     [ "$def" = "y" ] ;;
+    esac
+}
+
+rebuild_hint() {
+    echo "  cd '$1' && yarn install --frozen-lockfile && yarn build:production"
+    echo "  php artisan view:clear && php artisan cache:clear && php artisan config:clear"
+    echo "Then hard-refresh the browser (Ctrl+Shift+R)."
+}
+
+banner() {
+    local panel="$1" st extra
+    st="$(panel_status "$panel" | cut -d'|' -f1)"
+    extra="$(panel_status "$panel" | cut -d'|' -f2)"
+    echo "=============================================================="
+    echo "  $THEME_NAME  -  Pterodactyl Panel theme manager   v$THEME_VERSION"
+    echo "--------------------------------------------------------------"
+    echo "  Panel  : $panel"
+    printf '  Status : %s' "$(status_label "$st")"
+    if [ -n "$extra" ] && [ "$extra" != "-" ]; then
+        echo "  (since $extra)"
+    else
+        echo
+    fi
+    echo "=============================================================="
+}
+
+# ------------------------------------------------------------------ actions ---
+
+do_status() {
+    local panel="$1" st extra
+    echo "theme=$THEME_NAME"
+    echo "version=$THEME_VERSION"
+    echo "panel=$panel"
+    st="$(panel_status "$panel" | cut -d'|' -f1)"
+    extra="$(panel_status "$panel" | cut -d'|' -f2)"
+    case "$st" in
+        installed)
+            echo "status=installed"
+            echo "installed_at=$extra"
+            return 0 ;;
+        partial)
+            echo "status=partial"
+            return 3 ;;
+        *)
+            echo "status=not-installed"
+            return 3 ;;
+    esac
+}
+
+do_install() {
+    local panel="$1" build="n"
+    if [ "$(panel_status "$panel" | cut -d'|' -f1)" != "not-installed" ]; then
+        echo "brine-theme is already installed in $panel."
+        echo "Use 'update' to re-apply it, or 'uninstall' to restore the original panel."
+        return 1
+    fi
+    if ask_yn "Rebuild panel assets after installing?" "y"; then build="y"; fi
+    local flags=""
+    [ "$build" = "y" ] && flags="--build"
+    bash "$INSTALLER" "$panel" $flags || return 1
+    if [ "$build" != "y" ]; then
+        echo
+        echo "Reminder - rebuild the panel manually:"
+        rebuild_hint "$panel"
+    fi
+    echo
+    echo "brine-theme installed."
+}
+
+do_update() {
+    local panel="$1" build="n"
+    if [ "$(panel_status "$panel" | cut -d'|' -f1)" = "not-installed" ]; then
+        echo "brine-theme is not installed in $panel - run 'install' first."
+        return 1
+    fi
+    if ask_yn "Rebuild panel assets after updating?" "y"; then build="y"; fi
+    local flags=""
+    [ "$build" = "y" ] && flags="--build"
+    bash "$INSTALLER" "$panel" --update $flags || return 1
+    if [ "$build" != "y" ]; then
+        echo
+        echo "Reminder - rebuild the panel manually:"
+        rebuild_hint "$panel"
+    fi
+    echo
+    echo "brine-theme updated."
+}
+
+do_uninstall() {
+    local panel="$1" build="n"
+    if [ "$(panel_status "$panel" | cut -d'|' -f1)" = "not-installed" ]; then
+        echo "brine-theme is not installed in $panel - nothing to uninstall."
+        return 0
+    fi
+    if ask_yn "Rebuild panel assets after uninstalling?" "y"; then build="y"; fi
+    local flags=""
+    [ "$build" = "y" ] && flags="--build"
+    bash "$INSTALLER" "$panel" --uninstall $flags || return 1
+    echo
+    echo "brine-theme uninstalled - the original panel theme is back."
+}
+
+menu() {
+    local panel="$1" choice
+    while true; do
+        echo
+        banner "$panel"
+        echo
+        echo "  1) Install theme"
+        echo "  2) Status"
+        echo "  3) Update theme"
+        echo "  4) Uninstall (restore original panel)"
+        echo "  5) Change panel directory"
+        echo "  0) Exit"
+        echo
+        printf 'Choose [0-5]: '
+        read -r choice || choice="0"
+        echo
+        case "$choice" in
+            1) do_install "$panel" ;;
+            2) do_status "$panel" || true ;;
+            3) do_update "$panel" ;;
+            4) do_uninstall "$panel" ;;
+            5)
+                printf 'Panel directory: '
+                read -r answer || answer=""
+                if new_panel="$(resolve_panel "$answer" 2>/dev/null)"; then
+                    panel="$new_panel"
+                    echo "Panel set to: $panel"
+                else
+                    echo "Panel path rejected - keeping $panel"
+                fi ;;
+            0|"") echo "Bye."; return 0 ;;
+            *) echo "Unknown option: $choice" ;;
+        esac
+    done
+}
+
+# -------------------------------------------------------------------- main ---
+
+CMD="${1:-menu}"
+case "$CMD" in
+    -h|--help|help)
+        sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+        echo
+        echo "Interactive:  ./brine"
+        exit 0 ;;
+esac
+
+if [ "$CMD" != "menu" ]; then
+    PANEL_ARG="${2:-}"
+    if ! PANEL="$(resolve_panel "$PANEL_ARG")"; then
+        exit 1
+    fi
+    case "$CMD" in
+        install)   do_install "$PANEL" ;;
+        update)    do_update "$PANEL" ;;
+        uninstall) do_uninstall "$PANEL" ;;
+        status)    do_status "$PANEL" || exit $? ;;
+        *)
+            echo "Unknown command: $CMD" >&2
+            echo "Try: ./brine status|install|update|uninstall  (or just ./brine)" >&2
+            exit 1 ;;
+    esac
+    exit $?
+fi
+
+PANEL="$(resolve_panel "")" || exit 1
+menu "$PANEL"

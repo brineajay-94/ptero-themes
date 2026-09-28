@@ -1,0 +1,209 @@
+{
+    "name": "brine-theme",
+    "version": "1.0.0",
+    "description": "Niraula EduMedia child theme for Pterodactyl Panel - navy/gold brand, self-hosted fonts, fixed sidebar shell, redesigned dashboard, login, console and file manager",
+    "panel": {
+        "min": "1.12.0",
+        "max": "2.0.0"
+    },
+    "files": [
+        {
+            "path": "tailwind.config.js",
+            "action": "replace",
+            "note": "Emits every colour utility as rgb(var(--pt-*)); adds navy/gold brand ramps and aliases blue/primary to navy and cyan to gold"
+        },
+        {
+            "path": "resources/views/templates/wrapper.blade.php",
+            "action": "replace",
+            "note": "Niraula EduMedia title, favicon, theme-color and the pre-paint palette bootstrap"
+        },
+        {
+            "path": "resources/views/layouts/admin.blade.php",
+            "action": "replace",
+            "note": "Loads the palette stylesheet and mounts the admin theme toggle"
+        },
+        {
+            "path": "resources/scripts/lib/theme.ts",
+            "action": "create",
+            "note": "Theme read/write/subscribe helpers shared by the panel UI"
+        },
+        {
+            "path": "resources/scripts/components/elements/ThemeToggle.tsx",
+            "action": "create",
+            "note": "Light/dark toggle button used in the topbar and admin area"
+        },
+        {
+            "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
+            "action": "create",
+            "note": "Brand tokens, self-hosted @font-face, shell/auth/dashboard/console/file-manager styles and light-mode fixes"
+        },
+        {
+            "path": "public/themes/pterodactyl/js/theme-toggle.js",
+            "action": "create",
+            "note": "Vanilla toggle for the AdminLTE admin area"
+        },
+        {
+            "path": "public/themes/pterodactyl/fonts/montserrat-latin-wght-normal.woff2",
+            "action": "create",
+            "note": "Montserrat variable font, self-hosted body typeface"
+        },
+        {
+            "path": "public/themes/pterodactyl/fonts/playfair-display-latin-wght-normal.woff2",
+            "action": "create",
+            "note": "Playfair Display variable font, self-hosted heading typeface"
+        },
+        {
+            "path": "public/themes/pterodactyl/images/logo.svg",
+            "action": "create",
+            "note": "Niraula EduMedia brand mark used by the sidebar, topbar and login screen"
+        },
+        {
+            "path": "public/themes/pterodactyl/images/favicon.svg",
+            "action": "create",
+            "note": "Niraula EduMedia favicon"
+        },
+        {
+            "path": "resources/scripts/components/AppShell.tsx",
+            "action": "create",
+            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes"
+        },
+        {
+            "path": "resources/scripts/components/Sidebar.tsx",
+            "action": "create",
+            "note": "Aternos-style sidebar with brand block, permission-filtered server/account navigation and user footer"
+        },
+        {
+            "path": "resources/scripts/components/NavigationBar.tsx",
+            "action": "replace",
+            "note": "Rewritten as the shell topbar: burger, page title, search, theme toggle, admin link and avatar menu"
+        },
+        {
+            "path": "resources/scripts/routers/DashboardRouter.tsx",
+            "action": "replace",
+            "note": "Wraps the dashboard in AppShell and drops the legacy SubNavigation"
+        },
+        {
+            "path": "resources/scripts/routers/ServerRouter.tsx",
+            "action": "replace",
+            "note": "Wraps server routes in AppShell and drops the legacy SubNavigation"
+        },
+        {
+            "path": "resources/scripts/routers/AuthenticationRouter.tsx",
+            "action": "replace",
+            "note": "Centres the redesigned Niraula login card"
+        },
+        {
+            "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
+            "action": "replace",
+            "note": "Redesigned login card: navy masthead with brand emblem, gold rule, Playfair heading and footer"
+        },
+        {
+            "path": "resources/scripts/components/auth/LoginContainer.tsx",
+            "action": "replace",
+            "note": "Passes the Niraula heading and subtitle to the redesigned login card"
+        },
+        {
+            "path": "resources/scripts/components/auth/LoginCheckpointContainer.tsx",
+            "action": "replace",
+            "note": "Same treatment for the 2FA checkpoint screen"
+        },
+        {
+            "path": "resources/scripts/components/auth/ForgotPasswordContainer.tsx",
+            "action": "replace",
+            "note": "Same treatment for the password recovery screen"
+        },
+        {
+            "path": "resources/scripts/components/auth/ResetPasswordContainer.tsx",
+            "action": "replace",
+            "note": "Same treatment for the password reset screen"
+        },
+        {
+            "path": "resources/scripts/components/dashboard/DashboardContainer.tsx",
+            "action": "replace",
+            "note": "Branded hero header with welcome stats, section title and empty state"
+        },
+        {
+            "path": "resources/scripts/components/dashboard/ServerRow.tsx",
+            "action": "replace",
+            "note": "Server cards with status/allocation chips, CPU/MEM/DISK stat blocks and colour bars"
+        },
+        {
+            "path": "resources/scripts/components/elements/PageContentBlock.tsx",
+            "action": "replace",
+            "note": "Adds the shared Niraula EduMedia footer"
+        },
+        {
+            "path": "resources/scripts/components/elements/button/style.module.css",
+            "action": "replace",
+            "note": "Sharp 3px buttons with uppercase letter-spaced labels"
+        },
+        {
+            "path": "resources/scripts/components/server/console/ServerConsoleContainer.tsx",
+            "action": "replace",
+            "note": "Branded console header with status chip and gold call-to-action power button"
+        },
+        {
+            "path": "resources/scripts/components/server/console/PowerButtons.tsx",
+            "action": "replace",
+            "note": "Marks the Start button for the gold call-to-action treatment"
+        },
+        {
+            "path": "resources/scripts/components/server/console/Console.tsx",
+            "action": "replace",
+            "note": "Terminal chrome: window bar, dots, title and command hint"
+        },
+        {
+            "path": "resources/scripts/components/server/console/style.module.css",
+            "action": "replace",
+            "note": "Navy-black terminal, neutral stat cards and gold accents"
+        },
+        {
+            "path": "resources/scripts/components/server/console/StatBlock.tsx",
+            "action": "replace",
+            "note": "Console detail stat blocks re-skinned to neutral cards with gold icons"
+        },
+        {
+            "path": "resources/scripts/components/server/console/StatGraphs.tsx",
+            "action": "replace",
+            "note": "Resolves chart palette through ptColor()"
+        },
+        {
+            "path": "resources/scripts/components/server/console/chart.ts",
+            "action": "replace",
+            "note": "Resolves chart grid/tick/line colours through ptColor()"
+        },
+        {
+            "path": "resources/scripts/components/server/files/FileManagerContainer.tsx",
+            "action": "replace",
+            "note": "Toolbar layout and branded empty state"
+        },
+        {
+            "path": "resources/scripts/components/server/files/FileManagerBreadcrumbs.tsx",
+            "action": "replace",
+            "note": "Navy path bar with gold links and monospaced type"
+        },
+        {
+            "path": "resources/scripts/components/server/files/FileObjectRow.tsx",
+            "action": "replace",
+            "note": "Card-style file rows with icon tiles, size and modified columns"
+        },
+        {
+            "path": "resources/scripts/components/server/files/style.module.css",
+            "action": "replace",
+            "note": "File manager row, tile, empty-state and mass-action styles"
+        },
+        {
+            "path": "resources/scripts/components/server/files/MassActionsBar.tsx",
+            "action": "replace",
+            "note": "Branded selection bar with selection counter"
+        }
+    ],
+    "build": {
+        "command": "yarn install --frozen-lockfile && yarn build:production",
+        "clearCommands": [
+            "php artisan view:clear",
+            "php artisan cache:clear",
+            "php artisan config:clear"
+        ]
+    }
+}

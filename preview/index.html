@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#1f2a3a" />
+        <title>brine-theme - React panel preview</title>
+
+        <!--
+            Same no-FOUC bootstrap as resources/views/templates/wrapper.blade.php.
+        -->
+        <script>
+            (function () {
+                var stored = null;
+                try {
+                    stored = localStorage.getItem('ptero-theme');
+                } catch (e) {
+                    stored = null;
+                }
+
+                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches === false;
+                var theme = stored === 'dark' || stored === 'light' ? stored : dark ? 'dark' : 'light';
+
+                document.documentElement.setAttribute('data-theme', theme);
+
+                var meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) {
+                    meta.setAttribute('content', theme === 'light' ? '#f8f7f4' : '#1f2a3a');
+                }
+            })();
+        </script>
+
+        <link rel="stylesheet" href="../theme/public/themes/pterodactyl/css/pterodactyl-theme.css" />
+        <link rel="stylesheet" href="panel-preview.css" />
+    </head>
+
+    <body class="bg-neutral-800 text-neutral-200">
+        <div class="pt-shell">
+            <!-- Sidebar.tsx ---------------------------------------------------->
+            <aside class="pt-sidebar">
+                <a href="#" class="pt-brand">
+                    <span class="pt-brand-mark">N</span>
+                    <span class="min-w-0">
+                        <span class="pt-brand-name block truncate">Niraula EduMedia</span>
+                        <span class="pt-brand-sub">Panel</span>
+                    </span>
+                </a>
+
+                <nav class="pt-nav">
+                    <div class="pt-nav-section">Overview</div>
+                    <a href="#" class="pt-nav-item active">
+                        <span class="pt-nav-ico" data-icon="layer-group" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Dashboard</span>
+                    </a>
+
+                    <div class="pt-nav-section">Account</div>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="user-circle" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Account</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="key" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">API Credentials</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="key" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">SSH Keys</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Activity</span>
+                    </a>
+
+                    <div class="pt-nav-section">Server</div>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="terminal" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Console</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="folder" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Files</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="database" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Databases</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="calendar-alt" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Schedules</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="users" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Users</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="archive" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Backups</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="network-wired" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Network</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="sliders-h" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Startup</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="cog" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Settings</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Activity</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="shield-alt" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Admin Area</span>
+                    </a>
+                </nav>
+
+                <div class="pt-sidebar-foot">
+                    <div class="flex items-center gap-3">
+                        <span class="pt-avatar-btn" style="cursor: default">
+                            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <strong class="truncate">jdoe</strong>
+                            <span class="truncate block">Niraula EduMedia Panel</span>
+                        </span>
+                        <button type="button" class="pt-logout-btn" title="Sign Out" aria-label="Sign Out">
+                            <span data-icon="sign-out-alt" data-icon-size="0.9rem"></span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="pt-shell-body">
+                <!-- NavigationBar.tsx ------------------------------------------>
+                <header class="pt-topbar">
+                    <button type="button" class="pt-burger" id="ptPreviewBurger" aria-label="Open navigation menu">
+                        <span data-icon="bars" data-icon-size="1.1rem"></span>
+                    </button>
+                    <div class="pt-topbar-title">
+                        Dashboard
+                        <small>Niraula EduMedia</small>
+                    </div>
+                    <div class="pt-topbar-actions">
+                        <div class="navigation-link" title="Search" role="button" tabindex="0">
+                            <span data-icon="search" data-icon-size="1.05rem"></span>
+                        </div>
+
+                        <span class="pt-theme-slot">
+                            <button
+                                type="button"
+                                class="pt-theme-toggle"
+                                id="ptPreviewToggle"
+                                data-icon-toggle="sun:moon"
+                                data-icon-size="1rem"
+                                title="Switch to light mode"
+                                aria-label="Switch to light mode"
+                            ></button>
+                        </span>
+
+                        <a href="#" class="active" title="Dashboard" aria-label="Dashboard">
+                            <span data-icon="layer-group" data-icon-size="1.05rem"></span>
+                        </a>
+                        <a href="#" title="Admin" aria-label="Admin">
+                            <span data-icon="shield-alt" data-icon-size="1.05rem"></span>
+                        </a>
+                        <a href="#" class="pt-avatar-btn" title="Account Settings" aria-label="Account Settings">
+                            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
+                        </a>
+                        <button type="button" class="hidden sm:inline-flex" title="Sign Out" aria-label="Sign Out">
+                            <span data-icon="sign-out-alt" data-icon-size="1.05rem"></span>
+                        </button>
+                    </div>
+                </header>
+
+                <main class="pt-shell-main">
+                    <div class="mx-auto w-full max-w-[1200px] space-y-8">
+                        <!-- Preview banner ------------------------------------>
+                        <section class="rounded border border-neutral-600 bg-neutral-700 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-sm uppercase tracking-wide text-gold-300">brine-theme preview</p>
+                                <p class="text-neutral-400 text-sm">
+                                    Static mock of the React panel using the real palette stylesheet, fonts and Tailwind build.
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <a href="index.html" class="pt-btn pt-btn-primary pt-btn-xs">React panel</a>
+                                <a href="admin.html" class="pt-btn pt-btn-secondary pt-btn-xs">Admin area</a>
+                            </div>
+                        </section>
+
+                        <!-- DashboardContainer: hero -------------------------->
+                        <section class="pt-hero">
+                            <p class="pt-hero-eyebrow">Niraula EduMedia</p>
+                            <h1>Welcome back, John</h1>
+                            <p class="pt-hero-sub">
+                                Spin up, manage and monitor every server you own - files, backups, databases and
+                                schedules all live in one place.
+                            </p>
+                            <div class="pt-hero-stats">
+                                <div class="pt-hero-stat">
+                                    <b>3</b>
+                                    <span>Servers</span>
+                                </div>
+                                <div class="pt-hero-stat">
+                                    <b>1</b>
+                                    <span>Pages</span>
+                                </div>
+                                <div class="pt-hero-stat">
+                                    <b>Admin</b>
+                                    <span>Access</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- alert/Alert.tsx ----------------------------------->
+                        <section class="space-y-3">
+                            <div class="pt-alert pt-alert-danger">
+                                <span class="mr-2 text-red-400" data-icon="shield-alt" data-icon-size="1.5rem"></span>
+                                <p>
+                                    We were unable to locate a server matching those details. If you believe this is an error
+                                    please contact support.
+                                </p>
+                            </div>
+                            <div class="pt-alert pt-alert-warning">
+                                <span class="mr-2 text-yellow-500" data-icon="exclamation-triangle" data-icon-size="1.5rem"></span>
+                                <p>Your account has two-factor authentication enabled. Recovery tokens were generated.</p>
+                            </div>
+                        </section>
+
+                        <!-- DashboardContainer: server list -------------------->
+                        <section>
+                            <div class="flex flex-wrap justify-between items-center gap-3">
+                                <h2 class="pt-section-title !mt-0 flex-1">Your servers</h2>
+                                <div class="flex justify-end items-center">
+                                    <p class="uppercase text-xs text-neutral-400 mr-2">Showing your servers</p>
+                                    <span class="inline-block w-9 h-5 rounded-full bg-gold-600 relative">
+                                        <span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- ServerRow.tsx -->
+                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-green-500))">
+                                <div class="pt-server-tile">
+                                    <span data-icon="server" data-icon-size="1.25rem"></span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="pt-server-name">Survival SMP</p>
+                                    <p class="pt-server-desc">Paper 1.20.4 running on node-01 with 6 plugins.</p>
+                                    <div class="pt-server-meta">
+                                        <span class="pt-chip pt-chip--online">Running</span>
+                                        <span class="pt-chip pt-chip--allocation">192.168.1.10:25565</span>
+                                    </div>
+                                </div>
+                                <div class="pt-server-stats">
+                                    <div class="pt-stat">
+                                        <div class="pt-stat-label">CPU</div>
+                                        <div class="pt-stat-value">38.20%</div>
+                                        <div class="pt-stat-limit">of 100 %</div>
+                                        <div class="pt-bar"><i style="width: 38%"></i></div>
+                                    </div>
+                                    <div class="pt-stat">
+                                        <div class="pt-stat-label">Memory</div>
+                                        <div class="pt-stat-value">1.42 GiB</div>
+                                        <div class="pt-stat-limit">of 4 GiB</div>
+                                        <div class="pt-bar"><i style="width: 35%"></i></div>
+                                    </div>
+                                    <div class="pt-stat">
+                                        <div class="pt-stat-label">Disk</div>
+                                        <div class="pt-stat-value">6.20 GiB</div>
+                                        <div class="pt-stat-limit">of 10 GiB</div>
+                                        <div class="pt-bar is-alarm"><i style="width: 62%"></i></div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-red-500))">
+                                <div class="pt-server-tile">
+                                    <span data-icon="server" data-icon-size="1.25rem"></span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="pt-server-name">Modded Factory</p>
+                                    <p class="pt-server-desc">Forge 1.19.2, suspended for exceeding its disk quota.</p>
+                                    <div class="pt-server-meta">
+                                        <span class="pt-chip pt-chip--offline">Suspended</span>
+                                        <span class="pt-chip pt-chip--allocation">node-02:25577</span>
+                                    </div>
+                                </div>
+                                <div class="pt-server-stats">
+                                    <span class="pt-stat-label">Awaiting live stats</span>
+                                </div>
+                            </a>
+
+                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-yellow-500))">
+                                <div class="pt-server-tile">
+                                    <span data-icon="server" data-icon-size="1.25rem"></span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="pt-server-name">Creative Build</p>
+                                    <p class="pt-server-desc">Vanilla 1.20.1 - installation step 2 of 6 is running.</p>
+                                    <div class="pt-server-meta">
+                                        <span class="pt-chip pt-chip--busy">Installing</span>
+                                        <span class="pt-chip pt-chip--allocation">node-01:25599</span>
+                                    </div>
+                                </div>
+                                <div class="pt-server-stats">
+                                    <span class="pt-stat-label">Awaiting live stats</span>
+                                </div>
+                            </a>
+                        </section>
+
+                        <!-- ServerConsoleContainer.tsx ------------------------->
+                        <section>
+                            <div class="pt-console-head">
+                                <div class="min-w-0">
+                                    <p class="pt-hero-eyebrow">Server console</p>
+                                    <h1>Survival SMP</h1>
+                                    <p class="pt-console-desc">
+                                        <span class="pt-chip pt-chip--online mr-2 align-middle">Running</span>
+                                        Live output, power controls and resource usage for this server.
+                                    </p>
+                                </div>
+                                <div class="pt-console-actions">
+                                    <div class="flex flex-wrap justify-start sm:justify-end gap-2 w-full sm:w-auto">
+                                        <button type="button" class="pt-btn pt-btn-primary pt-power" disabled>Start</button>
+                                        <button type="button" class="pt-btn pt-btn-grey">Restart</button>
+                                        <button type="button" class="pt-btn pt-btn-red">Stop</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4">
+                                <div class="col-span-4 lg:col-span-3">
+                                    <!-- console/Console.tsx -->
+                                    <div class="terminal_container">
+                                        <div class="terminal_bar">
+                                            <span class="terminal_dot"></span>
+                                            <span class="terminal_title">Terminal</span>
+                                            <span class="terminal_hint">Type a command and press Enter</span>
+                                        </div>
+                                        <div class="terminal">
+                                            <div class="p-2 font-mono text-sm leading-relaxed text-green-300 space-y-0.5">
+                                                <p class="text-gray-400">[12:04:11 INFO]: Starting minecraft server version 1.20.4</p>
+                                                <p class="text-gray-400">[12:04:12 INFO]: Loading properties</p>
+                                                <p class="text-white">[12:04:12 INFO]: Default game type: SURVIVAL</p>
+                                                <p class="text-yellow-300">[12:04:13 WARN]: UUID of player steve is not valid</p>
+                                                <p class="text-gray-400">[12:04:14 INFO]: Done (2.481s)! For help, type "help"</p>
+                                                <p class="text-gold-300">&gt; <span class="inline-block w-2 h-4 bg-gold-400 align-middle"></span></p>
+                                            </div>
+                                            <div class="relative">
+                                                <span class="command_icon" data-icon="bolt" data-icon-size="0.9rem"></span>
+                                                <input class="command_input" placeholder="Type a command..." />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ServerDetailsBlock.tsx / StatBlock.tsx ------>
+                                <div class="col-span-4 lg:col-span-1 grid grid-cols-6 gap-2 md:gap-4 order-last lg:order-none">
+                                    <div class="pt-console-stat col-span-6">
+                                        <div class="status_bar bg-green-500"></div>
+                                        <div class="icon bg-navy-600 text-gold-300"><span data-icon="wifi" data-icon-size="1.5rem"></span></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-neutral-400 text-xs uppercase">Address</p>
+                                            <p class="text-neutral-100 text-sm truncate">192.168.1.10:25565</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-console-stat col-span-3">
+                                        <div class="status_bar bg-green-500"></div>
+                                        <div class="icon bg-navy-600 text-gold-300"><span data-icon="clock" data-icon-size="1.5rem"></span></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-neutral-400 text-xs uppercase">Uptime</p>
+                                            <p class="text-neutral-100 text-sm">3d 4h</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-console-stat col-span-3">
+                                        <div class="status_bar bg-yellow-500"></div>
+                                        <div class="icon bg-navy-600 text-gold-300"><span data-icon="cpu" data-icon-size="1.5rem"></span></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-neutral-400 text-xs uppercase">CPU</p>
+                                            <p class="text-neutral-100 text-sm">38.20% <span class="text-neutral-500 text-[70%]">/ 100%</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-console-stat col-span-3">
+                                        <div class="status_bar bg-green-500"></div>
+                                        <div class="icon bg-navy-600 text-gold-300"><span data-icon="memory" data-icon-size="1.5rem"></span></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-neutral-400 text-xs uppercase">Memory</p>
+                                            <p class="text-neutral-100 text-sm">1.42 GiB <span class="text-neutral-500 text-[70%]">/ 4 GiB</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-console-stat col-span-3">
+                                        <div class="status_bar bg-green-500"></div>
+                                        <div class="icon bg-navy-600 text-gold-300"><span data-icon="hdd" data-icon-size="1.5rem"></span></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-neutral-400 text-xs uppercase">Disk</p>
+                                            <p class="text-neutral-100 text-sm">6.2 GiB <span class="text-neutral-500 text-[70%]">/ 10 GiB</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- StatGraphs.tsx --------------------------------->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
+                                <div class="chart_container p-4">
+                                    <h3 class="text-sm uppercase tracking-wide">CPU Usage</h3>
+                                    <p class="text-xs">Percent of the allocation in use</p>
+                                    <svg viewBox="0 0 300 110" class="w-full h-32 mt-3">
+                                        <g stroke="rgb(var(--pt-gray-500) / 0.35)" stroke-width="1">
+                                            <line x1="0" y1="20" x2="300" y2="20"></line>
+                                            <line x1="0" y1="50" x2="300" y2="50"></line>
+                                            <line x1="0" y1="80" x2="300" y2="80"></line>
+                                        </g>
+                                        <polyline fill="none" stroke="rgb(var(--pt-gold-500))" stroke-width="2"
+                                            points="0,86 30,74 60,80 90,58 120,64 150,44 180,52 210,36 240,46 270,30 300,40"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="chart_container p-4">
+                                    <h3 class="text-sm uppercase tracking-wide">Memory</h3>
+                                    <p class="text-xs">Resident memory over the last hour</p>
+                                    <svg viewBox="0 0 300 110" class="w-full h-32 mt-3">
+                                        <g stroke="rgb(var(--pt-gray-500) / 0.35)" stroke-width="1">
+                                            <line x1="0" y1="20" x2="300" y2="20"></line>
+                                            <line x1="0" y1="50" x2="300" y2="50"></line>
+                                            <line x1="0" y1="80" x2="300" y2="80"></line>
+                                        </g>
+                                        <polyline fill="none" stroke="rgb(var(--pt-green-500))" stroke-width="2"
+                                            points="0,72 30,68 60,66 90,60 120,58 150,54 180,52 210,50 240,48 270,46 300,44"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="chart_container p-4">
+                                    <h3 class="text-sm uppercase tracking-wide">Network</h3>
+                                    <p class="text-xs">Inbound and outbound traffic</p>
+                                    <svg viewBox="0 0 300 110" class="w-full h-32 mt-3">
+                                        <g stroke="rgb(var(--pt-gray-500) / 0.35)" stroke-width="1">
+                                            <line x1="0" y1="20" x2="300" y2="20"></line>
+                                            <line x1="0" y1="50" x2="300" y2="50"></line>
+                                            <line x1="0" y1="80" x2="300" y2="80"></line>
+                                        </g>
+                                        <polyline fill="none" stroke="rgb(var(--pt-navy-400))" stroke-width="2"
+                                            points="0,90 30,84 60,70 90,78 120,52 150,66 180,40 210,58 240,34 270,50 300,28"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- File manager -------------------------------------->
+                        <section>
+                            <p class="text-xs uppercase tracking-[0.18em] text-gold-300 mb-1">File manager</p>
+                            <h2 class="text-xl text-neutral-100 mb-4">Files</h2>
+
+                            <div class="flex flex-wrap-reverse md:flex-nowrap mb-4 gap-4">
+                                <div class="fm-path">
+                                    <span class="fm-path-pad"></span>
+                                    <span class="fm-path-root">home</span>
+                                    <span class="fm-path-sep">/</span>
+                                    <a href="#" class="fm-path-link">container</a>
+                                    <span class="fm-path-sep">/</span>
+                                    <a href="#" class="fm-path-link">plugins</a>
+                                    <span class="fm-path-sep">/</span>
+                                    <span class="fm-path-leaf">EssentialsX</span>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 w-full gap-4 mb-4 md:flex md:flex-1 md:justify-end md:mb-0">
+                                    <button type="button" class="pt-btn pt-btn-grey">Create Directory</button>
+                                    <button type="button" class="pt-btn pt-btn-primary">Upload</button>
+                                    <button type="button" class="pt-btn pt-btn-primary">New File</button>
+                                </div>
+                            </div>
+
+                            <div class="fm-file-row">
+                                <span class="file_tile" data-icon="folder" data-icon-size="1rem"></span>
+                                <span class="file_name">config</span>
+                                <span class="file_meta file_meta--size">-</span>
+                                <span class="file_meta file_meta--time">2 days ago</span>
+                            </div>
+                            <div class="fm-file-row">
+                                <span class="file_tile" data-icon="folder" data-icon-size="1rem"></span>
+                                <span class="file_name">modules</span>
+                                <span class="file_meta file_meta--size">-</span>
+                                <span class="file_meta file_meta--time">5 hours ago</span>
+                            </div>
+                            <div class="fm-file-row">
+                                <span class="file_tile file_tile--file" data-icon="file-alt" data-icon-size="1rem"></span>
+                                <span class="file_name">plugin.yml</span>
+                                <span class="file_meta file_meta--size">1.4 KiB</span>
+                                <span class="file_meta file_meta--time">3 weeks ago</span>
+                            </div>
+                            <div class="fm-file-row">
+                                <span class="file_tile file_tile--file" data-icon="file-alt" data-icon-size="1rem"></span>
+                                <span class="file_name">README.md</span>
+                                <span class="file_meta file_meta--size">8.1 KiB</span>
+                                <span class="file_meta file_meta--time">a month ago</span>
+                            </div>
+
+                            <div class="fixed bottom-0 left-0 right-0 mb-6 flex justify-center z-50 pointer-events-none px-4">
+                                <div class="fm-mass pointer-events-auto">
+                                    <span class="fm-mass-count">2 selected</span>
+                                    <button type="button" class="pt-btn pt-btn-primary">Move</button>
+                                    <button type="button" class="pt-btn pt-btn-primary">Archive</button>
+                                    <button type="button" class="pt-btn pt-btn-red">Delete</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ContentBox.tsx: buttons + forms --------------------->
+                        <section>
+                            <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Buttons and forms</h2>
+                            <div class="pt-content-box space-y-6">
+                                <div class="flex flex-wrap gap-3">
+                                    <button type="button" class="pt-btn pt-btn-primary">Primary</button>
+                                    <button type="button" class="pt-btn pt-btn-grey">Grey</button>
+                                    <button type="button" class="pt-btn pt-btn-green">Green</button>
+                                    <button type="button" class="pt-btn pt-btn-red">Red</button>
+                                    <button type="button" class="pt-btn pt-btn-secondary">Secondary</button>
+                                    <button type="button" class="pt-btn pt-btn-primary" disabled>Disabled</button>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="rounded p-4 bg-neutral-700 space-y-2">
+                                        <p class="text-neutral-500 text-xs uppercase tracking-wide">Default field</p>
+                                        <label class="block text-neutral-300 text-sm mb-2">Server name</label>
+                                        <input class="text_input" value="Survival SMP" />
+                                        <p class="input-help text-gold-300 text-xs">Subtle helper text</p>
+                                    </div>
+                                    <div class="rounded p-4 bg-neutral-700 space-y-2">
+                                        <p class="text-neutral-500 text-xs uppercase tracking-wide">Error state</p>
+                                        <label class="block text-neutral-300 text-sm mb-2">Egg</label>
+                                        <input class="text_input text-red-100" value="paper" />
+                                        <p class="input-help text-red-100 text-xs">That egg could not be resolved.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- LoginFormContainer.tsx ------------------------------>
+                        <section>
+                            <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Login</h2>
+                            <div class="rounded overflow-hidden border border-neutral-600">
+                                <div class="pt-auth pt-auth-page py-10" style="min-height: 34rem">
+                                    <div class="pt-auth-card">
+                                        <div class="pt-auth-top">
+                                            <span class="pt-auth-emblem">
+                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="Niraula EduMedia" width="44" height="44" />
+                                            </span>
+                                            <div class="min-w-0 text-left">
+                                                <p class="pt-hero-eyebrow">Niraula EduMedia</p>
+                                                <h2 class="text-white text-xl">Sign in to your panel</h2>
+                                            </div>
+                                        </div>
+                                        <div class="pt-auth-body">
+                                            <p class="pt-auth-subtitle">Use your panel credentials to continue.</p>
+                                            <label class="block text-neutral-700 text-sm mb-2">Username or Email</label>
+                                            <input class="text_input bg-white text-neutral-800 mb-4" value="john@niraula.edu.np" />
+                                            <label class="block text-neutral-700 text-sm mb-2">Password</label>
+                                            <input class="text_input bg-white text-neutral-800" type="password" value="hunter22" />
+                                            <button type="button" class="pt-btn pt-btn-primary pt-btn-block mt-5">Login</button>
+                                            <p class="text-center text-sm mt-4 text-neutral-500">
+                                                <a href="#" class="text-gold-300">Forgot password?</a>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p class="mt-6 text-xs text-neutral-500">Powered by Pterodactyl - Niraula EduMedia</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Light-mode fix checks ------------------------------>
+                        <section>
+                            <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Light-mode fix checks</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="rounded p-4 bg-neutral-700 space-y-2">
+                                    <p class="text-neutral-500 text-xs uppercase tracking-wide">
+                                        <code class="font-mono text-2xs">input.text-neutral-800</code>
+                                    </p>
+                                    <input class="text_input bg-white text-neutral-800" value="input.text-neutral-800" />
+                                </div>
+                                <div class="rounded p-4 bg-neutral-700 space-y-2">
+                                    <input class="text_input" value="disabled field" disabled />
+                                    <p class="input-help text-red-100 text-xs">
+                                        <code class="font-mono text-2xs">.input-help</code> validation
+                                    </p>
+                                    <input class="text_input text-red-100" value="text-red-100" />
+                                </div>
+                                <div class="rounded p-4 bg-neutral-100 sm:col-span-2 space-y-2">
+                                    <p class="text-neutral-500 text-xs uppercase tracking-wide">
+                                        Auth card <code class="font-mono text-2xs">bg-neutral-100</code>
+                                    </p>
+                                    <label class="block text-neutral-700 text-sm mb-2">
+                                        <code class="font-mono text-2xs">label.text-neutral-700</code>
+                                    </label>
+                                    <input class="text_input bg-white text-neutral-800" value="input.text-neutral-800" />
+                                    <label class="block text-neutral-700 text-sm mb-2">Password</label>
+                                    <input class="text_input bg-white text-neutral-800" type="password" value="hunter22" disabled />
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Palette ---------------------------------------------->
+                        <section>
+                            <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Palette</h2>
+                            <div class="pt-content-box space-y-4">
+                                <div>
+                                    <p class="text-neutral-600 text-sm mb-2">neutral / gray (mirrored for light mode)</p>
+                                    <div class="pt-palette">
+                                        <div class="pt-swatch" data-step="50" style="background: rgb(var(--pt-gray-50))"></div>
+                                        <div class="pt-swatch" data-step="100" style="background: rgb(var(--pt-gray-100))"></div>
+                                        <div class="pt-swatch" data-step="200" style="background: rgb(var(--pt-gray-200))"></div>
+                                        <div class="pt-swatch" data-step="300" style="background: rgb(var(--pt-gray-300))"></div>
+                                        <div class="pt-swatch" data-step="400" style="background: rgb(var(--pt-gray-400))"></div>
+                                        <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-gray-500))"></div>
+                                        <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-gray-600))"></div>
+                                        <div class="pt-swatch" data-step="700" style="background: rgb(var(--pt-gray-700))"></div>
+                                        <div class="pt-swatch" data-step="800" style="background: rgb(var(--pt-gray-800))"></div>
+                                        <div class="pt-swatch" data-step="900" style="background: rgb(var(--pt-gray-900))"></div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div>
+                                        <p class="text-neutral-600 text-sm mb-2">brand navy (blue / primary)</p>
+                                        <div class="pt-palette">
+                                            <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-navy-500))"></div>
+                                            <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-navy-600))"></div>
+                                            <div class="pt-swatch" data-step="700" style="background: rgb(var(--pt-navy-700))"></div>
+                                            <div class="pt-swatch" data-step="900" style="background: rgb(var(--pt-navy-900))"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-neutral-600 text-sm mb-2">brand gold (cyan alias)</p>
+                                        <div class="pt-palette">
+                                            <div class="pt-swatch" data-step="300" style="background: rgb(var(--pt-gold-300))"></div>
+                                            <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-gold-500))"></div>
+                                            <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-gold-600))"></div>
+                                            <div class="pt-swatch" data-step="700" style="background: rgb(var(--pt-gold-700))"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-neutral-600 text-sm mb-2">success (green)</p>
+                                        <div class="pt-palette">
+                                            <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-green-500))"></div>
+                                            <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-green-600))"></div>
+                                            <div class="pt-swatch" data-step="700" style="background: rgb(var(--pt-green-700))"></div>
+                                            <div class="pt-swatch" data-step="800" style="background: rgb(var(--pt-green-800))"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-neutral-600 text-sm mb-2">danger (red)</p>
+                                        <div class="pt-palette">
+                                            <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-red-500))"></div>
+                                            <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-red-600))"></div>
+                                            <div class="pt-swatch" data-step="700" style="background: rgb(var(--pt-red-700))"></div>
+                                            <div class="pt-swatch" data-step="800" style="background: rgb(var(--pt-red-800))"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="text-neutral-600 text-sm">
+                                    Toggle the switch in the topbar - every swatch and surface above re-colours from the
+                                    same <code class="font-mono text-2xs">--pt-*</code> custom properties with no rebuild.
+                                </p>
+                            </div>
+                        </section>
+
+                        <footer class="pt-footer">
+                            Powered by Pterodactyl - Niraula EduMedia &copy; <span id="ptPreviewYear"></span>
+                        </footer>
+                    </div>
+                </main>
+            </div>
+
+            <!-- AppShell drawer ------------------------------------------------>
+            <div class="pt-drawer" id="ptPreviewDrawer" aria-hidden="true">
+                <div class="pt-drawer-scrim" data-drawer-close></div>
+                <aside class="pt-drawer-panel" role="dialog" aria-label="Navigation">
+                    <button type="button" class="pt-drawer-close" data-drawer-close aria-label="Close navigation menu">&times;</button>
+
+                    <a href="#" class="pt-brand">
+                        <span class="pt-brand-mark">N</span>
+                        <span class="min-w-0">
+                            <span class="pt-brand-name block truncate">Niraula EduMedia</span>
+                            <span class="pt-brand-sub">Panel</span>
+                        </span>
+                    </a>
+                    <nav class="pt-nav">
+                        <div class="pt-nav-section">Overview</div>
+                        <a href="#" class="pt-nav-item active">
+                            <span class="pt-nav-ico" data-icon="layer-group" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Dashboard</span>
+                        </a>
+                        <div class="pt-nav-section">Account</div>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="user-circle" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Account</span>
+                        </a>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Activity</span>
+                        </a>
+                        <div class="pt-nav-section">Server</div>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="terminal" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Console</span>
+                        </a>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="folder" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Files</span>
+                        </a>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="database" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Databases</span>
+                        </a>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="archive" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Backups</span>
+                        </a>
+                    </nav>
+                </aside>
+            </div>
+        </div>
+
+        <script src="icons.js"></script>
+        <script src="preview.js"></script>
+    </body>
+</html>

@@ -12,8 +12,8 @@
             {{-- brine-theme: the admin-uploaded logo (Admin -> Branding) is the favicon;
                  stock /favicons are no longer referenced. --}}
             @php
-    $brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*'))
-    $brandLogo = is_array($brandLogo) ? $brandLogo : []
+    $brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
+    $brandLogo = is_array($brandLogo) ? $brandLogo : [];
 @endphp
             @if(count($brandLogo))
                 <link rel="icon" type="image/png" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">

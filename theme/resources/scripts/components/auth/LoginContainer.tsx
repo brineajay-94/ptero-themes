@@ -78,7 +78,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
-                    title={'Login to Continue'}
+                    title={'Sign in'}
                     subtitle={`Sign in with your ${brandName()} account to manage your servers.`}
                 >
                     <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
@@ -87,7 +87,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                     </div>
                     <div css={tw`mt-6`}>
                         <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
-                            Login
+                            Sign in
                         </Button>
                     </div>
                     {recaptchaEnabled && (

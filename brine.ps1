@@ -10,11 +10,12 @@
         .\brine.ps1 install [panel]  install
         .\brine.ps1 update [panel]   update an existing install
         .\brine.ps1 uninstall [panel]
+        .\brine.ps1 clear-cache [panel]  clear all panel caches
 #>
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('menu', 'status', 'install', 'update', 'uninstall', 'help')]
+    [ValidateSet('menu', 'status', 'install', 'update', 'uninstall', 'clear-cache', 'help')]
     [string]$Command = 'menu',
 
     [Parameter(Position = 1)]
@@ -219,6 +220,46 @@ function Invoke-UninstallAction {
     return 0
 }
 
+function Invoke-ClearCache {
+    param([string]$Panel)
+
+    $php = $null
+    foreach ($candidate in @('php', "$env:SystemRoot\System32\php.exe", 'C:\php\php.exe', "$env:ProgramFiles\PHP\php.exe")) {
+        if ($candidate -eq 'php') {
+            $cmd = Get-Command php -ErrorAction SilentlyContinue
+            if ($cmd) { $php = $cmd.Source; break }
+        }
+        elseif (Test-Path -LiteralPath $candidate) { $php = $candidate; break }
+    }
+    if (-not $php) {
+        Write-Host 'error: php not found on PATH - cannot clear caches.'
+        return 1
+    }
+
+    Write-Host "Clearing all panel caches in $Panel"
+    $failed = $false
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    foreach ($cmd in @('view:clear', 'config:clear', 'route:clear', 'cache:clear', 'event:clear')) {
+        $out = & $php (Join-Path $Panel 'artisan') $cmd 2>&1 | Out-String
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host ('  php artisan {0,-12} ok' -f $cmd)
+        }
+        else {
+            Write-Host ('  php artisan {0,-12} FAILED' -f $cmd)
+            $failed = $true
+        }
+    }
+    $ErrorActionPreference = $prevEAP
+    Write-Host ''
+    if ($failed) {
+        Write-Host 'Some cache commands failed - check that php runs as your panel user.'
+        return 1
+    }
+    Write-Host 'All caches cleared. Hard-refresh the browser (Ctrl+Shift+R).'
+    return 0
+}
+
 function Show-Menu {
     param([string]$Panel)
 
@@ -231,9 +272,10 @@ function Show-Menu {
         Write-Host '  3) Update theme'
         Write-Host '  4) Uninstall (restore original panel)'
         Write-Host '  5) Change panel directory'
+        Write-Host '  6) Clear all cache'
         Write-Host '  0) Exit'
         Write-Host ''
-        $choice = Read-Host 'Choose [0-5]'
+        $choice = Read-Host 'Choose [0-6]'
 
         switch ($choice) {
             '1' { Invoke-Install $Panel | Out-Null }
@@ -250,6 +292,7 @@ function Show-Menu {
                     Write-Host "Panel path rejected - keeping $Panel"
                 }
             }
+            '6' { Invoke-ClearCache $Panel | Out-Null }
             { $_ -eq '0' -or $_ -eq '' } { Write-Host 'Bye.'; return }
             default { Write-Host "Unknown option: $choice" }
         }
@@ -267,6 +310,7 @@ brine-theme manager
   .\brine install [panel]     install
   .\brine update [panel]      update an existing install
   .\brine uninstall [panel]   restore the original panel
+  .\brine clear-cache [panel] clear all panel caches (views/config/routes/cache)
 
 Environment:
   BRINE_PANEL   default panel directory
@@ -286,6 +330,7 @@ switch ($Command) {
     'install'   { $exitCode = Invoke-Install $Panel }
     'update'    { $exitCode = Invoke-Update $Panel }
     'uninstall' { $exitCode = Invoke-UninstallAction $Panel }
+    'clear-cache' { $exitCode = Invoke-ClearCache $Panel }
 }
 
 exit $exitCode

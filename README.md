@@ -117,15 +117,18 @@ brine
   3) Update theme
   4) Uninstall (restore original panel)
   5) Change panel directory
+  6) Clear all cache
   0) Exit
 
-Choose [0-5]:
+Choose [0-6]:
 ```
 
 The panel directory is auto-detected (`$BRINE_PANEL`, `/var/www/pterodactyl`,
 `/usr/local/pterodactyl`, `C:\inetpub\pterodactyl`, the current directory â€¦) and
-option `5` accepts any other path. After installing, updating or uninstalling,
-the menu offers to rebuild the panel assets for you.
+option `5` accepts any other path. Option `6` runs every Laravel cache clear
+(`view`, `config`, `route`, `cache`, `event`) against the panel. After
+installing, updating or uninstalling, the menu offers to rebuild the panel
+assets for you.
 
 ### Non-interactive
 
@@ -136,6 +139,7 @@ Every menu action is also a subcommand, so it works from scripts and CI:
 ./brine install   /var/www/pterodactyl
 ./brine update    /var/www/pterodactyl
 ./brine uninstall /var/www/pterodactyl
+./brine clear-cache /var/www/pterodactyl # view + config + route + cache + event
 ```
 
 ```powershell
@@ -143,6 +147,7 @@ brine status    C:\inetpub\pterodactyl
 brine install   C:\inetpub\pterodactyl
 brine update    C:\inetpub\pterodactyl
 brine uninstall C:\inetpub\pterodactyl
+brine clear-cache C:\inetpub\pterodactyl
 ```
 
 | Environment variable | Effect |

@@ -7,6 +7,7 @@
 #   ./brine install [panel]     install
 #   ./brine update [panel]      update an existing install
 #   ./brine uninstall [panel]   restore the original panel
+#   ./brine clear-cache [panel] clear all panel caches (views/config/routes/cache)
 #
 set -uo pipefail
 
@@ -109,6 +110,18 @@ ask_yn() {
         [Nn]*) return 1 ;;
         *)     [ "$def" = "y" ] ;;
     esac
+}
+
+find_php() {
+    if command -v php >/dev/null 2>&1; then
+        command -v php
+    elif [ -x /usr/bin/php ]; then
+        echo /usr/bin/php
+    elif [ -x /usr/local/bin/php ]; then
+        echo /usr/local/bin/php
+    else
+        return 1
+    fi
 }
 
 rebuild_hint() {
@@ -228,6 +241,31 @@ do_uninstall() {
     echo "brine-theme uninstalled - the original panel theme is back."
 }
 
+do_clear_cache() {
+    local panel="$1" php_bin cmd rc=0
+    if ! php_bin="$(find_php)"; then
+        echo "error: php not found on PATH - cannot clear caches."
+        return 1
+    fi
+    echo "Clearing all panel caches in $panel"
+    for cmd in view:clear config:clear route:clear cache:clear event:clear; do
+        printf '  php artisan %-12s ' "$cmd"
+        if (cd "$panel" && "$php_bin" artisan "$cmd" >/dev/null 2>&1); then
+            echo "ok"
+        else
+            echo "FAILED"
+            rc=1
+        fi
+    done
+    echo
+    if [ "$rc" -eq 0 ]; then
+        echo "All caches cleared. Hard-refresh the browser (Ctrl+Shift+R)."
+    else
+        echo "Some cache commands failed - check that php runs as your panel user."
+    fi
+    return "$rc"
+}
+
 menu() {
     local panel="$1" choice
     while true; do
@@ -239,9 +277,10 @@ menu() {
         echo "  3) Update theme"
         echo "  4) Uninstall (restore original panel)"
         echo "  5) Change panel directory"
+        echo "  6) Clear all cache"
         echo "  0) Exit"
         echo
-        printf 'Choose [0-5]: '
+        printf 'Choose [0-6]: '
         read -r choice || choice="0"
         echo
         case "$choice" in
@@ -258,6 +297,7 @@ menu() {
                 else
                     echo "Panel path rejected - keeping $panel"
                 fi ;;
+            6) do_clear_cache "$panel" ;;
             0|"") echo "Bye."; return 0 ;;
             *) echo "Unknown option: $choice" ;;
         esac
@@ -269,7 +309,7 @@ menu() {
 CMD="${1:-menu}"
 case "$CMD" in
     -h|--help|help)
-        sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
         echo
         echo "Interactive:  ./brine"
         exit 0 ;;
@@ -285,9 +325,10 @@ if [ "$CMD" != "menu" ]; then
         update)    do_update "$PANEL" ;;
         uninstall) do_uninstall "$PANEL" ;;
         status)    do_status "$PANEL" || exit $? ;;
+        clear-cache) do_clear_cache "$PANEL" ;;
         *)
             echo "Unknown command: $CMD" >&2
-            echo "Try: ./brine status|install|update|uninstall  (or just ./brine)" >&2
+            echo "Try: ./brine status|install|update|uninstall|clear-cache  (or just ./brine)" >&2
             exit 1 ;;
     esac
     exit $?

@@ -505,30 +505,39 @@
                         <section>
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Login</h2>
                             <div class="rounded overflow-hidden border border-neutral-600">
-                                <div class="pt-auth pt-auth-page py-10" style="min-height: 34rem">
-                                    <div class="pt-auth-card">
-                                        <div class="pt-auth-top">
-                                            <span class="pt-auth-emblem">
-                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="Pterodactyl" width="44" height="44" />
-                                            </span>
-                                            <div class="min-w-0 text-left">
-                                                <p class="pt-hero-eyebrow">Pterodactyl</p>
-                                                <h2 class="text-white text-xl">Sign in to your panel</h2>
+                                <div class="pt-auth pt-auth-page" style="min-height: 34rem">
+                                    <div class="pt-auth-bar">
+                                        <a class="pt-auth-bar-brand" href="#">
+                                            <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                            <span>Pterodactyl</span>
+                                        </a>
+                                        <nav class="pt-auth-bar-links">
+                                            <a href="#">Help</a>
+                                            <a href="#">Status</a>
+                                        </nav>
+                                    </div>
+                                    <div class="pt-auth-main">
+                                        <div class="pt-auth-card">
+                                            <div class="pt-auth-top">
+                                                <span class="pt-auth-emblem">
+                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="Pterodactyl" width="44" height="44" />
+                                                </span>
+                                                <h1>Sign in</h1>
                                             </div>
-                                        </div>
-                                        <div class="pt-auth-body">
-                                            <p class="pt-auth-subtitle">Use your panel credentials to continue.</p>
-                                            <label class="block text-neutral-700 text-sm mb-2">Username or Email</label>
-                                            <input class="text_input bg-white text-neutral-800 mb-4" value="john@example.com" />
-                                            <label class="block text-neutral-700 text-sm mb-2">Password</label>
-                                            <input class="text_input bg-white text-neutral-800" type="password" value="hunter22" />
-                                            <button type="button" class="pt-btn pt-btn-primary pt-btn-block mt-5">Login</button>
-                                            <p class="text-center text-sm mt-4 text-neutral-500">
-                                                <a href="#" class="text-gold-300">Forgot password?</a>
-                                            </p>
+                                            <div class="pt-auth-body">
+                                                <p class="pt-auth-subtitle">Sign in with your Pterodactyl account to manage your servers.</p>
+                                                <label class="block text-neutral-700 text-sm mb-2">Username or Email</label>
+                                                <input class="text_input mb-4" value="john@example.com" />
+                                                <label class="block text-neutral-700 text-sm mb-2">Password</label>
+                                                <input class="text_input" type="password" value="hunter22" />
+                                                <button type="button" class="pt-btn pt-btn-primary pt-btn-block mt-5">Sign in</button>
+                                                <p class="text-center text-sm mt-4 text-neutral-500">
+                                                    <a href="#">Forgot password?</a>
+                                                </p>
+                                            </div>
+                                            <div class="pt-auth-footer">&copy; 2026 Pterodactyl. All rights reserved.</div>
                                         </div>
                                     </div>
-                                    <p class="mt-6 text-xs text-neutral-500">Powered by brinecloud</p>
                                 </div>
                             </div>
                         </section>

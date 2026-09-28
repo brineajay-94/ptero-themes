@@ -1196,9 +1196,6 @@ video {
 .mt-5 {
   margin-top: 1.25rem;
 }
-.mt-6 {
-  margin-top: 1.5rem;
-}
 .block {
   display: block;
 }
@@ -1376,16 +1373,9 @@ video {
   padding-left: 1rem;
   padding-right: 1rem;
 }
-.py-10 {
-  padding-top: 2.5rem;
-  padding-bottom: 2.5rem;
-}
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-}
-.text-left {
-  text-align: left;
 }
 .text-center {
   text-align: center;
@@ -1465,9 +1455,6 @@ video {
 }
 .text-neutral-700 {
   color: rgb(var(--pt-gray-700));
-}
-.text-neutral-800 {
-  color: rgb(var(--pt-gray-800));
 }
 .text-red-100 {
   color: rgb(var(--pt-red-100));

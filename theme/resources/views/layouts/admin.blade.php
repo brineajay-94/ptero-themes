@@ -8,7 +8,7 @@
         <meta name="_token" content="{{ csrf_token() }}">
 
         {{-- brine-theme: the admin-uploaded logo doubles as the favicon; stock /favicons are gone. --}}
-        @php($brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*')))
+        @php($brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*')); $brandLogo = is_array($brandLogo) ? $brandLogo : array())
         @if(count($brandLogo))
             <link rel="icon" type="image/png" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
             <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">

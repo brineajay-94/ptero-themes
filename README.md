@@ -28,6 +28,10 @@ What it changes on top of the stock panel:
   login, console and file manager.
 - The **admin area** (AdminLTE) is untouched - no stylesheet, no toggle, no overrides.
 - The **favicon** and the **page title** stay exactly as Pterodactyl ships them.
+- The **brand name** (sidebar, topbar subtitle, login card, footer) is read from
+  the panel's own name setting - `config('app.name')`, exposed to the client as
+  `window.SiteConfiguration.name` via `resources/scripts/lib/brand.ts`. Nothing is
+  hardcoded, so renaming the panel rebrands the theme automatically.
 
 ## Requirements
 
@@ -268,7 +272,7 @@ render, so they match the panel.
 
 ## What changes
 
-32 files. Full detail lives in `manifest.json`; the summary:
+33 files. Full detail lives in `manifest.json`; the summary:
 
 **Build & chrome**
 
@@ -304,12 +308,16 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
+| `resources/scripts/lib/brand.ts` | create - `brandName()` from `SiteConfiguration.name` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
 
 ## Customising
 
+- **Branding** - set the panel name in `config/app.php` / `.env` (`APP_NAME`) or
+  wherever your deployment defines it; the sidebar, topbar, login card and footer
+  all pick it up through `brandName()`.
 - **Colours** â€” edit the token blocks at the top of
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the

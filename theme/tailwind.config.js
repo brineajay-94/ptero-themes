@@ -21,8 +21,8 @@ const red = ramp('red', STEPS);
 const green = ramp('green', STEPS);
 const yellow = ramp('yellow', STEPS);
 
-// Niraula EduMedia: `blue` / `primary` are the brand navy, `cyan` is the brand
-// gold. Every stock `text-blue-*`, `bg-primary-600`, `border-cyan-500` and the
+// Accent: `blue` / `primary` are the primary ramp, `cyan` is the accent
+// alias. Every stock `text-blue-*`, `bg-primary-600`, `border-cyan-500` and the
 // nav underline (`inset 0 -2px cyan.600`) therefore re-brand themselves
 // without touching a single component. red/green/yellow keep their stock
 // semantics so server status colours still read as status colours.

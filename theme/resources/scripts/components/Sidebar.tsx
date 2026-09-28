@@ -26,6 +26,7 @@ import { ApplicationStore } from '@/state';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
 import routes from '@/routers/routes';
+import { brandName } from '@/lib/brand';
 
 export interface SidebarProps {
     mode: 'dashboard' | 'server';
@@ -103,9 +104,9 @@ export default ({ mode, serverName, serverId, matchUrl, onNavigate, onLogout }: 
     return (
         <>
             <Link to={'/'} className={'pt-brand'} onClick={onNavigate}>
-                <span className={'pt-brand-mark'}>N</span>
+                <span className={'pt-brand-mark'}>{brandName().charAt(0).toUpperCase()}</span>
                 <span className={'min-w-0'}>
-                    <span className={'pt-brand-name block truncate'}>Niraula EduMedia</span>
+                    <span className={'pt-brand-name block truncate'}>{brandName()}</span>
                     <span className={'pt-brand-sub'}>Panel</span>
                 </span>
             </Link>

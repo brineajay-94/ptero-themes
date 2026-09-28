@@ -4,6 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import NavigationBar from '@/components/NavigationBar';
 import routes from '@/routers/routes';
 import http from '@/api/http';
+import { brandName } from '@/lib/brand';
 
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
@@ -43,7 +44,7 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
 
     const title = mode === 'server' ? matched?.name || 'Server' : isAccount ? matched?.name || 'Account' : 'Dashboard';
 
-    const subtitle = mode === 'server' ? serverName || 'Loading server' : 'Niraula EduMedia';
+    const subtitle = mode === 'server' ? serverName || 'Loading server' : brandName();
 
     useEffect(() => {
         setDrawerOpen(false);

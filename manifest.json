@@ -23,6 +23,11 @@
             "note": "ptColor() helper for Chart.js - dark-only, no theme state"
         },
         {
+            "path": "resources/scripts/lib/brand.ts",
+            "action": "create",
+            "note": "brandName() - the panel's own site name from window.SiteConfiguration (config('app.name'))"
+        },
+        {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
             "note": "Aternos dark tokens (#1a1f24 page, #2d3943 surface, #2b87d3 accent, system fonts), shell/auth/dashboard/console/file-manager styles"
@@ -60,7 +65,7 @@
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",
             "action": "replace",
-            "note": "Centres the redesigned Niraula login card"
+            "note": "Centres the redesigned login card"
         },
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
@@ -70,7 +75,7 @@
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Passes the Niraula heading and subtitle to the redesigned login card"
+            "note": "Passes the title and subtitle to the redesigned login card"
         },
         {
             "path": "resources/scripts/components/auth/LoginCheckpointContainer.tsx",
@@ -100,7 +105,7 @@
         {
             "path": "resources/scripts/components/elements/PageContentBlock.tsx",
             "action": "replace",
-            "note": "Adds the shared Niraula EduMedia footer"
+            "note": "Adds the shared footer, showing the panel site name"
         },
         {
             "path": "resources/scripts/components/elements/button/style.module.css",

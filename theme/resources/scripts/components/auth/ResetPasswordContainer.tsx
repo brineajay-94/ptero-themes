@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import performPasswordReset from '@/api/auth/performPasswordReset';
 import { httpErrorToHuman } from '@/api/http';
 import LoginFormContainer from '@/components/auth/LoginFormContainer';
+import { brandName } from '@/lib/brand';
 import { Actions, useStoreActions } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import { Formik, FormikHelpers } from 'formik';
@@ -71,7 +72,7 @@ export default ({ match, location }: RouteComponentProps<{ token: string }>) => 
             {({ isSubmitting }) => (
                 <LoginFormContainer
                     title={'Reset Password'}
-                    subtitle={'Choose a new password for your Niraula EduMedia account.'}
+                    subtitle={`Choose a new password for your ${brandName()} account.`}
                 >
                     <div>
                         <label>Email</label>

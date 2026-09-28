@@ -12,6 +12,7 @@ import tw from 'twin.macro';
 import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
+import { brandName } from '@/lib/brand';
 import { useLocation } from 'react-router-dom';
 
 export default () => {
@@ -58,7 +59,7 @@ export default () => {
     return (
         <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
             <section className={'pt-hero'}>
-                <p className={'pt-hero-eyebrow'}>Niraula EduMedia</p>
+                <p className={'pt-hero-eyebrow'}>{brandName()}</p>
                 <h1>Welcome back{firstName ? `, ${firstName}` : ''}</h1>
                 <p className={'pt-hero-sub'}>
                     Spin up, manage and monitor every server you own - files, backups, databases and schedules all live

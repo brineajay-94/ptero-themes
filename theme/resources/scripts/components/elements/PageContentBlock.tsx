@@ -3,6 +3,7 @@ import ContentContainer from '@/components/elements/ContentContainer';
 import { CSSTransition } from 'react-transition-group';
 import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
+import { brandName } from '@/lib/brand';
 
 export interface PageContentBlockProps {
     title?: string;
@@ -30,7 +31,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                         <a rel={'noopener nofollow noreferrer'} href={'https://pterodactyl.io'} target={'_blank'}>
                             Pterodactyl
                         </a>
-                        &nbsp;&middot;&nbsp; Niraula EduMedia &copy; {new Date().getFullYear()}
+                        &nbsp;&middot;&nbsp; {brandName()} &copy; {new Date().getFullYear()}
                     </p>
                 </ContentContainer>
             </>

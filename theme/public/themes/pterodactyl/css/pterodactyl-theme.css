@@ -1,5 +1,5 @@
 /*
- * brine-theme - Pterodactyl Panel child theme branded for Niraula EduMedia
+ * brine-theme - Aternos-style Pterodactyl Panel child theme (user panel only)
  * Target: pterodactyl/panel v1.15.x
  *
  * Loaded from resources/views/templates/wrapper.blade.php - the normal user
@@ -565,9 +565,10 @@
 /* ---------------------------------------------------------- auth screens -- */
 /*
  * The stock panel opens on a pterodactyl-logo split card. This replaces it
- * with the Niraula EduMedia sign-in: navy masthead, gold rule, Playfair
- * heading, off-white page. Every auth route (login / checkpoint / forgot /
- * reset) renders through LoginFormContainer, so one component covers them all.
+ * with a dark sign-in card: blue masthead, emblem, system-font heading and dark
+ * page. Every auth route (login / checkpoint / forgot / reset) renders through
+ * LoginFormContainer, so one component covers them all. The heading text is the
+ * panel's own site name, read from window.SiteConfiguration (lib/brand.ts).
  */
 
 .pt-auth-page {

@@ -10,6 +10,7 @@ import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
+import { brandName } from '@/lib/brand';
 
 interface Values {
     username: string;
@@ -78,7 +79,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
                     title={'Login to Continue'}
-                    subtitle={'Sign in with your Niraula EduMedia account to manage your servers.'}
+                    subtitle={`Sign in with your ${brandName()} account to manage your servers.`}
                 >
                     <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
                     <div css={tw`mt-6`}>

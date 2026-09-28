@@ -3,7 +3,7 @@
     @apply text-sm font-bold uppercase tracking-wider transition-all duration-100;
     @apply focus:ring-[3px] focus:ring-offset-2 focus:ring-offset-gray-700 focus:ring-opacity-50;
 
-    /* Niraula EduMedia: sharp, compact, letter-spaced controls. */
+    /* Sharp, compact, letter-spaced controls. */
     border-radius: 3px;
 
     /* Sizing Controls */

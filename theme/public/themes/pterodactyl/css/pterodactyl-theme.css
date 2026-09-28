@@ -651,13 +651,14 @@
     color: rgb(var(--pt-gray-300));
 }
 
-/* `Field light` labels resolve to text-neutral-700 - restyle them for the
-   card body. ScreenBlock, outside .pt-auth, keeps its own colours. */
-.pt-auth .text-neutral-700 {
-    color: rgb(var(--pt-gray-300));
-}
-
+/* Field labels. The stock Label is a styled-component and twin.macro inlines
+   its colours into the generated class, so the element carries NO
+   `text-neutral-700` class to hook onto - it would keep gray-700, the exact
+   colour of the card, and vanish. Style it on the element instead.
+   (ScreenBlock and other text outside .pt-auth keep their own colours.) */
 .pt-auth label {
+    display: block;
+    color: rgb(var(--pt-gray-300));
     font-size: 0.8125rem;
     letter-spacing: 0.02em;
 }

@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { Form } from 'formik';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
-import { brandName } from '@/lib/brand';
+import { brandName, logoUrl } from '@/lib/brand';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -14,7 +14,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, subtitle, ...props }
         <div className={'pt-auth-card'}>
             <div className={'pt-auth-top'}>
                 <span className={'pt-auth-emblem'}>
-                    <img src={'/themes/pterodactyl/images/logo.svg'} alt={''} />
+                    <img src={logoUrl() || '/themes/pterodactyl/images/logo.svg'} alt={''} />
                 </span>
                 <h1>{brandName()}</h1>
             </div>

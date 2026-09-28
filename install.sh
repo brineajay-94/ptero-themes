@@ -262,6 +262,15 @@ while IFS=$'\t' read -r path action; do
     echo "$(printf '%-8s' "$action") $path"
 done < <(printf '%s\n' "${PAIRS[@]}")
 
+# The stock /favicons are no longer referenced anywhere (the admin-uploaded
+# logo is the favicon now), so take them out of the panel. They land inside the
+# backup, which restore_latest_backup copies straight back on uninstall.
+if [ "$ACTION" = "install" ] && [ -d "$PANEL_DIR/public/favicons" ]; then
+    mkdir -p "$BACKUP/public"
+    mv "$PANEL_DIR/public/favicons" "$BACKUP/public/favicons"
+    echo "removed  public/favicons (kept in the backup for uninstall)"
+fi
+
 write_state "$ACTION" "$BACKUP"
 echo
 

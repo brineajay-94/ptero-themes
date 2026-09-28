@@ -171,6 +171,31 @@
             "path": "resources/scripts/components/server/files/MassActionsBar.tsx",
             "action": "replace",
             "note": "Branded selection bar with selection counter"
+        },
+        {
+            "path": "app/Http/Controllers/Admin/BrandingController.php",
+            "action": "create",
+            "note": "Admin -> Branding: upload/remove the hosting logo (login emblem + favicon)"
+        },
+        {
+            "path": "resources/views/admin/branding.blade.php",
+            "action": "create",
+            "note": "Branding page: current logo, upload form, remove button"
+        },
+        {
+            "path": "app/Http/ViewComposers/AssetComposer.php",
+            "action": "replace",
+            "note": "Exposes the uploaded logo to the client as SiteConfiguration.logo"
+        },
+        {
+            "path": "routes/admin.php",
+            "action": "replace",
+            "note": "Stock routes + /admin/branding (BrandingController)"
+        },
+        {
+            "path": "resources/views/layouts/admin.blade.php",
+            "action": "replace",
+            "note": "Stock admin layout + Branding menu item, favicon from the uploaded logo"
         }
     ],
     "build": {

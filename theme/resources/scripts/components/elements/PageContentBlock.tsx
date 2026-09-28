@@ -3,7 +3,6 @@ import ContentContainer from '@/components/elements/ContentContainer';
 import { CSSTransition } from 'react-transition-group';
 import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
-import { brandName } from '@/lib/brand';
 
 export interface PageContentBlockProps {
     title?: string;
@@ -27,11 +26,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                 </ContentContainer>
                 <ContentContainer>
                     <p className={'pt-footer'}>
-                        Powered by{' '}
-                        <a rel={'noopener nofollow noreferrer'} href={'https://pterodactyl.io'} target={'_blank'}>
-                            Pterodactyl
-                        </a>
-                        &nbsp;&middot;&nbsp; {brandName()} &copy; {new Date().getFullYear()}
+                        Powered by <strong>brinecloud</strong> &copy; {new Date().getFullYear()}
                     </p>
                 </ContentContainer>
             </>

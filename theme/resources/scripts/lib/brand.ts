@@ -1,5 +1,5 @@
 interface BrandWindow extends Window {
-    SiteConfiguration?: { name?: string };
+    SiteConfiguration?: { name?: string; logo?: string | null };
 }
 
 /**
@@ -14,3 +14,9 @@ export const brandName = (): string => {
     const name = (window as BrandWindow).SiteConfiguration?.name;
     return name && name.trim().length > 0 ? name : 'Pterodactyl';
 };
+
+/**
+ * URL of the admin-uploaded hosting logo (Admin -> Branding), or null when no
+ * custom logo has been uploaded yet - callers fall back to the theme emblem.
+ */
+export const logoUrl = (): string | null => (window as BrandWindow).SiteConfiguration?.logo || null;

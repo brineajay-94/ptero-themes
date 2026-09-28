@@ -284,6 +284,21 @@ foreach ($file in $Files) {
     Write-Host ('{0,-8} {1}' -f $file.action, $file.path)
 }
 
+# The stock favicons are no longer referenced anywhere (the admin-uploaded logo
+# is the favicon now), so take them out of the panel. They land inside the
+# backup, which the uninstall restore copies straight back.
+if ($mode -eq 'install') {
+    $stockFavicons = Join-Path $PanelPath 'public\favicons'
+    if (Test-Path -LiteralPath $stockFavicons) {
+        $backupFavicons = Join-Path $Backup 'public\favicons'
+        if (-not (Test-Path -LiteralPath (Split-Path -Parent $backupFavicons))) {
+            New-Item -ItemType Directory -Path (Split-Path -Parent $backupFavicons) -Force | Out-Null
+        }
+        Move-Item -LiteralPath $stockFavicons -Destination $backupFavicons -Force
+        Write-Host 'removed  public/favicons (kept in the backup for uninstall)'
+    }
+}
+
 Write-State -Mode $mode -Backup $(if ($null -ne $Backup) { $Backup } else { '' })
 
 Write-Host ''

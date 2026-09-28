@@ -26,8 +26,11 @@ What it changes on top of the stock panel:
 
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
-- The **admin area** (AdminLTE) is untouched - no stylesheet, no toggle, no overrides.
-- The **favicon** and the **page title** stay exactly as Pterodactyl ships them.
+- The **admin area** (AdminLTE) keeps its stock look, with exactly one addition:
+  a **Branding** page (`/admin/branding`) where you upload your hosting logo.
+- The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
+  logo uploaded on the Branding page (falling back to the theme emblem) - the stock
+  `/favicons` folder is removed on install and restored on uninstall.
 - The **brand name** (sidebar, topbar subtitle, login card, footer) is read from
   the panel's own name setting - `config('app.name')`, exposed to the client as
   `window.SiteConfiguration.name` via `resources/scripts/lib/brand.ts`. Nothing is
@@ -272,7 +275,7 @@ render, so they match the panel.
 
 ## What changes
 
-33 files. Full detail lives in `manifest.json`; the summary:
+38 files. Full detail lives in `manifest.json`; the summary:
 
 **Build & chrome**
 
@@ -308,6 +311,11 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
+| `app/Http/Controllers/Admin/BrandingController.php` | create - logo upload/remove |
+| `resources/views/admin/branding.blade.php` | create - Admin -> Branding page |
+| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` |
+| `routes/admin.php` | replace - stock routes + `/admin/branding` |
+| `resources/views/layouts/admin.blade.php` | replace - Branding menu item + logo favicon |
 | `resources/scripts/lib/brand.ts` | create - `brandName()` from `SiteConfiguration.name` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
@@ -315,6 +323,11 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 
 ## Customising
 
+- **Hosting logo** - Admin -> **Branding** uploads your logo to
+  `public/themes/pterodactyl/images/custom-logo.<ext>`. The login emblem and the
+  favicon (user panel + admin) come from that file; remove it there to fall back
+  to the theme emblem. The stock `public/favicons` folder is moved into the
+  backup on install and restored on uninstall.
 - **Branding** - set the panel name in `config/app.php` / `.env` (`APP_NAME`) or
   wherever your deployment defines it; the sidebar, topbar, login card and footer
   all pick it up through `brandName()`.

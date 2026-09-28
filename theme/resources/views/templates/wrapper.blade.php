@@ -9,14 +9,16 @@
             <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
             <meta name="csrf-token" content="{{ csrf_token() }}">
             <meta name="robots" content="noindex">
-            <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
-            <link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
-            <link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
-            <link rel="manifest" href="/favicons/manifest.json">
-            <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#bc6e3c">
-            <link rel="shortcut icon" href="/favicons/favicon.ico">
-            <meta name="msapplication-config" content="/favicons/browserconfig.xml">
-            <meta name="theme-color" content="#0e4688">
+            {{-- brine-theme: the admin-uploaded logo (Admin -> Branding) is the favicon;
+                 stock /favicons are no longer referenced. --}}
+            @php($brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*')))
+            @if(count($brandLogo))
+                <link rel="icon" type="image/png" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
+                <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
+            @else
+                <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
+            @endif
+            <meta name="theme-color" content="#1a1f24">
         @show
 
         @section('user-data')

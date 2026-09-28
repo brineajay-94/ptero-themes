@@ -705,10 +705,10 @@
     color: rgb(var(--pt-gray-300));
 }
 
-/* The register form has six fields - keep it comfortable on small screens. */
+/* The register form has six fields - on short screens it scrolls, so start at
+   the top. Horizontal centring (`align-items`) always stays on. */
 @media (max-height: 800px) {
     .pt-auth-page {
-        align-items: flex-start;
         justify-content: flex-start;
         padding-top: 1.5rem;
     }

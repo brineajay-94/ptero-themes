@@ -1456,6 +1456,9 @@ video {
 .text-neutral-700 {
   color: rgb(var(--pt-gray-700));
 }
+.text-neutral-800 {
+  color: rgb(var(--pt-gray-800));
+}
 .text-red-100 {
   color: rgb(var(--pt-red-100));
 }

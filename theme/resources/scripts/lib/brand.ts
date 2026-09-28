@@ -1,5 +1,9 @@
 interface BrandWindow extends Window {
-    SiteConfiguration?: { name?: string; logo?: string | null };
+    SiteConfiguration?: {
+        name?: string;
+        logo?: string | null;
+        registration?: { enabled?: boolean };
+    };
 }
 
 /**
@@ -20,3 +24,12 @@ export const brandName = (): string => {
  * custom logo has been uploaded yet - callers fall back to the theme emblem.
  */
 export const logoUrl = (): string | null => (window as BrandWindow).SiteConfiguration?.logo || null;
+
+/**
+ * True when the admin has enabled public registration (Admin -> Registration).
+ * AssetComposer puts the switch into window.SiteConfiguration, so the login
+ * page can show "Don't have an account? Register here" only when sign-up is
+ * actually open - no extra fetch needed.
+ */
+export const registrationEnabled = (): boolean =>
+    (window as BrandWindow).SiteConfiguration?.registration?.enabled === true;

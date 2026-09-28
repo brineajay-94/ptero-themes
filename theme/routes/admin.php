@@ -241,3 +241,18 @@ Route::group(['prefix' => 'branding'], function () {
     Route::post('/', [Admin\BrandingController::class, 'update'])->name('admin.branding.update');
     Route::delete('/', [Admin\BrandingController::class, 'destroy'])->name('admin.branding.destroy');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Registration Routes
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/registration - enable public registration and store the
+| Application API key used by POST /auth/register to create users.
+|
+*/
+Route::group(['prefix' => 'registration'], function () {
+    Route::get('/', [Admin\RegistrationController::class, 'index'])->name('admin.registration');
+    Route::post('/', [Admin\RegistrationController::class, 'update'])->name('admin.registration.update');
+    Route::delete('/', [Admin\RegistrationController::class, 'destroy'])->name('admin.registration.destroy');
+});

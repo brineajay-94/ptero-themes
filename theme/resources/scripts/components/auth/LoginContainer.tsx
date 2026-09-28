@@ -21,11 +21,21 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const ref = useRef<Reaptcha>(null);
     const [token, setToken] = useState('');
 
-    const { clearFlashes, clearAndAddHttpError } = useFlash();
+    const { clearFlashes, clearAndAddHttpError, addFlash } = useFlash();
     const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
 
     useEffect(() => {
         clearFlashes();
+
+        // Registration finished - show a success banner once, then clean the
+        // URL so a refresh does not replay it.
+        if (new URLSearchParams(window.location.search).get('registered') === '1') {
+            addFlash({
+                type: 'success',
+                message: 'Your account has been created - sign in to continue.',
+            });
+            window.history.replaceState({}, '', '/auth/login');
+        }
     }, []);
 
     const onSubmit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
@@ -78,7 +88,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
-                    title={'Sign in'}
+                    title={'Login to Continue'}
                     subtitle={`Sign in with your ${brandName()} account to manage your servers.`}
                 >
                     <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
@@ -87,7 +97,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                     </div>
                     <div css={tw`mt-6`}>
                         <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
-                            Sign in
+                            Login
                         </Button>
                     </div>
                     {recaptchaEnabled && (

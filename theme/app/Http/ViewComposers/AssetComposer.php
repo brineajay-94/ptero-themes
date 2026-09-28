@@ -4,14 +4,17 @@ namespace Pterodactyl\Http\ViewComposers;
 
 use Illuminate\View\View;
 use Pterodactyl\Services\Helpers\AssetHashService;
+use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 
 class AssetComposer
 {
     /**
      * AssetComposer constructor.
      */
-    public function __construct(private AssetHashService $assetHashService)
-    {
+    public function __construct(
+        private AssetHashService $assetHashService,
+        private SettingsRepositoryInterface $settings,
+    ) {
     }
 
     /**
@@ -29,6 +32,11 @@ class AssetComposer
             ],
             // brine-theme: admin-uploaded hosting logo (Admin -> Branding), null until set.
             'logo' => self::uploadedLogo(),
+            // brine-theme: public registration switch (Admin -> Registration),
+            // read by the auth components to show/hide the register link.
+            'registration' => [
+                'enabled' => $this->settings->get('Brine::registration_enabled') === '1',
+            ],
         ]);
     }
 

@@ -12,8 +12,14 @@ What it changes on top of the stock panel:
 - **Dashboard** â€” branded hero header with welcome stats, section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.
-- **Login** â€” the stock login is replaced with a dark masthead carrying the brand emblem, a blue rule and a system-font heading (checkpoint, forgot and
-  reset screens follow the same treatment).
+- **Login** — the stock login is replaced with a compact square card: navy masthead
+  with the brand emblem, gold rule, system-font heading, one-screen height
+  (checkpoint, forgot and reset screens follow the same treatment).
+- **Registration** — a public sign-up page (`/auth/register`) with email, first
+  and last name, username, password and confirm-password. It appears behind a
+  "Don't have an account? Register here" link on the login card only when the
+  admin enables it; new users are created through the panel's own Application
+  API with a key saved under **Admin -> Registration**.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -26,8 +32,10 @@ What it changes on top of the stock panel:
 
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
-- The **admin area** (AdminLTE) keeps its stock look, with exactly one addition:
-  a **Branding** page (`/admin/branding`) where you upload your hosting logo.
+- The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
+  a **Branding** page (`/admin/branding`) where you upload your hosting logo, and
+  a **Registration** page (`/admin/registration`) that switches public sign-up on
+  or off and stores the Application API key used to create accounts.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   logo uploaded on the Branding page (falling back to the theme emblem) - the stock
   `/favicons` folder is removed on install and restored on uninstall.
@@ -280,7 +288,7 @@ render, so they match the panel.
 
 ## What changes
 
-38 files. Full detail lives in `manifest.json`; the summary:
+44 files. Full detail lives in `manifest.json`; the summary:
 
 **Build & chrome**
 
@@ -307,6 +315,8 @@ render, so they match the panel.
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace |
+| `components/auth/RegisterContainer.tsx` | create - public sign-up form |
+| `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
 | `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
@@ -318,10 +328,14 @@ render, so they match the panel.
 | --- | --- |
 | `app/Http/Controllers/Admin/BrandingController.php` | create - logo upload/remove |
 | `resources/views/admin/branding.blade.php` | create - Admin -> Branding page |
-| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` |
-| `routes/admin.php` | replace - stock routes + `/admin/branding` |
-| `resources/views/layouts/admin.blade.php` | replace - Branding menu item + logo favicon |
-| `resources/scripts/lib/brand.ts` | create - `brandName()` from `SiteConfiguration.name` |
+| `app/Http/Controllers/Admin/RegistrationController.php` | create - enable sign-up + save the Application API key |
+| `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
+| `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the Application API |
+| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` and `SiteConfiguration.registration` |
+| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` |
+| `routes/admin.php` | replace - stock routes + `/admin/branding` + `/admin/registration` |
+| `resources/views/layouts/admin.blade.php` | replace - Branding + Registration menu items, logo favicon |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
@@ -336,6 +350,10 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 - **Branding** - set the panel name in `config/app.php` / `.env` (`APP_NAME`) or
   wherever your deployment defines it; the sidebar, topbar, login card and footer
   all pick it up through `brandName()`.
+- **Registration** - Admin -> **Registration** to turn public sign-up on or off
+  and paste an Application API key (Admin -> Application API -> Create New). The
+  login card only shows the register link while the switch is on, and the key is
+  stored in panel settings (`Brine::registration_api_key`), never in the code.
 - **Colours** â€” edit the token blocks at the top of
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the

@@ -564,13 +564,12 @@
 
 /* ---------------------------------------------------------- auth screens -- */
 /*
- * Sign-in screen matching the reference mock (aternos-panel.html): 52px
- * #2d3943 topbar with brand + utility links, #1a1f24 page with soft blue
- * radials, centred 400px #2d3943 card (12px radius), dark #1a1f24 inputs and
- * a full-width #2b87d3 button. Every auth route (login / checkpoint / forgot
- * / reset) renders through LoginFormContainer. The heading text is the
- * panel's own site name and the topbar/card show the hosting logo uploaded
- * under Admin -> Branding (lib/brand.ts: brandName / logoUrl).
+ * The original brine-theme sign-in card: blue masthead, white emblem tile,
+ * system-font heading on the #1a1f24 page. Vertical padding is tightened and
+ * the container is square so the whole card fits on a laptop screen. Every
+ * auth route (login / register / checkpoint / forgot / reset) renders through
+ * LoginFormContainer. The heading is the panel's own site name and the emblem
+ * is the Admin -> Branding upload (lib/brand.ts).
  */
 
 .pt-auth-page {
@@ -579,175 +578,102 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 0;
-    background-image: radial-gradient(ellipse at 20% 50%, rgb(var(--pt-navy-600) / 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgb(var(--pt-navy-600) / 0.04) 0%, transparent 40%);
+    padding: 1.25rem 1rem;
     background-color: rgb(var(--pt-gray-800));
-}
-
-.pt-auth {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 100vh;
-}
-
-/* Non-login screens (NotFound/ScreenBlock) still get breathing room now that
-   the page itself has no padding for the full-bleed topbar. */
-.pt-auth-page > *:not(.pt-auth) {
-    width: 100%;
-    padding: 2.5rem 1rem;
-}
-
-/* Topbar: brand (logo + site name) left, utility links right. */
-.pt-auth-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    height: 52px;
-    padding: 0 16px;
-    background-color: rgb(var(--pt-gray-700));
-    border-bottom: 1px solid #12161a;
-}
-
-.pt-auth-bar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: rgb(var(--pt-white));
-    font-size: 17px;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.pt-auth-bar-brand img {
-    display: block;
-    width: 26px;
-    height: 26px;
-    object-fit: contain;
-    border-radius: 6px;
-}
-
-.pt-auth-bar-links {
-    display: flex;
-    gap: 4px;
-}
-
-.pt-auth-bar-links a {
-    padding: 6px 10px;
-    border-radius: 4px;
-    color: rgb(var(--pt-gray-200));
-    font-size: 13px;
-    font-weight: 400;
-    text-decoration: none;
-    transition: background-color 0.15s, color 0.15s;
-}
-
-.pt-auth-bar-links a:hover {
-    background-color: rgb(var(--pt-gray-600));
-    color: rgb(var(--pt-white));
-    text-decoration: none;
-}
-
-/* Card centred in the space below the topbar. */
-.pt-auth-main {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 24px 16px;
 }
 
 .pt-auth-card {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
+    border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgb(0 0 0 / 0.35);
+    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    box-shadow: 0 14px 44px rgb(0 0 0 / 0.16);
     overflow: hidden;
 }
 
 .pt-auth-top {
-    padding: 1.75rem 1.75rem 1.125rem;
+    padding: 1.125rem 1.5rem 0.875rem;
     text-align: center;
-    border-bottom: 1px solid rgb(var(--pt-gray-800));
-    color: rgb(var(--pt-white));
+    background-color: rgb(var(--pt-navy-600));
+    border-bottom: 3px solid rgb(var(--pt-gold-600));
+    color: #ffffff;
 }
 
 .pt-auth-emblem {
     display: block;
-    width: 3.25rem;
-    height: 3.25rem;
-    margin: 0 auto 0.75rem;
-    padding: 4px;
-    border: 1px solid rgb(var(--pt-navy-600) / 0.4);
-    border-radius: 0.75rem;
-    background-color: rgb(var(--pt-navy-600) / 0.14);
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0 auto 0.5rem;
+    padding: 3px;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.28);
 }
 
 .pt-auth-emblem img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    border-radius: 0.5rem;
 }
 
 .pt-auth-top h1 {
     font-family: var(--pt-font-heading);
-    font-size: 1.375rem;
+    font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.2;
-    color: rgb(var(--pt-white));
+    margin-bottom: 0;
+}
+
+.pt-auth-top p {
+    font-size: 0.8rem;
+    opacity: 0.9;
 }
 
 .pt-auth-body {
-    padding: 1.5rem 1.75rem 1.75rem;
-    color: rgb(var(--pt-gray-100));
-}
-
-.pt-auth-subtitle {
-    margin-bottom: 1.25rem;
-    font-size: 0.8125rem;
-    line-height: 1.5;
+    padding: 1.125rem 1.5rem 1.25rem;
     color: rgb(var(--pt-gray-200));
 }
 
-/* `Field light` labels resolve to text-neutral-700 - restyle them to the
-   reference's 13px/600 labels. ScreenBlock, which needs its own colours on
-   its dark panel, is outside .pt-auth and untouched. */
-.pt-auth .text-neutral-700,
+.pt-auth-body h2 {
+    font-family: var(--pt-font-heading);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 0.2rem;
+    color: rgb(var(--pt-navy-600));
+}
+
+.pt-auth-subtitle {
+    margin-bottom: 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgb(var(--pt-gray-300));
+}
+
+/* `Field light` labels resolve to text-neutral-700 - restyle them for the
+   card body. ScreenBlock, outside .pt-auth, keeps its own colours. */
+.pt-auth .text-neutral-700 {
+    color: rgb(var(--pt-gray-300));
+}
+
 .pt-auth label {
     font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: rgb(var(--pt-gray-100));
+    letter-spacing: 0.02em;
 }
 
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    width: 100%;
-    padding: 0.75rem 0.875rem;
-    border: 1px solid rgb(var(--pt-gray-600));
-    border-radius: 6px;
-    background-color: rgb(var(--pt-gray-800));
-    color: rgb(var(--pt-gray-50));
-    font-size: 1rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.pt-auth input::placeholder {
-    color: rgb(90 101 112); /* #5a6570 */
+    border-radius: 2px;
+    border-color: rgb(var(--pt-gray-500) / 0.7);
 }
 
 .pt-auth input:not([type='checkbox']):not([type='radio']):focus,
 .pt-auth textarea:focus,
 .pt-auth select:focus {
     border-color: rgb(var(--pt-navy-600));
-    box-shadow: 0 0 0 3px rgb(var(--pt-navy-600) / 0.2);
+    box-shadow: 0 0 0 3px rgb(var(--pt-navy-600) / 0.18);
 }
 
 .pt-auth button[type='submit'] {
@@ -755,34 +681,15 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin-top: 0.5rem;
-    padding: 0.8125rem;
-    border: none;
-    border-radius: 6px;
-    background-color: rgb(var(--pt-navy-600));
-    color: rgb(var(--pt-white));
-    font-size: 0.9375rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    transition: background-color 0.15s, transform 0.1s;
-}
-
-.pt-auth button[type='submit']:hover {
-    background-color: rgb(var(--pt-navy-700));
-}
-
-.pt-auth button[type='submit']:active {
-    transform: scale(0.98);
-}
-
-.pt-auth button[type='submit']:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    margin-top: 0.35rem;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 .pt-auth a {
     color: rgb(var(--pt-navy-600));
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
 }
 
@@ -791,44 +698,19 @@
 }
 
 .pt-auth-footer {
-    padding: 1rem 1.75rem;
-    border-top: 1px solid rgb(var(--pt-gray-800));
+    padding: 0.7rem 1rem;
+    border-top: 1px solid rgb(var(--pt-gray-500) / 0.45);
     text-align: center;
-    font-size: 0.8125rem;
-    color: rgb(var(--pt-gray-200));
+    font-size: 0.75rem;
+    color: rgb(var(--pt-gray-300));
 }
 
-@media (max-width: 480px) {
-    .pt-auth-bar {
-        height: 48px;
-        padding: 0 12px;
-    }
-
-    .pt-auth-bar-brand {
-        font-size: 16px;
-    }
-
-    .pt-auth-bar-links a {
-        padding: 5px 8px;
-        font-size: 12px;
-    }
-
-    .pt-auth-main {
+/* The register form has six fields - keep it comfortable on small screens. */
+@media (max-height: 800px) {
+    .pt-auth-page {
         align-items: flex-start;
-        padding: 32px 12px 20px;
-    }
-
-    .pt-auth-top {
-        padding: 1.375rem 1.25rem 0.875rem;
-    }
-
-    .pt-auth-body {
-        padding: 1.25rem;
-    }
-
-    .pt-auth button[type='submit'] {
-        padding: 0.875rem;
-        font-size: 1rem;
+        justify-content: flex-start;
+        padding-top: 1.5rem;
     }
 }
 

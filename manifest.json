@@ -25,7 +25,7 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName() - the panel's own site name from window.SiteConfiguration (config('app.name'))"
+            "note": "brandName()/logoUrl()/registrationEnabled() - panel site name, uploaded logo and the registration switch from window.SiteConfiguration"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
@@ -65,17 +65,27 @@
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",
             "action": "replace",
-            "note": "Centres the redesigned login card"
+            "note": "Auth routes: centres the login card and adds /auth/register"
         },
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "Redesigned login card: navy masthead with brand emblem, gold rule, Playfair heading and footer"
+            "note": "Login card: brand emblem masthead, square container, compact spacing and the conditional Register link footer"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Passes the title and subtitle to the redesigned login card"
+            "note": "Login form + success flash after registration (?registered=1)"
+        },
+        {
+            "path": "resources/scripts/components/auth/RegisterContainer.tsx",
+            "action": "create",
+            "note": "Public registration form (email, first/last name, username, password, confirm) posting to /auth/register"
+        },
+        {
+            "path": "resources/scripts/api/auth/register.ts",
+            "action": "create",
+            "note": "CSRF + POST /auth/register client"
         },
         {
             "path": "resources/scripts/components/auth/LoginCheckpointContainer.tsx",
@@ -183,19 +193,39 @@
             "note": "Branding page: current logo, upload form, remove button"
         },
         {
+            "path": "app/Http/Controllers/Auth/RegisterController.php",
+            "action": "create",
+            "note": "POST /auth/register - creates the user through the Application API with the saved key"
+        },
+        {
+            "path": "app/Http/Controllers/Admin/RegistrationController.php",
+            "action": "create",
+            "note": "Admin -> Registration: enable/disable public sign-up and store the Application API key"
+        },
+        {
+            "path": "resources/views/admin/registration.blade.php",
+            "action": "create",
+            "note": "Registration settings page with the enable switch and API key field"
+        },
+        {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes the uploaded logo to the client as SiteConfiguration.logo"
+            "note": "Exposes SiteConfiguration.logo and SiteConfiguration.registration.enabled"
+        },
+        {
+            "path": "routes/auth.php",
+            "action": "replace",
+            "note": "Stock auth routes + GET/POST /auth/register (throttled, reCAPTCHA-aware)"
         },
         {
             "path": "routes/admin.php",
             "action": "replace",
-            "note": "Stock routes + /admin/branding (BrandingController)"
+            "note": "Stock routes + /admin/branding + /admin/registration"
         },
         {
             "path": "resources/views/layouts/admin.blade.php",
             "action": "replace",
-            "note": "Stock admin layout + Branding menu item, favicon from the uploaded logo"
+            "note": "Stock admin layout + Branding and Registration menu items, favicon from the uploaded logo"
         }
     ],
     "build": {

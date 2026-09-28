@@ -265,12 +265,96 @@ done < <(printf '%s\n' "${PAIRS[@]}")
 write_state "$ACTION" "$BACKUP"
 echo
 
-if [ "$DO_BUILD" -eq 1 ]; then
-    echo "==> yarn install --frozen-lockfile && yarn build:production"
-    (cd "$PANEL_DIR" && yarn install --frozen-lockfile && yarn build:production)
+# Node tooling often lives outside the PATH that sudo gives us (nvm, a
+# different login user, /usr/local), so widen the search before building.
+augment_path() {
+    local d
+    for d in \
+        /usr/local/bin /usr/bin /bin /snap/bin \
+        /usr/local/node*/bin /opt/node*/bin \
+        /root/.nvm/versions/node/*/bin \
+        /home/*/.nvm/versions/node/*/bin \
+        /root/.local/share/yarn/bin /home/*/.local/share/yarn/bin \
+        /root/.config/yarn/*/node_modules/.bin; do
+        [ -d "$d" ] && PATH="$PATH:$d"
+    done
+    export PATH
+    return 0
+}
 
-    echo "==> clearing Laravel caches"
-    (cd "$PANEL_DIR" && php artisan view:clear && php artisan cache:clear && php artisan config:clear)
+find_tool() {
+    local c
+    for c in "$@"; do
+        if command -v "$c" >/dev/null 2>&1; then
+            command -v "$c"
+            return 0
+        fi
+    done
+    return 1
+}
+
+manual_build_hint() {
+    cat <<EOF
+  cd '$1'
+  yarn install --frozen-lockfile && yarn build:production
+  php artisan view:clear && php artisan cache:clear && php artisan config:clear
+EOF
+}
+
+# Compiles the panel assets with whatever tooling this machine actually has.
+run_build() {
+    augment_path
+    local tool
+
+    if tool="$(find_tool yarn)"; then
+        echo "==> $tool install --frozen-lockfile && $tool build:production"
+        (cd "$PANEL_DIR" && "$tool" install --frozen-lockfile && "$tool" build:production)
+        return $?
+    fi
+
+    if tool="$(find_tool corepack)"; then
+        echo "==> yarn is not on PATH - using corepack ($tool yarn ...)"
+        (cd "$PANEL_DIR" && "$tool" yarn install --frozen-lockfile && "$tool" yarn build:production)
+        return $?
+    fi
+
+    if tool="$(find_tool npm)"; then
+        # package.json's build:production shells out to `yarn run clean`, so
+        # npm alone cannot run it - drive the clean + webpack steps directly.
+        echo "==> yarn is not on PATH - falling back to npm + webpack"
+        (cd "$PANEL_DIR" && "$tool" install --no-audit --no-fund) || return $?
+        (cd "$PANEL_DIR" && "$tool" run clean) || return $?
+        if tool="$(find_tool npx)"; then
+            (cd "$PANEL_DIR" && "$tool" cross-env NODE_ENV=production ./node_modules/.bin/webpack --mode production)
+        else
+            (cd "$PANEL_DIR" && NODE_ENV=production ./node_modules/.bin/webpack --mode production)
+        fi
+        return $?
+    fi
+
+    echo "error: neither yarn, corepack nor npm is on PATH - cannot build the panel assets." >&2
+    return 127
+}
+
+if [ "$DO_BUILD" -eq 1 ]; then
+    if run_build; then
+        echo "==> clearing Laravel caches"
+        if tool="$(find_tool php)"; then
+            (cd "$PANEL_DIR" && "$tool" artisan view:clear && "$tool" artisan cache:clear && "$tool" artisan config:clear)
+        else
+            echo "warning: php is not on PATH - clear the Laravel caches by hand:" >&2
+            echo "  cd '$PANEL_DIR' && php artisan view:clear && php artisan cache:clear && php artisan config:clear" >&2
+        fi
+        echo
+        echo "brine-theme is live - hard-refresh the browser (Ctrl+Shift+R)."
+    else
+        code=$?
+        echo
+        echo "error: the files are installed, but building the panel assets failed (exit $code)." >&2
+        echo "Rebuild them yourself, then run the installer again with --build:" >&2
+        manual_build_hint "$PANEL_DIR"
+        exit 1
+    fi
 else
     cat <<EOF
 Files installed. Now rebuild the panel and clear its caches:

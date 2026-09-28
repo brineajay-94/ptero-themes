@@ -7,7 +7,6 @@
  *   preview/icons.js                 inline SVG paths (FontAwesome free-solid)
  *   preview/panel-preview.css        Tailwind build of panel-preview.source.css
  *   preview/fonts/*.woff2            Montserrat + Playfair Display variable fonts
- *   preview/vendor/*.css             AdminLTE/Bootstrap/skin-blue for admin.html
  *
  * Usage:
  *
@@ -76,13 +75,6 @@ const ICONS = {
   wifi: "faWifi",
   "trash-alt": "faTrashAlt",
 };
-
-const VENDOR_FILES = [
-  ["vendor/bootstrap/bootstrap.min.css", "vendor/bootstrap.min.css"],
-  ["vendor/adminlte/admin.min.css", "vendor/adminlte.min.css"],
-  ["vendor/adminlte/colors/skin-blue.min.css", "vendor/skin-blue.min.css"],
-  ["css/pterodactyl.css", "vendor/pterodactyl.css"],
-];
 
 function parseArgs(argv) {
   let panel = process.cwd();
@@ -192,38 +184,11 @@ function copyFonts() {
   return copied.join(", ");
 }
 
-function copyVendor(panel) {
-  const copied = [];
-  const missing = [];
-
-  for (const [from, to] of VENDOR_FILES) {
-    const source = path.join(panel, "public", "themes", "pterodactyl", from);
-    if (!fs.existsSync(source)) {
-      missing.push(from);
-      continue;
-    }
-
-    const target = path.join(PREVIEW_DIR, to);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.copyFileSync(source, target);
-    copied.push(to);
-  }
-
-  if (missing.length) {
-    console.warn(`         missing admin css: ${missing.join(", ")}`);
-  }
-  if (copied.length === 0) {
-    throw new Error("no admin css found in the panel");
-  }
-
-  return `${copied.length} files -> preview/vendor`;
-}
-
 async function buildCss(panel) {
   const postcss = resolveFrom(panel, "postcss");
   const tailwindcss = resolveFrom(panel, "tailwindcss");
 
-  const content = ["index.html", "admin.html"]
+  const content = ["index.html"]
     .map((name) => path.join(PREVIEW_DIR, name))
     .filter((file) => fs.existsSync(file));
 
@@ -289,12 +254,11 @@ async function main() {
 
   await requireStep("icons", () => buildIcons(panel));
   await step("fonts", () => copyFonts());
-  await step("admin css", () => copyVendor(panel));
   await requireStep("tailwind", () => buildCss(panel));
 
   console.log("");
   console.log(
-    "Open preview/index.html (React panel) and preview/admin.html (admin area)."
+    "Open preview/index.html to see the themed user panel."
   );
 }
 

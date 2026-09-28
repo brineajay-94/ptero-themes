@@ -167,7 +167,14 @@ do_install() {
     if ask_yn "Rebuild panel assets after installing?" "y"; then build="y"; fi
     local flags=""
     [ "$build" = "y" ] && flags="--build"
-    bash "$INSTALLER" "$panel" $flags || return 1
+    if ! bash "$INSTALLER" "$panel" $flags; then
+        echo
+        echo "error: install did not finish cleanly (see the message above)."
+        if [ "$build" = "y" ]; then
+            echo "Files are in place - choose 3) Update to retry the asset build."
+        fi
+        return 1
+    fi
     if [ "$build" != "y" ]; then
         echo
         echo "Reminder - rebuild the panel manually:"
@@ -186,7 +193,14 @@ do_update() {
     if ask_yn "Rebuild panel assets after updating?" "y"; then build="y"; fi
     local flags=""
     [ "$build" = "y" ] && flags="--build"
-    bash "$INSTALLER" "$panel" --update $flags || return 1
+    if ! bash "$INSTALLER" "$panel" --update $flags; then
+        echo
+        echo "error: update did not finish cleanly (see the message above)."
+        if [ "$build" = "y" ]; then
+            echo "Files are in place - choose 3) Update to retry the asset build."
+        fi
+        return 1
+    fi
     if [ "$build" != "y" ]; then
         echo
         echo "Reminder - rebuild the panel manually:"
@@ -205,7 +219,11 @@ do_uninstall() {
     if ask_yn "Rebuild panel assets after uninstalling?" "y"; then build="y"; fi
     local flags=""
     [ "$build" = "y" ] && flags="--build"
-    bash "$INSTALLER" "$panel" --uninstall $flags || return 1
+    if ! bash "$INSTALLER" "$panel" --uninstall $flags; then
+        echo
+        echo "error: uninstall did not finish cleanly (see the message above)."
+        return 1
+    fi
     echo
     echo "brine-theme uninstalled - the original panel theme is back."
 }

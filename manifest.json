@@ -1,7 +1,7 @@
 {
     "name": "brine-theme",
     "version": "1.0.0",
-    "description": "Niraula EduMedia child theme for Pterodactyl Panel - navy/gold brand, self-hosted fonts, fixed sidebar shell, redesigned dashboard, login, console and file manager",
+    "description": "Niraula EduMedia Aternos-style theme for the Pterodactyl Panel user area - navy/gold brand, self-hosted fonts, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
@@ -15,12 +15,7 @@
         {
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
-            "note": "Niraula EduMedia title, favicon, theme-color and the pre-paint palette bootstrap"
-        },
-        {
-            "path": "resources/views/layouts/admin.blade.php",
-            "action": "replace",
-            "note": "Loads the palette stylesheet and mounts the admin theme toggle"
+            "note": "Palette stylesheet link and the pre-paint light/dark bootstrap; title, favicon and meta tags stay stock"
         },
         {
             "path": "resources/scripts/lib/theme.ts",
@@ -30,17 +25,12 @@
         {
             "path": "resources/scripts/components/elements/ThemeToggle.tsx",
             "action": "create",
-            "note": "Light/dark toggle button used in the topbar and admin area"
+            "note": "Light/dark toggle button used in the panel topbar"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
             "note": "Brand tokens, self-hosted @font-face, shell/auth/dashboard/console/file-manager styles and light-mode fixes"
-        },
-        {
-            "path": "public/themes/pterodactyl/js/theme-toggle.js",
-            "action": "create",
-            "note": "Vanilla toggle for the AdminLTE admin area"
         },
         {
             "path": "public/themes/pterodactyl/fonts/montserrat-latin-wght-normal.woff2",
@@ -55,12 +45,7 @@
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
             "action": "create",
-            "note": "Niraula EduMedia brand mark used by the sidebar, topbar and login screen"
-        },
-        {
-            "path": "public/themes/pterodactyl/images/favicon.svg",
-            "action": "create",
-            "note": "Niraula EduMedia favicon"
+            "note": "Brand mark used by the sidebar and the login screen"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",

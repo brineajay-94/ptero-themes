@@ -288,24 +288,88 @@ Write-State -Mode $mode -Backup $(if ($null -ne $Backup) { $Backup } else { '' }
 
 Write-Host ''
 
-if ($Build) {
-    Write-Host '==> yarn install --frozen-lockfile && yarn build:production'
+function Find-Tool {
+    param([string[]]$Names)
+    foreach ($n in $Names) {
+        $cmd = Get-Command $n -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($cmd) { return $cmd.Source }
+    }
+    return $null
+}
+
+function Invoke-AssetBuild {
+    # yarn -> corepack -> npm. package.json's build:production shells out to
+    # `yarn run clean`, so with npm alone the clean + webpack steps are run directly.
     Push-Location $PanelPath
     try {
-        & yarn install --frozen-lockfile
-        if ($LASTEXITCODE -ne 0) { throw "yarn install failed with exit code $LASTEXITCODE" }
+        $yarn = Find-Tool @('yarn', 'yarn.cmd', 'yarn.ps1')
+        if ($yarn) {
+            Write-Host "==> $yarn install --frozen-lockfile && $yarn build:production"
+            & $yarn install --frozen-lockfile | Out-Host
+            if ($LASTEXITCODE -ne 0) { return $LASTEXITCODE }
+            & $yarn build:production | Out-Host
+            return $LASTEXITCODE
+        }
 
-        & yarn build:production
-        if ($LASTEXITCODE -ne 0) { throw "yarn build failed with exit code $LASTEXITCODE" }
+        $corepack = Find-Tool @('corepack', 'corepack.cmd')
+        if ($corepack) {
+            Write-Host '==> yarn is not on PATH - using corepack'
+            & $corepack yarn install --frozen-lockfile | Out-Host
+            if ($LASTEXITCODE -ne 0) { return $LASTEXITCODE }
+            & $corepack yarn build:production | Out-Host
+            return $LASTEXITCODE
+        }
 
-        Write-Host '==> clearing Laravel caches'
-        & php artisan view:clear
-        & php artisan cache:clear
-        & php artisan config:clear
+        $npm = Find-Tool @('npm', 'npm.cmd')
+        $npx = Find-Tool @('npx', 'npx.cmd')
+        if ($npm -and $npx) {
+            Write-Host '==> yarn is not on PATH - falling back to npm + webpack'
+            & $npm install --no-audit --no-fund | Out-Host
+            if ($LASTEXITCODE -ne 0) { return $LASTEXITCODE }
+            & $npm run clean | Out-Host
+            if ($LASTEXITCODE -ne 0) { return $LASTEXITCODE }
+            & $npx cross-env NODE_ENV=production ./node_modules/.bin/webpack --mode production | Out-Host
+            return $LASTEXITCODE
+        }
+
+        Write-Host 'error: neither yarn, corepack nor npm is on PATH - cannot build the panel assets.' -ForegroundColor Red
+        return 127
     }
     finally {
         Pop-Location
     }
+}
+
+if ($Build) {
+    $code = Invoke-AssetBuild
+    if ($code -ne 0) {
+        Write-Host ''
+        Write-Host "error: the files are installed, but building the panel assets failed (exit $code)." -ForegroundColor Red
+        Write-Host 'Rebuild them yourself, then run this installer again with -Build:'
+        Write-Host "  cd '$PanelPath'; yarn install --frozen-lockfile; yarn build:production"
+        Write-Host "  php artisan view:clear; php artisan cache:clear; php artisan config:clear"
+        exit 1
+    }
+
+    Write-Host '==> clearing Laravel caches'
+    $php = Find-Tool @('php', 'php.exe')
+    if ($php) {
+        Push-Location $PanelPath
+        try {
+            & $php artisan view:clear | Out-Host
+            & $php artisan cache:clear | Out-Host
+            & $php artisan config:clear | Out-Host
+        }
+        finally {
+            Pop-Location
+        }
+    }
+    else {
+        Write-Warning "php is not on PATH - clear the Laravel caches by hand: cd '$PanelPath'; php artisan view:clear; php artisan cache:clear; php artisan config:clear"
+    }
+
+    Write-Host ''
+    Write-Host 'brine-theme is live - hard-refresh the browser (Ctrl+Shift+R).'
 }
 else {
     Write-Host @"

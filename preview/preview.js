@@ -2,7 +2,7 @@
  * brine-theme preview page behaviour.
  *
  * Page-local only - the shipped pieces are the palette stylesheet and the
- * `ptero-theme` storage key, which this file shares with theme-toggle.js so
+ * `ptero-theme` storage key, so a change made on one page follows to the next.
  * the two preview pages stay in sync. The drawer wiring mirrors the state
  * AppShell.tsx keeps for the mobile navigation.
  */
@@ -156,7 +156,7 @@
       });
     }
 
-    // theme-toggle.js writes data-theme directly, so watch the attribute to
+    // the bootstrap writes data-theme directly, so watch the attribute to
     // keep icons and titles in agreement on both preview pages.
     if (window.MutationObserver) {
       new MutationObserver(function () {

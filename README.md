@@ -71,7 +71,16 @@ node preview/build-preview.js --panel /path/to/pterodactyl/panel
 
 ## Install
 
-### One command
+### One command on a server
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/brineajay-94/ptero-themes/main/setup.sh | sudo bash
+```
+
+Downloads the manager to `~/.brine-theme` (re-runs update it) and opens the
+menu below. Drop `sudo` if your user already owns the panel files.
+
+### One command (local clone)
 
 The repo ships a single entry point that opens an interactive menu. Clone it,
 `cd` into it, then run it:

@@ -32,32 +32,10 @@
             @endif
         @show
 
-        {{-- brine-theme: palette tokens. Must be present before the React bundle
-             paints so the CSS variables behind every Tailwind colour resolve. --}}
+        {{-- brine-theme: dark palette + Aternos tokens. Must be present before the
+             React bundle paints so every Tailwind colour resolves. --}}
         <link rel="stylesheet" href="/themes/pterodactyl/css/pterodactyl-theme.css?v={{ config('app.version', '1.0.0') }}">
 
-        {{-- brine-theme: apply the stored light/dark choice before first paint
-             to avoid a flash of the wrong colour scheme. --}}
-        <script>
-            (function () {
-                var stored = null;
-                try {
-                    stored = localStorage.getItem('ptero-theme');
-                } catch (e) {
-                    stored = null;
-                }
-
-                var theme = stored === 'dark' || stored === 'light' ? stored : null;
-                if (!theme) {
-                    theme =
-                        window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
-                            ? 'light'
-                            : 'dark';
-                }
-
-                document.documentElement.setAttribute('data-theme', theme);
-            })();
-        </script>
 
         @yield('assets')
 

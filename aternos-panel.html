@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aternos - Server Panel</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #1a1f24;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Header */
+  .header {
+    height: 52px;
+    background: #2d3943;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid #1a1f24;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: #2b87d3;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+  }
+  .server-badge {
+    background: #1a1f24;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #b0b8c0;
+  }
+  .server-badge strong { color: #fff; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-btn {
+    background: transparent;
+    border: none;
+    color: #b0b8c0;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .header-btn:hover { background: #3a4652; color: #fff; }
+  .user-avatar {
+    width: 32px; height: 32px;
+    background: #2b87d3;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; color: #fff;
+  }
+
+  /* Layout */
+  .layout { display: flex; flex: 1; min-height: calc(100vh - 52px); }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background: #2d3943;
+    border-right: 1px solid #1a1f24;
+    padding: 12px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .nav-section { margin-bottom: 8px; }
+  .nav-label {
+    padding: 8px 16px 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7a8490;
+    font-weight: 600;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    color: #c0c8d0;
+    cursor: pointer;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: #3a4652; color: #fff; }
+  .nav-item.active {
+    background: #243040;
+    color: #fff;
+    border-left-color: #2b87d3;
+  }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.85; }
+  .nav-item.active svg { opacity: 1; }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    background: #1a1f24;
+  }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Status bar (always visible on top of content) */
+  .status-bar {
+    background: #2d3943;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .status-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .status-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e88;
+  }
+  .status-dot.offline { background: #ef4444; box-shadow: 0 0 8px #ef444488; }
+  .status-text { font-weight: 600; font-size: 16px; }
+  .status-meta { color: #9aa3ad; font-size: 13px; }
+  .status-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-start { background: #22c55e; color: #fff; }
+  .btn-start:hover { background: #16a34a; }
+  .btn-stop { background: #ef4444; color: #fff; }
+  .btn-stop:hover { background: #dc2626; }
+  .btn-restart { background: #f59e0b; color: #fff; }
+  .btn-restart:hover { background: #d97706; }
+  .btn-secondary {
+    background: #3a4652;
+    color: #e0e0e0;
+  }
+  .btn-secondary:hover { background: #4a5662; }
+  .btn-primary { background: #2b87d3; color: #fff; }
+  .btn-primary:hover { background: #1e6fb8; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Cards */
+  .card {
+    background: #2d3943;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #1a1f24;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-body { padding: 18px; }
+
+  /* Server info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .info-item label {
+    display: block;
+    font-size: 12px;
+    color: #8a93a0;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .info-item .value {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+  }
+  .info-item .value a { color: #2b87d3; text-decoration: none; }
+  .info-item .value a:hover { text-decoration: underline; }
+  .copy-btn {
+    background: none; border: none; color: #2b87d3;
+    cursor: pointer; font-size: 12px; margin-left: 6px;
+  }
+
+  /* Players list */
+  .player-list { list-style: none; }
+  .player-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #3a4652;
+  }
+  .player-item:last-child { border-bottom: none; }
+  .player-left { display: flex; align-items: center; gap: 10px; }
+  .player-avatar {
+    width: 28px; height: 28px;
+    background: #3a4652;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .player-actions { display: flex; gap: 6px; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* Console */
+  .console-wrap {
+    background: #0d1117;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 480px;
+  }
+  .console-toolbar {
+    background: #161b22;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #21262d;
+  }
+  .console-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #c9d1d9;
+  }
+  .log-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-all; }
+  .log-time { color: #8b949e; }
+  .log-info { color: #58a6ff; }
+  .log-warn { color: #d29922; }
+  .log-error { color: #f85149; }
+  .log-success { color: #3fb950; }
+  .console-input-row {
+    display: flex;
+    border-top: 1px solid #21262d;
+    background: #161b22;
+  }
+  .console-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #c9d1d9;
+    padding: 12px 14px;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    outline: none;
+  }
+  .console-input::placeholder { color: #484f58; }
+  .console-send {
+    background: #2b87d3;
+    border: none;
+    color: #fff;
+    padding: 0 18px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .console-send:hover { background: #1e6fb8; }
+
+  /* File manager */
+  .fm-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #9aa3ad;
+    flex: 1;
+  }
+  .breadcrumb span { cursor: pointer; }
+  .breadcrumb span:hover { color: #2b87d3; }
+  .breadcrumb .sep { color: #5a6570; cursor: default; }
+  .file-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .file-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #8a93a0;
+    font-weight: 600;
+    border-bottom: 1px solid #3a4652;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .file-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #3a4652;
+    font-size: 14px;
+  }
+  .file-table tr:hover td { background: #3a4652; }
+  .file-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .file-name:hover { color: #2b87d3; }
+  .file-icon { width: 18px; height: 18px; opacity: 0.9; }
+  .file-size, .file-date { color: #8a93a0; font-size: 13px; }
+  .file-actions { display: flex; gap: 6px; opacity: 0; }
+  .file-table tr:hover .file-actions { opacity: 1; }
+  .icon-btn {
+    background: none; border: none; color: #9aa3ad;
+    cursor: pointer; padding: 4px; border-radius: 4px;
+  }
+  .icon-btn:hover { background: #4a5662; color: #fff; }
+
+  /* Options form */
+  .option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #3a4652;
+  }
+  .option-row:last-child { border-bottom: none; }
+  .option-label { font-size: 14px; }
+  .option-desc { font-size: 12px; color: #8a93a0; margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px;
+    background: #3a4652;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: #2b87d3; }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+  select, input[type="text"], input[type="number"] {
+    background: #1a1f24;
+    border: 1px solid #3a4652;
+    color: #e0e0e0;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    outline: none;
+  }
+  select:focus, input:focus { border-color: #2b87d3; }
+
+  /* Software / Plugins cards */
+  .software-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .software-card {
+    background: #1a1f24;
+    border: 1px solid #3a4652;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .software-card:hover, .software-card.selected { border-color: #2b87d3; }
+  .software-card h4 { margin-bottom: 4px; font-size: 15px; }
+  .software-card p { font-size: 12px; color: #8a93a0; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { width: 56px; }
+    .nav-label, .nav-item span { display: none; }
+    .nav-item { justify-content: center; padding: 12px; }
+    .main { padding: 12px; }
+    .status-bar { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <a href="#" class="logo">
+      <div class="logo-icon">A</div>
+      Aternos
+    </a>
+    <div class="server-badge">Server: <strong>MyAwesomeServer</strong></div>
+  </div>
+  <div class="header-right">
+    <button class="header-btn">Help</button>
+    <button class="header-btn">Account</button>
+    <div class="user-avatar">U</div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Server</div>
+      <div class="nav-item active" data-page="server" onclick="switchPage('server', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Server</span>
+      </div>
+      <div class="nav-item" data-page="console" onclick="switchPage('console', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <span>Console</span>
+      </div>
+      <div class="nav-item" data-page="log" onclick="switchPage('log', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Log</span>
+      </div>
+      <div class="nav-item" data-page="options" onclick="switchPage('options', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Options</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Management</div>
+      <div class="nav-item" data-page="software" onclick="switchPage('software', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <span>Software</span>
+      </div>
+      <div class="nav-item" data-page="players" onclick="switchPage('players', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Players</span>
+      </div>
+      <div class="nav-item" data-page="files" onclick="switchPage('files', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span>Files</span>
+      </div>
+      <div class="nav-item" data-page="plugins" onclick="switchPage('plugins', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m0 0l3-3m-3 3L9 5"/><rect x="2" y="14" width="6" height="8" rx="1"/><rect x="9" y="10" width="6" height="12" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/></svg>
+        <span>Plugins</span>
+      </div>
+      <div class="nav-item" data-page="worlds" onclick="switchPage('worlds', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>Worlds</span>
+      </div>
+      <div class="nav-item" data-page="backups" onclick="switchPage('backups', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Backups</span>
+      </div>
+      <div class="nav-item" data-page="access" onclick="switchPage('access', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Access</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ===== SERVER PAGE ===== -->
+    <div id="page-server" class="page active">
+      <div class="status-bar">
+        <div class="status-info">
+          <div class="status-dot" id="statusDot"></div>
+          <div>
+            <div class="status-text" id="statusText">Online</div>
+            <div class="status-meta">Uptime: 2h 14m · RAM: 1.8 / 4 GB · TPS: 19.8</div>
+          </div>
+        </div>
+        <div class="status-actions">
+          <button class="btn btn-stop" id="btnStop" onclick="stopServer()">■ Stop</button>
+          <button class="btn btn-restart" id="btnRestart" onclick="restartServer()">↻ Restart</button>
+          <button class="btn btn-start" id="btnStart" style="display:none" onclick="startServer()">▶ Start</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Server Information</div>
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Address</label>
+              <div class="value">myawesomeserver.aternos.me <button class="copy-btn" onclick="copyText('myawesomeserver.aternos.me')">Copy</button></div>
+            </div>
+            <div class="info-item">
+              <label>Software</label>
+              <div class="value">Paper 1.21.1</div>
+            </div>
+            <div class="info-item">
+              <label>Players</label>
+              <div class="value">3 / 20</div>
+            </div>
+            <div class="info-item">
+              <label>Version</label>
+              <div class="value">1.21.1</div>
+            </div>
+            <div class="info-item">
+              <label>Gamemode</label>
+              <div class="value">Survival</div>
+            </div>
+            <div class="info-item">
+              <label>Difficulty</label>
+              <div class="value">Normal</div>
+            </div>
+            <div class="info-item">
+              <label>World</label>
+              <div class="value">world</div>
+            </div>
+            <div class="info-item">
+              <label>Storage</label>
+              <div class="value">1.2 GB / 4 GB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Online Players <span style="font-weight:400;color:#8a93a0;font-size:13px">(3)</span></div>
+        <div class="card-body" style="padding-top:8px;padding-bottom:8px">
+          <ul class="player-list">
+            <li class="player-item">
+              <div class="player-left">
+                <div class="player-avatar">Steve</div>
+                <span>Steve</span>
+              </div>
+              <div class="player-actions">
+                <button class="btn btn-secondary btn-sm">Kick</button>
+                <button class="btn btn-stop btn-sm">Ban</button>
+              </div>
+            </li>
+            <li class="player-item">
+              <div class="player-left">
+                <div class="player-avatar">Alex</div>
+                <span>Alex</span>
+              </div>
+              <div class="player-actions">
+                <button class="btn btn-secondary btn-sm">Kick</button>
+                <button class="btn btn-stop btn-sm">Ban</button>
+              </div>
+            </li>
+            <li class="player-item">
+              <div class="player-left">
+                <div class="player-avatar">Notch</div>
+                <span>Notch</span>
+              </div>
+              <div class="player-actions">
+                <button class="btn btn-secondary btn-sm">Kick</button>
+                <button class="btn btn-stop btn-sm">Ban</button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CONSOLE PAGE ===== -->
+    <div id="page-console" class="page">
+      <div class="status-bar">
+        <div class="status-info">
+          <div class="status-dot"></div>
+          <div>
+            <div class="status-text">Online</div>
+            <div class="status-meta">Console connected</div>
+          </div>
+        </div>
+        <div class="status-actions">
+          <button class="btn btn-secondary" onclick="clearConsole()">Clear</button>
+        </div>
+      </div>
+      <div class="console-wrap">
+        <div class="console-toolbar">
+          <span style="font-size:13px;color:#8b949e">Server Console</span>
+          <span style="font-size:12px;color:#484f58">Auto-scroll ON</span>
+        </div>
+        <div class="console-output" id="consoleOutput">
+          <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Starting minecraft server version 1.21.1</div>
+          <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Loading properties</div>
+          <div class="log-line"><span class="log-time">[12:01:15]</span> <span class="log-info">[Server thread/INFO]</span>: Default game type: SURVIVAL</div>
+          <div class="log-line"><span class="log-time">[12:01:15]</span> <span class="log-info">[Server thread/INFO]</span>: Generating keypair</div>
+          <div class="log-line"><span class="log-time">[12:01:16]</span> <span class="log-info">[Server thread/INFO]</span>: Starting Minecraft server on *:25565</div>
+          <div class="log-line"><span class="log-time">[12:01:17]</span> <span class="log-info">[Server thread/INFO]</span>: Preparing level "world"</div>
+          <div class="log-line"><span class="log-time">[12:01:18]</span> <span class="log-info">[Server thread/INFO]</span>: Preparing start region for dimension minecraft:overworld</div>
+          <div class="log-line"><span class="log-time">[12:01:22]</span> <span class="log-info">[Server thread/INFO]</span>: Preparing spawn area: 45%</div>
+          <div class="log-line"><span class="log-time">[12:01:24]</span> <span class="log-info">[Server thread/INFO]</span>: Preparing spawn area: 89%</div>
+          <div class="log-line"><span class="log-time">[12:01:25]</span> <span class="log-success">[Server thread/INFO]</span>: Done (11.342s)! For help, type "help"</div>
+          <div class="log-line"><span class="log-time">[12:01:25]</span> <span class="log-info">[Server thread/INFO]</span>: Timings Reset</div>
+          <div class="log-line"><span class="log-time">[12:03:41]</span> <span class="log-info">[User Authenticator #1/INFO]</span>: UUID of player Steve is 8667ba71-b85a-4004-af54-9ebef4b9063a</div>
+          <div class="log-line"><span class="log-time">[12:03:42]</span> <span class="log-info">[Server thread/INFO]</span>: Steve[/192.168.1.42:52341] logged in with entity id 89 at ([world] 128.5, 64.0, -32.5)</div>
+          <div class="log-line"><span class="log-time">[12:03:42]</span> <span class="log-info">[Server thread/INFO]</span>: Steve joined the game</div>
+          <div class="log-line"><span class="log-time">[12:05:11]</span> <span class="log-info">[User Authenticator #2/INFO]</span>: UUID of player Alex is 6a1e2b3c-4d5e-6f70-8192-a3b4c5d6e7f8</div>
+          <div class="log-line"><span class="log-time">[12:05:12]</span> <span class="log-info">[Server thread/INFO]</span>: Alex[/10.0.0.15:49102] logged in with entity id 102 at ([world] 130.2, 64.0, -30.1)</div>
+          <div class="log-line"><span class="log-time">[12:05:12]</span> <span class="log-info">[Server thread/INFO]</span>: Alex joined the game</div>
+          <div class="log-line"><span class="log-time">[12:08:33]</span> <span class="log-warn">[Server thread/WARN]</span>: Can't keep up! Is the server overloaded? Running 2142ms or 42 ticks behind</div>
+          <div class="log-line"><span class="log-time">[12:12:05]</span> <span class="log-info">[Server thread/INFO]</span>: &lt;Steve&gt; Anyone online?</div>
+          <div class="log-line"><span class="log-time">[12:12:18]</span> <span class="log-info">[Server thread/INFO]</span>: &lt;Alex&gt; Yeah, building a base near spawn</div>
+          <div class="log-line"><span class="log-time">[12:15:44]</span> <span class="log-info">[User Authenticator #3/INFO]</span>: UUID of player Notch is 069a79f4-44e9-4726-a5be-fca90e38aaf5</div>
+          <div class="log-line"><span class="log-time">[12:15:45]</span> <span class="log-info">[Server thread/INFO]</span>: Notch joined the game</div>
+          <div class="log-line"><span class="log-time">[12:18:02]</span> <span class="log-info">[Server thread/INFO]</span>: &lt;Notch&gt; Nice server!</div>
+        </div>
+        <div class="console-input-row">
+          <input type="text" class="console-input" id="consoleInput" placeholder="Enter command..." onkeydown="if(event.key==='Enter')sendCommand()">
+          <button class="console-send" onclick="sendCommand()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LOG PAGE ===== -->
+    <div id="page-log" class="page">
+      <div class="card">
+        <div class="card-header">
+          Server Log
+          <button class="btn btn-primary btn-sm">Share on mclo.gs</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="console-output" style="height:500px;background:#0d1117;border-radius:0 0 8px 8px">
+            <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Starting minecraft server version 1.21.1</div>
+            <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Loading properties</div>
+            <div class="log-line"><span class="log-time">[12:01:15]</span> <span class="log-info">[Server thread/INFO]</span>: Default game type: SURVIVAL</div>
+            <div class="log-line"><span class="log-time">[12:01:25]</span> <span class="log-success">[Server thread/INFO]</span>: Done (11.342s)! For help, type "help"</div>
+            <div class="log-line"><span class="log-time">[12:03:42]</span> <span class="log-info">[Server thread/INFO]</span>: Steve joined the game</div>
+            <div class="log-line"><span class="log-time">[12:05:12]</span> <span class="log-info">[Server thread/INFO]</span>: Alex joined the game</div>
+            <div class="log-line"><span class="log-time">[12:08:33]</span> <span class="log-warn">[Server thread/WARN]</span>: Can't keep up! Is the server overloaded? Running 2142ms or 42 ticks behind</div>
+            <div class="log-line"><span class="log-time">[12:15:45]</span> <span class="log-info">[Server thread/INFO]</span>: Notch joined the game</div>
+            <div class="log-line"><span class="log-time">[12:22:10]</span> <span class="log-error">[Server thread/ERROR]</span>: Failed to handle packet for /10.0.0.99</div>
+            <div class="log-line"><span class="log-time">[12:22:10]</span> <span class="log-error">java.net.SocketException: Connection reset</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== OPTIONS PAGE ===== -->
+    <div id="page-options" class="page">
+      <div class="card">
+        <div class="card-header">General Options</div>
+        <div class="card-body">
+          <div class="option-row">
+            <div>
+              <div class="option-label">Slots</div>
+              <div class="option-desc">Maximum number of players</div>
+            </div>
+            <input type="number" value="20" min="1" max="100" style="width:70px">
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Gamemode</div>
+              <div class="option-desc">Default gamemode for new players</div>
+            </div>
+            <select>
+              <option>Survival</option>
+              <option>Creative</option>
+              <option>Adventure</option>
+              <option>Spectator</option>
+            </select>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Difficulty</div>
+              <div class="option-desc">Server difficulty</div>
+            </div>
+            <select>
+              <option>Peaceful</option>
+              <option>Easy</option>
+              <option selected>Normal</option>
+              <option>Hard</option>
+            </select>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Whitelist</div>
+              <div class="option-desc">Only whitelisted players can join</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Cracked</div>
+              <div class="option-desc">Allow non-premium accounts</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">PVP</div>
+              <div class="option-desc">Players can attack each other</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Command Blocks</div>
+              <div class="option-desc">Enable command blocks</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Nether</div>
+              <div class="option-desc">Allow nether dimension</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Animals</div>
+              <div class="option-desc">Animals will spawn</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="option-row">
+            <div>
+              <div class="option-label">Monsters</div>
+              <div class="option-desc">Hostile mobs will spawn</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary">Save &amp; Restart Required</button>
+      </div>
+    </div>
+
+    <!-- ===== SOFTWARE PAGE ===== -->
+    <div id="page-software" class="page">
+      <div class="card">
+        <div class="card-header">Server Software</div>
+        <div class="card-body">
+          <p style="margin-bottom:16px;color:#9aa3ad;font-size:14px">Current: <strong style="color:#fff">Paper 1.21.1</strong></p>
+          <div class="software-grid">
+            <div class="software-card selected">
+              <h4>Paper</h4>
+              <p>High performance Spigot fork. Recommended.</p>
+            </div>
+            <div class="software-card">
+              <h4>Spigot</h4>
+              <p>Modified CraftBukkit with performance improvements.</p>
+            </div>
+            <div class="software-card">
+              <h4>Vanilla</h4>
+              <p>Official Minecraft server software.</p>
+            </div>
+            <div class="software-card">
+              <h4>Forge</h4>
+              <p>Modded server with Forge mods.</p>
+            </div>
+            <div class="software-card">
+              <h4>Fabric</h4>
+              <p>Lightweight modding platform.</p>
+            </div>
+            <div class="software-card">
+              <h4>Purpur</h4>
+              <p>Paper fork with extra features.</p>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <label style="font-size:13px;color:#8a93a0">Version</label><br>
+            <select style="margin-top:6px;width:200px">
+              <option>1.21.1</option>
+              <option>1.21</option>
+              <option>1.20.6</option>
+              <option>1.20.4</option>
+              <option>1.19.4</option>
+              <option>1.16.5</option>
+            </select>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary">Change Software</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PLAYERS PAGE ===== -->
+    <div id="page-players" class="page">
+      <div class="card">
+        <div class="card-header">Operators (OP)</div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" placeholder="Minecraft username" style="flex:1">
+            <button class="btn btn-primary">Add OP</button>
+          </div>
+          <ul class="player-list">
+            <li class="player-item">
+              <div class="player-left"><div class="player-avatar">St</div><span>Steve</span></div>
+              <button class="btn btn-stop btn-sm">Remove</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Whitelist</div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" placeholder="Minecraft username" style="flex:1">
+            <button class="btn btn-primary">Add</button>
+          </div>
+          <p style="color:#8a93a0;font-size:13px">Whitelist is currently disabled. Enable it in Options.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Banned Players</div>
+        <div class="card-body">
+          <p style="color:#8a93a0;font-size:13px">No banned players.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FILES PAGE (File Manager) ===== -->
+    <div id="page-files" class="page">
+      <div class="card">
+        <div class="card-header">File Manager</div>
+        <div class="card-body">
+          <div class="fm-toolbar">
+            <div class="breadcrumb" id="breadcrumb">
+              <span onclick="navigateTo('/')">root</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="alert('Upload demo only')">⬆ Upload</button>
+            <button class="btn btn-secondary btn-sm" onclick="alert('New folder demo only')">+ Folder</button>
+            <button class="btn btn-secondary btn-sm" onclick="alert('New file demo only')">+ File</button>
+          </div>
+          <table class="file-table">
+            <thead>
+              <tr>
+                <th style="width:50%">Name</th>
+                <th>Size</th>
+                <th>Modified</th>
+                <th style="width:100px"></th>
+              </tr>
+            </thead>
+            <tbody id="fileList">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PLUGINS PAGE ===== -->
+    <div id="page-plugins" class="page">
+      <div class="card">
+        <div class="card-header">Installed Plugins</div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" placeholder="Search plugins..." style="flex:1">
+            <button class="btn btn-primary">Browse Plugins</button>
+          </div>
+          <table class="file-table">
+            <thead>
+              <tr><th>Name</th><th>Version</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="file-name">EssentialsX</div></td>
+                <td class="file-size">2.20.1</td>
+                <td><span style="color:#22c55e">Enabled</span></td>
+                <td><button class="btn btn-stop btn-sm">Remove</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-name">LuckPerms</div></td>
+                <td class="file-size">5.4.141</td>
+                <td><span style="color:#22c55e">Enabled</span></td>
+                <td><button class="btn btn-stop btn-sm">Remove</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-name">WorldEdit</div></td>
+                <td class="file-size">7.3.4</td>
+                <td><span style="color:#22c55e">Enabled</span></td>
+                <td><button class="btn btn-stop btn-sm">Remove</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-name">Vault</div></td>
+                <td class="file-size">1.7.3</td>
+                <td><span style="color:#22c55e">Enabled</span></td>
+                <td><button class="btn btn-stop btn-sm">Remove</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-name">CoreProtect</div></td>
+                <td class="file-size">22.4</td>
+                <td><span style="color:#22c55e">Enabled</span></td>
+                <td><button class="btn btn-stop btn-sm">Remove</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WORLDS PAGE ===== -->
+    <div id="page-worlds" class="page">
+      <div class="card">
+        <div class="card-header">Worlds</div>
+        <div class="card-body">
+          <table class="file-table">
+            <thead>
+              <tr><th>Name</th><th>Size</th><th>Type</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="file-name">🌍 world</div></td>
+                <td class="file-size">842 MB</td>
+                <td class="file-size">Overworld</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                  <button class="btn btn-secondary btn-sm">Options</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="file-name">🔥 world_nether</div></td>
+                <td class="file-size">156 MB</td>
+                <td class="file-size">Nether</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                  <button class="btn btn-secondary btn-sm">Options</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="file-name">🌌 world_the_end</div></td>
+                <td class="file-size">98 MB</td>
+                <td class="file-size">The End</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                  <button class="btn btn-secondary btn-sm">Options</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top:16px;display:flex;gap:8px">
+            <button class="btn btn-primary">Upload World</button>
+            <button class="btn btn-secondary">Create New World</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BACKUPS PAGE ===== -->
+    <div id="page-backups" class="page">
+      <div class="card">
+        <div class="card-header">
+          Backups
+          <button class="btn btn-primary btn-sm">Create Backup</button>
+        </div>
+        <div class="card-body">
+          <table class="file-table">
+            <thead>
+              <tr><th>Name</th><th>Date</th><th>Size</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Automatic Backup #47</td>
+                <td class="file-date">Today, 06:00</td>
+                <td class="file-size">1.1 GB</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Restore</button>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Automatic Backup #46</td>
+                <td class="file-date">Yesterday, 06:00</td>
+                <td class="file-size">1.08 GB</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Restore</button>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Manual - Before update</td>
+                <td class="file-date">Sep 25, 2026</td>
+                <td class="file-size">1.05 GB</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Restore</button>
+                  <button class="btn btn-secondary btn-sm">Download</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACCESS PAGE ===== -->
+    <div id="page-access" class="page">
+      <div class="card">
+        <div class="card-header">Share Access</div>
+        <div class="card-body">
+          <p style="margin-bottom:16px;color:#9aa3ad;font-size:14px">Grant friends access to this server without sharing your account.</p>
+          <div style="display:flex;gap:8px;margin-bottom:20px">
+            <input type="text" placeholder="Aternos username" style="flex:1">
+            <button class="btn btn-primary">Add</button>
+          </div>
+          <table class="file-table">
+            <thead>
+              <tr><th>User</th><th>Permissions</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>friend123</td>
+                <td class="file-size">Start, Console, Files</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm">Edit</button>
+                  <button class="btn btn-stop btn-sm">Remove</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Page switching
+  function switchPage(pageId, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    if (el) el.classList.add('active');
+    if (pageId === 'files') renderFiles(currentPath);
+  }
+
+  // Server start/stop demo
+  let serverOnline = true;
+  function stopServer() {
+    serverOnline = false;
+    document.getElementById('statusDot').classList.add('offline');
+    document.getElementById('statusText').textContent = 'Offline';
+    document.getElementById('btnStop').style.display = 'none';
+    document.getElementById('btnRestart').style.display = 'none';
+    document.getElementById('btnStart').style.display = 'inline-flex';
+    addConsoleLine('Server stopped.', 'warn');
+  }
+  function startServer() {
+    serverOnline = true;
+    document.getElementById('statusDot').classList.remove('offline');
+    document.getElementById('statusText').textContent = 'Online';
+    document.getElementById('btnStop').style.display = 'inline-flex';
+    document.getElementById('btnRestart').style.display = 'inline-flex';
+    document.getElementById('btnStart').style.display = 'none';
+    addConsoleLine('Starting server...', 'info');
+    setTimeout(() => addConsoleLine('Done! Server is online.', 'success'), 800);
+  }
+  function restartServer() {
+    addConsoleLine('Restarting server...', 'warn');
+    stopServer();
+    setTimeout(startServer, 1200);
+  }
+
+  // Console
+  function addConsoleLine(text, type) {
+    const out = document.getElementById('consoleOutput');
+    const now = new Date();
+    const time = '[' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0') + ']';
+    const cls = type === 'error' ? 'log-error' : type === 'warn' ? 'log-warn' : type === 'success' ? 'log-success' : 'log-info';
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.innerHTML = '<span class="log-time">' + time + '</span> <span class="' + cls + '">[Console/' + (type||'INFO').toUpperCase() + ']</span>: ' + text;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function sendCommand() {
+    const input = document.getElementById('consoleInput');
+    const cmd = input.value.trim();
+    if (!cmd) return;
+    addConsoleLine('> ' + cmd, 'info');
+    // demo responses
+    if (cmd.toLowerCase() === 'help') {
+      addConsoleLine('Available commands: help, list, say, stop, gamemode, tp, time, weather', 'info');
+    } else if (cmd.toLowerCase() === 'list') {
+      addConsoleLine('There are 3 of a max of 20 players online: Steve, Alex, Notch', 'info');
+    } else if (cmd.toLowerCase().startsWith('say ')) {
+      addConsoleLine('[Server] ' + cmd.slice(4), 'info');
+    } else if (cmd.toLowerCase() === 'stop') {
+      addConsoleLine('Stopping the server...', 'warn');
+      setTimeout(stopServer, 600);
+    } else {
+      addConsoleLine('Unknown or demo command executed: ' + cmd, 'info');
+    }
+    input.value = '';
+  }
+  function clearConsole() {
+    document.getElementById('consoleOutput').innerHTML = '';
+  }
+
+  // File manager demo data
+  const fileSystem = {
+    '/': [
+      { name: 'banned-ips.json', type: 'file', size: '2 B', date: 'Sep 20, 2026' },
+      { name: 'banned-players.json', type: 'file', size: '2 B', date: 'Sep 20, 2026' },
+      { name: 'bukkit.yml', type: 'file', size: '1.2 KB', date: 'Sep 22, 2026' },
+      { name: 'commands.yml', type: 'file', size: '4.1 KB', date: 'Sep 22, 2026' },
+      { name: 'config', type: 'folder', size: '—', date: 'Sep 25, 2026' },
+      { name: 'eula.txt', type: 'file', size: '157 B', date: 'Sep 18, 2026' },
+      { name: 'ops.json', type: 'file', size: '148 B', date: 'Sep 26, 2026' },
+      { name: 'paper.yml', type: 'file', size: '12.4 KB', date: 'Sep 22, 2026' },
+      { name: 'plugins', type: 'folder', size: '—', date: 'Sep 27, 2026' },
+      { name: 'server.properties', type: 'file', size: '1.8 KB', date: 'Sep 26, 2026' },
+      { name: 'spigot.yml', type: 'file', size: '5.6 KB', date: 'Sep 22, 2026' },
+      { name: 'usercache.json', type: 'file', size: '892 B', date: 'Sep 28, 2026' },
+      { name: 'whitelist.json', type: 'file', size: '2 B', date: 'Sep 20, 2026' },
+      { name: 'world', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'world_nether', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'world_the_end', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'logs', type: 'folder', size: '—', date: 'Sep 28, 2026' }
+    ],
+    '/plugins': [
+      { name: '..', type: 'folder', size: '—', date: '' },
+      { name: 'EssentialsX', type: 'folder', size: '—', date: 'Sep 25, 2026' },
+      { name: 'EssentialsX-2.20.1.jar', type: 'file', size: '4.2 MB', date: 'Sep 25, 2026' },
+      { name: 'LuckPerms', type: 'folder', size: '—', date: 'Sep 24, 2026' },
+      { name: 'LuckPerms-Bukkit-5.4.141.jar', type: 'file', size: '1.1 MB', date: 'Sep 24, 2026' },
+      { name: 'WorldEdit', type: 'folder', size: '—', date: 'Sep 23, 2026' },
+      { name: 'worldedit-bukkit-7.3.4.jar', type: 'file', size: '5.8 MB', date: 'Sep 23, 2026' },
+      { name: 'Vault.jar', type: 'file', size: '312 KB', date: 'Sep 22, 2026' },
+      { name: 'CoreProtect-22.4.jar', type: 'file', size: '1.4 MB', date: 'Sep 21, 2026' },
+      { name: 'bStats', type: 'folder', size: '—', date: 'Sep 20, 2026' }
+    ],
+    '/world': [
+      { name: '..', type: 'folder', size: '—', date: '' },
+      { name: 'data', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'entities', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'playerdata', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'poi', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'region', type: 'folder', size: '—', date: 'Sep 28, 2026' },
+      { name: 'level.dat', type: 'file', size: '2.4 KB', date: 'Sep 28, 2026' },
+      { name: 'level.dat_old', type: 'file', size: '2.4 KB', date: 'Sep 27, 2026' },
+      { name: 'session.lock', type: 'file', size: '3 B', date: 'Sep 28, 2026' },
+      { name: 'uid.dat', type: 'file', size: '16 B', date: 'Sep 18, 2026' }
+    ],
+    '/logs': [
+      { name: '..', type: 'folder', size: '—', date: '' },
+      { name: 'latest.log', type: 'file', size: '48 KB', date: 'Sep 28, 2026' },
+      { name: '2026-09-27-1.log.gz', type: 'file', size: '12 KB', date: 'Sep 27, 2026' },
+      { name: '2026-09-26-1.log.gz', type: 'file', size: '15 KB', date: 'Sep 26, 2026' },
+      { name: '2026-09-25-1.log.gz', type: 'file', size: '11 KB', date: 'Sep 25, 2026' }
+    ],
+    '/config': [
+      { name: '..', type: 'folder', size: '—', date: '' },
+      { name: 'paper-global.yml', type: 'file', size: '8.2 KB', date: 'Sep 22, 2026' },
+      { name: 'paper-world-defaults.yml', type: 'file', size: '14.1 KB', date: 'Sep 22, 2026' }
+    ]
+  };
+
+  let currentPath = '/';
+
+  function renderFiles(path) {
+    currentPath = path;
+    const list = fileSystem[path] || [{ name: '..', type: 'folder', size: '—', date: '' }];
+    const tbody = document.getElementById('fileList');
+    tbody.innerHTML = '';
+
+    // breadcrumb
+    const parts = path === '/' ? [] : path.split('/').filter(Boolean);
+    let crumb = '<span onclick="navigateTo(\'/\')">root</span>';
+    let acc = '';
+    parts.forEach(p => {
+      acc += '/' + p;
+      crumb += ' <span class="sep">/</span> <span onclick="navigateTo(\'' + acc + '\')">' + p + '</span>';
+    });
+    document.getElementById('breadcrumb').innerHTML = crumb;
+
+    list.forEach(f => {
+      const tr = document.createElement('tr');
+      const icon = f.type === 'folder'
+        ? '<svg class="file-icon" viewBox="0 0 24 24" fill="#2b87d3" stroke="none"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>'
+        : '<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="#9aa3ad" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+      tr.innerHTML = `
+        <td>
+          <div class="file-name" onclick="${f.type === 'folder' ? `navigateTo('${f.name === '..' ? parentPath(path) : (path === '/' ? '/' + f.name : path + '/' + f.name)}')` : `alert('Preview: ${f.name}')`}">
+            ${icon} ${f.name}
+          </div>
+        </td>
+        <td class="file-size">${f.size}</td>
+        <td class="file-date">${f.date}</td>
+        <td>
+          <div class="file-actions">
+            ${f.name !== '..' ? '<button class="icon-btn" title="Download" onclick="alert(\'Download demo\')">⬇</button><button class="icon-btn" title="Delete" onclick="alert(\'Delete demo\')">🗑</button>' : ''}
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function parentPath(p) {
+    if (p === '/' || !p) return '/';
+    const parts = p.split('/').filter(Boolean);
+    parts.pop();
+    return parts.length ? '/' + parts.join('/') : '/';
+  }
+
+  function navigateTo(path) {
+    renderFiles(path);
+  }
+
+  function copyText(t) {
+    navigator.clipboard.writeText(t).then(() => alert('Copied: ' + t));
+  }
+
+  // init
+  renderFiles('/');
+</script>
+</body>
+</html>

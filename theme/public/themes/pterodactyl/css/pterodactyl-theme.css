@@ -30,115 +30,74 @@
  * every `text-neutral-* on bg-neutral-*` pairing readable while turning the
  * page light.
  *
- * Fonts (Montserrat body, Playfair Display headings) are self-hosted from
+ * Fonts are the system UI stack (no webfonts):
  * ../fonts - no CDN, no flash of unstyled text.
  */
-
 
 /* ---------------------------------------------------------------- tokens -- */
 
 /* ------------------------------------------------------------------ fonts -- */
-/* Self-hosted from ../fonts/ (see manifest.json "fonts" folder). Declared here
- * rather than in GlobalStylesheet.ts so the font stack and the palette are
- * owned by a single file. `font-sans` / `font-header` utilities resolve to the
- * same families via tailwind.config.js. */
+/* System UI stack - no webfont download, so first paint is instant. The same
+ * families resolve through `font-sans` / `font-header` in tailwind.config.js. */
 
-@font-face {
-    font-family: 'Montserrat';
-    font-style: normal;
-    font-display: swap;
-    font-weight: 100 900;
-    src: url('../fonts/montserrat-latin-wght-normal.woff2') format('woff2-variations');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
-        U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-    font-family: 'Playfair Display';
-    font-style: normal;
-    font-display: swap;
-    font-weight: 400 900;
-    src: url('../fonts/playfair-display-latin-wght-normal.woff2') format('woff2-variations');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
-        U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
+/* ---------------------------------------------------------------- tokens -- */
+/*
+ * Aternos-style dark palette (from aternos-panel.html). Dark only - the light
+ * palette and the light/dark toggle have been removed.
+ *
+ *   page #1a1f24 · surface #2d3943 · raised #21262d · border #3a4652
+ *   text #e0e0e0 · muted #8a93a0 · accent #2b87d3
+ *   success #22c55e · danger #ef4444 · warning #f59e0b
+ */
 :root {
-    --pt-font-body: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --pt-font-heading: 'Playfair Display', Georgia, serif;
+    --pt-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --pt-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-    /* ---------------------------------------------------------------- brand -- */
-    /* Niraula EduMedia navy. Identical in both themes so the brand never
-     * drifts; used for the sidebar, topbar, primary buttons and headings. */
-    --pt-navy-50: 238 244 251;
-    --pt-navy-100: 214 226 242;
-    --pt-navy-200: 178 200 230;
-    --pt-navy-300: 140 170 214;
-    --pt-navy-400: 100 138 196;
-    --pt-navy-500: 56 96 158;
-    --pt-navy-600: 26 60 109; /* #1a3c6d */
-    --pt-navy-700: 21 49 90;
-    --pt-navy-800: 17 40 73;
-    --pt-navy-900: 12 30 55;
+    /* Primary blue - buttons, links, active rows, focus rings. */
+    --pt-navy-50: 239 245 251;
+    --pt-navy-100: 208 227 244;
+    --pt-navy-200: 166 204 236;
+    --pt-navy-300: 124 181 226;
+    --pt-navy-400: 85 157 216;
+    --pt-navy-500: 55 140 211;
+    --pt-navy-600: 43 135 211; /* #2b87d3 */
+    --pt-navy-700: 30 111 184; /* #1e6fb8 hover */
+    --pt-navy-800: 36 48 64; /* active nav row #243040 */
+    --pt-navy-900: 26 31 36; /* page #1a1f24 */
 
-    /* Niraula EduMedia gold accent. `cyan` resolves here, so the stock nav
-     * underline, focus rings and console timestamps all turn gold. */
-    --pt-gold-50: 251 247 236;
-    --pt-gold-100: 247 238 214;
-    --pt-gold-200: 240 224 175;
-    --pt-gold-300: 224 200 120; /* #e0c878 */
-    --pt-gold-400: 213 182 85;
-    --pt-gold-500: 206 173 66;
-    --pt-gold-600: 200 164 78; /* #c8a44e */
-    --pt-gold-700: 167 135 58;
-    --pt-gold-800: 134 108 47;
-    --pt-gold-900: 101 81 35;
-}
+    /* Accent alias: the reference uses blue for every accent, so the gold ramp
+     * tracks navy with lighter steps for text and icons on dark surfaces. */
+    --pt-gold-50: 239 245 251;
+    --pt-gold-100: 208 227 244;
+    --pt-gold-200: 166 204 236;
+    --pt-gold-300: 124 181 226;
+    --pt-gold-400: 85 157 216;
+    --pt-gold-500: 55 140 211;
+    --pt-gold-600: 43 135 211; /* #2b87d3 */
+    --pt-gold-700: 30 111 184;
+    --pt-gold-800: 36 48 64;
+    --pt-gold-900: 26 31 36;
 
-/* Dark theme: deep navy page, slate-navy panels. */
-:root,
-:root[data-theme='dark'] {
-    /* Surface ramp - navy-tinted so nothing reads as flat grey. */
-    --pt-gray-50: 245 248 252;
-    --pt-gray-100: 219 227 236;
-    --pt-gray-200: 186 197 211;
-    --pt-gray-300: 152 167 186;
-    --pt-gray-400: 126 144 166;
-    --pt-gray-500: 100 119 143;
-    --pt-gray-600: 64 82 104;
-    --pt-gray-700: 47 60 79;
-    --pt-gray-800: 31 42 58; /* page */
-    --pt-gray-900: 17 26 40;
+    /* Surfaces and text (dark only, no mirror). */
+    --pt-gray-50: 235 238 242; /* brightest text */
+    --pt-gray-100: 192 200 208; /* nav item text #c0c8d0 */
+    --pt-gray-200: 154 163 173; /* meta text #9aa3ad */
+    --pt-gray-300: 138 147 160; /* muted text #8a93a0 */
+    --pt-gray-400: 122 132 144; /* nav labels #7a8490 */
+    --pt-gray-500: 74 86 98; /* hover surface #4a5662 */
+    --pt-gray-600: 58 70 82; /* borders / hover #3a4652 */
+    --pt-gray-700: 45 57 67; /* card, sidebar, header #2d3943 */
+    --pt-gray-800: 26 31 36; /* page #1a1f24 */
+    --pt-gray-900: 22 27 34; /* raised chrome #161b22 */
 
-    --pt-black: 9 14 25; /* terminal / code chips */
+    --pt-black: 13 17 23; /* console #0d1117 */
     --pt-white: 255 255 255;
-
-}
-
-/* Light theme: mirrored surface ramp on an off-white page (see header note).
- * 700/800/900 are overridden - those three steps carry every panel surface,
- * so they become white cards, the off-white page and the code-chip surface. */
-:root[data-theme='light'] {
-    --pt-gray-50: 17 26 40;
-    --pt-gray-100: 31 42 58;
-    --pt-gray-200: 47 60 79;
-    --pt-gray-300: 64 82 104;
-    --pt-gray-400: 100 119 143;
-    --pt-gray-500: 126 144 166;
-    --pt-gray-600: 152 167 186;
-    --pt-gray-700: 255 255 255;
-    --pt-gray-800: 248 247 244;
-    --pt-gray-900: 236 238 242;
-
-    --pt-black: 13 28 51;
-    --pt-white: 255 255 255;
-
 }
 
 /* --------------------------------------------------------- semantic colour scales -- */
 /*
- * red / green / yellow keep their stock values in both themes so server
- * status colours still read as status colours.
+ * red / green / yellow keep their stock values so server status colours still
+ * read as status colours (Start #22c55e, Stop #ef4444, Restart #f59e0b).
  *
  * `blue` and `cyan` are NOT declared here: tailwind.config.js aliases them to
  * the brand ramps, so `text-blue-*` / `bg-primary-*` resolve to --pt-navy-*
@@ -178,137 +137,6 @@
     --pt-yellow-700: 161 98 7;
     --pt-yellow-800: 133 77 14;
     --pt-yellow-900: 113 63 18;
-}
-
-/* --------------------------------------------------------- theme toggle --- */
-
-.pt-theme-slot {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    padding: 0 0.75rem;
-}
-
-[data-theme] button.pt-theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(var(--pt-gray-400) / 0.4);
-    background-color: rgb(var(--pt-gray-600) / 0.55);
-    color: rgb(var(--pt-gray-200));
-    font-size: 0.9rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-
-[data-theme] button.pt-theme-toggle:hover,
-[data-theme] button.pt-theme-toggle:focus-visible {
-    background-color: rgb(var(--pt-gray-500) / 0.85);
-    border-color: rgb(var(--pt-gray-400) / 0.7);
-    color: rgb(var(--pt-white));
-    outline: none;
-}
-
-/* ------------------------------------------------ React panel light fixes -- */
-
-/*
- * The neutral ramp is mirrored for the light theme, which keeps relative
- * contrast intact for almost every pairing. These are the handful of spots
- * where a token is deliberately reused in the opposite role.
- */
-
-/* QR codes need a white plate or they will not scan. */
-[data-theme='light'] .bg-gray-50 {
-    background-color: rgb(var(--pt-white));
-}
-
-/*
- * Stock `isLight` inputs are `bg-white` - white is the one surface token that
- * never flips - so their text has to be forced dark. Their LABELS are left
- * alone: they sit on the `bg-neutral-100` auth card, which the mirror already
- * inverts for us (dark card + light label), and overriding them here would
- * paint dark text onto that dark card.
- */
-[data-theme='light'] input.text-neutral-800,
-[data-theme='light'] textarea.text-neutral-800 {
-    color: rgb(var(--pt-gray-200));
-}
-
-/* Muted meta text now sits on light cards. */
-[data-theme='light'] .text-neutral-600,
-[data-theme='light'] .text-gray-100,
-[data-theme='light'] .text-gray-200 {
-    color: rgb(var(--pt-gray-300));
-}
-
-/*
- * The mirror brightens as the step climbs, so the stock muted steps land under
- * AA on a card in one theme or the other (`text-neutral-400` / `-500` are the
- * panel's two workhorse meta colours - 38 hits across row descriptions, table
- * cells and auth links). Re-anchor both, per theme.
- */
-[data-theme='light'] .text-neutral-500 {
-    color: rgb(var(--pt-gray-400));
-}
-
-[data-theme='dark'] .text-neutral-400,
-[data-theme='dark'] .text-neutral-500 {
-    color: rgb(var(--pt-gray-300));
-}
-
-/*
- * `hover:text-neutral-700` on the auth links has no paired hover background,
- * so it resolves to the card surface itself and the label vanishes on hover.
- * Keep it on the same accent the link already uses.
- */
-.pt-auth a.hover\:text-neutral-700:hover {
-    color: rgb(var(--pt-navy-600));
-}
-
-[data-theme='dark'] .pt-auth a.hover\:text-neutral-700:hover {
-    color: rgb(var(--pt-gold-300));
-}
-
-/* Disabled fields inherit `bg-neutral-100`, which is a dark surface in light. */
-[data-theme='light'] input:disabled,
-[data-theme='light'] select:disabled,
-[data-theme='light'] textarea:disabled {
-    background-color: rgb(var(--pt-gray-700));
-    border-color: rgb(var(--pt-gray-600));
-    color: rgb(var(--pt-gray-500));
-}
-
-/* Validation text: `text-red-100` is only wrong on the light input surface. */
-[data-theme='light'] .input-help {
-    color: rgb(var(--pt-red-700));
-}
-
-[data-theme='light'] input.text-red-100,
-[data-theme='light'] textarea.text-red-100 {
-    color: rgb(var(--pt-red-700));
-}
-
-/* Dialog backdrops stay dark so modals read as overlays. */
-[data-theme='light'] .bg-gray-900\/50 {
-    background-color: rgb(15 23 42 / 0.5);
-}
-
-/*
- * `border-neutral-200` is the stock hairline divider and `border-neutral-700`
- * the stock dropdown / modal outline. The mirror flips both to white-on-white
- * once 700 becomes the white card surface, so re-anchor them in light only.
- */
-[data-theme='light'] .border-neutral-200 {
-    border-color: rgb(var(--pt-gray-600) / 0.75);
-}
-
-[data-theme='light'] .border-neutral-700 {
-    border-color: rgb(var(--pt-gray-400));
 }
 
 /* -------------------------------------------------------------- app shell -- */
@@ -616,26 +444,6 @@
     background-color: rgb(255 255 255 / 0.12);
     color: #ffffff;
     outline: none;
-}
-
-.pt-topbar-actions .pt-theme-slot {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    padding: 0 0.35rem;
-}
-
-.pt-topbar-actions [data-theme] button.pt-theme-toggle {
-    border-color: rgb(255 255 255 / 0.25);
-    background-color: rgb(255 255 255 / 0.1);
-    color: #ffffff;
-}
-
-.pt-topbar-actions [data-theme] button.pt-theme-toggle:hover,
-.pt-topbar-actions [data-theme] button.pt-theme-toggle:focus-visible {
-    background-color: rgb(255 255 255 / 0.22);
-    border-color: rgb(var(--pt-gold-600));
-    color: rgb(var(--pt-gold-300));
 }
 
 .pt-avatar-btn,
@@ -1146,26 +954,6 @@
  * Their bright 400-step text reads fine over a dark card but drops to ~1.4:1
  * over the same tint on white, so darken the label in light only.
  */
-[data-theme='light'] .pt-chip--online {
-    color: rgb(var(--pt-green-800));
-}
-
-[data-theme='light'] .pt-chip--offline {
-    color: rgb(var(--pt-red-800));
-}
-
-[data-theme='light'] .pt-chip--busy {
-    color: rgb(var(--pt-yellow-800));
-}
-
-[data-theme='light'] .pt-chip--neutral {
-    color: rgb(var(--pt-gray-300));
-}
-
-[data-theme='light'] .pt-chip--allocation {
-    color: rgb(var(--pt-navy-700));
-}
-
 .pt-stat {
     min-width: 5rem;
     max-width: 8rem;
@@ -1301,20 +1089,20 @@
     }
 }
 
-/* Gold call-to-action for the Start button; Stop keeps the danger red and
-   Restart keeps the neutral text treatment. */
+/* Green Start call-to-action (Aternos: #22c55e / hover #16a34a); Stop keeps
+   the danger red and Restart keeps the neutral treatment. */
 .pt-console-actions button.pt-power {
-    background-color: rgb(var(--pt-gold-600));
-    border-color: rgb(var(--pt-gold-700));
-    color: rgb(var(--pt-navy-900));
-    box-shadow: 0 4px 14px rgb(var(--pt-gold-600) / 0.3);
+    background-color: rgb(var(--pt-green-500));
+    border-color: rgb(var(--pt-green-600));
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgb(var(--pt-green-500) / 0.3);
 }
 
 .pt-console-actions button.pt-power:hover:not(:disabled),
 .pt-console-actions button.pt-power:focus-visible {
-    background-color: rgb(var(--pt-gold-500));
-    border-color: rgb(var(--pt-gold-600));
-    color: rgb(var(--pt-navy-900));
+    background-color: rgb(var(--pt-green-600));
+    border-color: rgb(var(--pt-green-700));
+    color: #ffffff;
 }
 
 .pt-console-actions button.pt-power:disabled {

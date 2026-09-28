@@ -3,32 +3,9 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#1f2a3a" />
+        <meta name="theme-color" content="#1a1f24" />
         <title>brine-theme - React panel preview</title>
 
-        <!--
-            Same no-FOUC bootstrap as resources/views/templates/wrapper.blade.php.
-        -->
-        <script>
-            (function () {
-                var stored = null;
-                try {
-                    stored = localStorage.getItem('ptero-theme');
-                } catch (e) {
-                    stored = null;
-                }
-
-                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches === false;
-                var theme = stored === 'dark' || stored === 'light' ? stored : dark ? 'dark' : 'light';
-
-                document.documentElement.setAttribute('data-theme', theme);
-
-                var meta = document.querySelector('meta[name="theme-color"]');
-                if (meta) {
-                    meta.setAttribute('content', theme === 'light' ? '#f8f7f4' : '#1f2a3a');
-                }
-            })();
-        </script>
 
         <link rel="stylesheet" href="../theme/public/themes/pterodactyl/css/pterodactyl-theme.css" />
         <link rel="stylesheet" href="panel-preview.css" />
@@ -149,17 +126,6 @@
                             <span data-icon="search" data-icon-size="1.05rem"></span>
                         </div>
 
-                        <span class="pt-theme-slot">
-                            <button
-                                type="button"
-                                class="pt-theme-toggle"
-                                id="ptPreviewToggle"
-                                data-icon-toggle="sun:moon"
-                                data-icon-size="1rem"
-                                title="Switch to light mode"
-                                aria-label="Switch to light mode"
-                            ></button>
-                        </span>
 
                         <a href="#" class="active" title="Dashboard" aria-label="Dashboard">
                             <span data-icon="layer-group" data-icon-size="1.05rem"></span>
@@ -567,43 +533,12 @@
                             </div>
                         </section>
 
-                        <!-- Light-mode fix checks ------------------------------>
-                        <section>
-                            <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Light-mode fix checks</h2>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="rounded p-4 bg-neutral-700 space-y-2">
-                                    <p class="text-neutral-500 text-xs uppercase tracking-wide">
-                                        <code class="font-mono text-2xs">input.text-neutral-800</code>
-                                    </p>
-                                    <input class="text_input bg-white text-neutral-800" value="input.text-neutral-800" />
-                                </div>
-                                <div class="rounded p-4 bg-neutral-700 space-y-2">
-                                    <input class="text_input" value="disabled field" disabled />
-                                    <p class="input-help text-red-100 text-xs">
-                                        <code class="font-mono text-2xs">.input-help</code> validation
-                                    </p>
-                                    <input class="text_input text-red-100" value="text-red-100" />
-                                </div>
-                                <div class="rounded p-4 bg-neutral-100 sm:col-span-2 space-y-2">
-                                    <p class="text-neutral-500 text-xs uppercase tracking-wide">
-                                        Auth card <code class="font-mono text-2xs">bg-neutral-100</code>
-                                    </p>
-                                    <label class="block text-neutral-700 text-sm mb-2">
-                                        <code class="font-mono text-2xs">label.text-neutral-700</code>
-                                    </label>
-                                    <input class="text_input bg-white text-neutral-800" value="input.text-neutral-800" />
-                                    <label class="block text-neutral-700 text-sm mb-2">Password</label>
-                                    <input class="text_input bg-white text-neutral-800" type="password" value="hunter22" disabled />
-                                </div>
-                            </div>
-                        </section>
-
                         <!-- Palette ---------------------------------------------->
                         <section>
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Palette</h2>
                             <div class="pt-content-box space-y-4">
                                 <div>
-                                    <p class="text-neutral-600 text-sm mb-2">neutral / gray (mirrored for light mode)</p>
+                                    <p class="text-neutral-600 text-sm mb-2">neutral / gray (Aternos dark)</p>
                                     <div class="pt-palette">
                                         <div class="pt-swatch" data-step="50" style="background: rgb(var(--pt-gray-50))"></div>
                                         <div class="pt-swatch" data-step="100" style="background: rgb(var(--pt-gray-100))"></div>
@@ -620,7 +555,7 @@
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div>
-                                        <p class="text-neutral-600 text-sm mb-2">brand navy (blue / primary)</p>
+                                        <p class="text-neutral-600 text-sm mb-2">primary ramp (blue / primary alias)</p>
                                         <div class="pt-palette">
                                             <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-navy-500))"></div>
                                             <div class="pt-swatch" data-step="600" style="background: rgb(var(--pt-navy-600))"></div>
@@ -629,7 +564,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <p class="text-neutral-600 text-sm mb-2">brand gold (cyan alias)</p>
+                                        <p class="text-neutral-600 text-sm mb-2">accent ramp (cyan alias)</p>
                                         <div class="pt-palette">
                                             <div class="pt-swatch" data-step="300" style="background: rgb(var(--pt-gold-300))"></div>
                                             <div class="pt-swatch" data-step="500" style="background: rgb(var(--pt-gold-500))"></div>
@@ -658,8 +593,9 @@
                                 </div>
 
                                 <p class="text-neutral-600 text-sm">
-                                    Toggle the switch in the topbar - every swatch and surface above re-colours from the
-                                    same <code class="font-mono text-2xs">--pt-*</code> custom properties with no rebuild.
+                                    Every swatch and surface above reads from the same
+                                    <code class="font-mono text-2xs">--pt-*</code> custom properties, so a palette tweak
+                                    needs only a stylesheet refresh - no rebuild.
                                 </p>
                             </div>
                         </section>

@@ -1,7 +1,7 @@
 {
     "name": "brine-theme",
     "version": "1.0.0",
-    "description": "Niraula EduMedia Aternos-style theme for the Pterodactyl Panel user area - navy/gold brand, self-hosted fonts, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
+    "description": "Aternos-style dark theme for the Pterodactyl Panel user area - #1a1f24 page, #2d3943 surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
@@ -15,32 +15,17 @@
         {
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
-            "note": "Palette stylesheet link and the pre-paint light/dark bootstrap; title, favicon and meta tags stay stock"
+            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only"
         },
         {
             "path": "resources/scripts/lib/theme.ts",
             "action": "create",
-            "note": "Theme read/write/subscribe helpers shared by the panel UI"
-        },
-        {
-            "path": "resources/scripts/components/elements/ThemeToggle.tsx",
-            "action": "create",
-            "note": "Light/dark toggle button used in the panel topbar"
+            "note": "ptColor() helper for Chart.js - dark-only, no theme state"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Brand tokens, self-hosted @font-face, shell/auth/dashboard/console/file-manager styles and light-mode fixes"
-        },
-        {
-            "path": "public/themes/pterodactyl/fonts/montserrat-latin-wght-normal.woff2",
-            "action": "create",
-            "note": "Montserrat variable font, self-hosted body typeface"
-        },
-        {
-            "path": "public/themes/pterodactyl/fonts/playfair-display-latin-wght-normal.woff2",
-            "action": "create",
-            "note": "Playfair Display variable font, self-hosted heading typeface"
+            "note": "Aternos dark tokens (#1a1f24 page, #2d3943 surface, #2b87d3 accent, system fonts), shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -60,7 +45,7 @@
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
             "action": "replace",
-            "note": "Rewritten as the shell topbar: burger, page title, search, theme toggle, admin link and avatar menu"
+            "note": "Topbar: burger, title, search, nav links, avatar (theme toggle removed)"
         },
         {
             "path": "resources/scripts/routers/DashboardRouter.tsx",

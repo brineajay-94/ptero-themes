@@ -8,7 +8,6 @@ import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Avatar from '@/components/Avatar';
-import ThemeToggle from '@/components/elements/ThemeToggle';
 
 export interface NavigationBarProps {
     title: string;
@@ -38,9 +37,6 @@ export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
             </div>
             <div className={'pt-topbar-actions'}>
                 <SearchContainer />
-                <span className={'pt-theme-slot'}>
-                    <ThemeToggle />
-                </span>
                 <NavLink to={'/'} exact title={'Dashboard'} aria-label={'Dashboard'} activeClassName={'active'}>
                     <FontAwesomeIcon icon={faThLarge} />
                 </NavLink>

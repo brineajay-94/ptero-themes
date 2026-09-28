@@ -151,39 +151,6 @@ function buildIcons(panel) {
   return `${Object.keys(out).length} icons -> ${path.basename(file)}`;
 }
 
-function copyFonts() {
-  const from = path.join(THEME_DIR, "public", "themes", "pterodactyl", "fonts");
-  const wanted = [
-    "montserrat-latin-wght-normal.woff2",
-    "playfair-display-latin-wght-normal.woff2",
-  ];
-
-  const missing = wanted.filter((name) => !fs.existsSync(path.join(from, name)));
-  if (missing.length === wanted.length) {
-    throw new Error("Niraula fonts missing from theme/public/themes/pterodactyl/fonts");
-  }
-  if (missing.length) {
-    console.warn(`         missing fonts: ${missing.join(", ")}`);
-  }
-
-  const toDir = path.join(PREVIEW_DIR, "fonts");
-  fs.mkdirSync(toDir, { recursive: true });
-
-  // Drop the previous package's font so the preview never loads a stale face.
-  for (const stale of fs.readdirSync(toDir)) {
-    if (wanted.indexOf(stale) < 0) {
-      fs.rmSync(path.join(toDir, stale), { force: true });
-    }
-  }
-
-  const copied = wanted.filter((name) => fs.existsSync(path.join(from, name)));
-  for (const name of copied) {
-    fs.copyFileSync(path.join(from, name), path.join(toDir, name));
-  }
-
-  return copied.join(", ");
-}
-
 async function buildCss(panel) {
   const postcss = resolveFrom(panel, "postcss");
   const tailwindcss = resolveFrom(panel, "tailwindcss");
@@ -253,7 +220,6 @@ async function main() {
   console.log("");
 
   await requireStep("icons", () => buildIcons(panel));
-  await step("fonts", () => copyFonts());
   await requireStep("tailwind", () => buildCss(panel));
 
   console.log("");

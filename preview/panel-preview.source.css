@@ -15,24 +15,10 @@
 @tailwind utilities;
 
 @layer base {
-    /* Same faces the theme ships in public/themes/pterodactyl/fonts. */
-    @font-face {
-        font-family: 'Montserrat';
-        font-style: normal;
-        font-display: swap;
-        font-weight: 100 900;
-        src: url('fonts/montserrat-latin-wght-normal.woff2') format('woff2-variations');
-    }
-
-    @font-face {
-        font-family: 'Playfair Display';
-        font-style: normal;
-        font-display: swap;
-        font-weight: 400 900;
-        src: url('fonts/playfair-display-latin-wght-normal.woff2') format('woff2-variations');
-    }
+    /* System UI stack - no webfonts to ship.
 
     body {
+
         letter-spacing: 0.015em;
         font-family: theme('fontFamily.sans');
     }

@@ -1,29 +1,26 @@
 # brine-theme
 
-A full UI overhaul of **Pterodactyl Panel** (v1.12 â€“ v1.15) for the **Niraula
-EduMedia** brand â€” navy `#1a3c6d` + gold `#c8a44e`, self-hosted Montserrat and
-Playfair Display, and a restructured layout rather than a palette swap.
+A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) matching the **Aternos**
+control-panel design — dark `#1a1f24` page, `#2d3943` surfaces, blue `#2b87d3`
+accent, the system UI font stack, and a fixed sidebar shell.
 
 What it changes on top of the stock panel:
 
 - **Shell** â€” Aternos-style fixed sidebar (brand block, permission-filtered
-  server + account navigation, user footer), sticky navy topbar with a gold
+  server + account navigation, user footer), sticky topbar with a blue
   rule, and a sliding mobile drawer with a hamburger burger.
 - **Dashboard** â€” branded hero header with welcome stats, section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.
-- **Login** â€” the stock login is replaced with a navy masthead carrying the
-  brand emblem, a gold rule and a Playfair heading (checkpoint, forgot and
+- **Login** â€” the stock login is replaced with a dark masthead carrying the brand emblem, a blue rule and a system-font heading (checkpoint, forgot and
   reset screens follow the same treatment).
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
-  navy-black, neutral stat cards with gold accents, a branded header with a
-  status chip, and a gold **Start** call-to-action.
-- **File manager** â€” monospaced navy path bar with gold links, card-style file
+  navy-black, neutral stat cards with blue accents, a branded header with a
+  status chip, and a green **Start** call-to-action.
+- **File manager** â€” monospaced path bar with blue links, card-style file
   rows with icon tiles, and a branded selection bar.
-- **Light/dark** â€” a toggle in the topbar flips
-  `data-theme` live; the preference is stored in `localStorage` under
-  `ptero-theme` and applied before first paint, so there is no flash of the
-  wrong colours.
+- **Dark only** - one scheme matching `aternos-panel.html`: no light palette and
+  no light/dark toggle anywhere in the panel.
 
 ## Scope
 
@@ -59,8 +56,7 @@ Each page loads the real palette stylesheet
 (`theme/public/themes/pterodactyl/css/pterodactyl-theme.css`), the bundled
 fonts and a Tailwind build generated from this package's `tailwind.config.js`,
 so every utility, border and alpha modifier on screen is what an installed
-panel will render. The toggle in the topbar flips `data-theme` live â€” nothing
-reloads.
+panel will render. There is no toggle: the mock renders one dark scheme.
 
 The markup is hard-coded (no API) but mirrors the panel's real components and
 the redesigned pages in this package.
@@ -226,12 +222,7 @@ clear the caches afterwards â€” the menu offers to do that too.
 
 `tailwind.config.js` emits every colour utility as `rgb(var(--pt-*))` instead of
 a literal. The channel values live in
-`public/themes/pterodactyl/css/pterodactyl-theme.css`, duplicated for
-`:root[data-theme='dark']` and `:root[data-theme='light']`.
-
-Because `<html data-theme="â€¦">` selects which block applies, flipping that one
-attribute re-themes every colour utility in the panel with **no rebuild** and no
-full-page reload. Opacity modifiers (`bg-black/50`, `bg-red-500/25`) keep
+`public/themes/pterodactyl/css/pterodactyl-theme.css`, in a single `:root` block (dark only), taken from the Aternos reference mock. Because the token values live in CSS rather than in the compiled utility classes, a palette tweak needs only a stylesheet refresh - no rebuild. Opacity modifiers (`bg-black/50`, `bg-red-500/25`) keep working because Tailwind re-parses the `rgb()` wrapper itself. Opacity modifiers (`bg-black/50`, `bg-red-500/25`) keep
 working because Tailwind re-parses the `rgb()` wrapper itself.
 
 ### Brand ramps
@@ -240,8 +231,8 @@ The config exposes two new ramps read from the CSS variables:
 
 | Ramp | Source | Used for |
 | --- | --- | --- |
-| `navy` | `--pt-navy-*` (600 = `26 60 109`) | brand surfaces, sidebar, topbar, terminals |
-| `gold` | `--pt-gold-*` (600 = `200 164 78`) | accents, rules, active states, call-to-action |
+| `navy` | `--pt-navy-*` (600 = `43 135 211` = `#2b87d3`) | primary surfaces, sidebar, topbar, primary buttons |
+| `gold` | `--pt-gold-*` (600 = `43 135 211` = `#2b87d3`) | accent alias: links, rules, focus, active states |
 
 `blue` and `primary` are **aliased to the navy ramp** and `cyan` is **aliased
 to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
@@ -250,29 +241,22 @@ to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
 
 ### Neutral ramp
 
-The `neutral` / `gray` ramp is **mirrored** for the light theme (50 â†” 900,
-100 â†” 800, 200 â†” 700, 300 â†” 600, 400 â†” 500), with `neutral-700` becoming the
-card surface and `neutral-800` the off-white page. The stock panel builds every
-surface out of `neutral-700/800/900`, so inverting the ramp keeps every
-`text-neutral-* on bg-neutral-*` pairing readable while the page turns light.
-A handful of light-mode overrides at the end of the stylesheet handle the
-places the mirror cannot (white text on white cards, disabled inputs,
-backdrops).
+The `neutral` / `gray` ramp is the Aternos dark ramp, read off the reference
+mock: `700` is the card/sidebar/header surface (`#2d3943`), `800` the page
+(`#1a1f24`), `900` raised chrome (`#161b22`), `black` the terminal
+(`#0d1117`), and the upper steps are the text greys (`#e0e0e0` down to
+`#7a8490`). The stock panel builds every surface from
+`neutral-700/800/900`, so the whole panel lands on the reference colours
+without per-page overrides.
 
 ### Fonts
 
-`@font-face` declarations in the palette stylesheet load
-`fonts/montserrat-latin-wght-normal.woff2` and
-`fonts/playfair-display-latin-wght-normal.woff2` from
-`public/themes/pterodactyl/fonts/` â€” self-hosted, no third-party request.
-`fontFamily.sans` is Montserrat and `fontFamily.header` (`font-header`) is
-Playfair Display, used for headings and server names.
+The system UI stack (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`,
+Roboto, `Helvetica Neue`, Arial) for both `--pt-font-body` and
+`--pt-font-heading`, matching `fontFamily.sans` / `fontFamily.header` in
+`tailwind.config.js`. No webfonts ship, so there is no font request and the
+first paint is instant.
 
-### No-flash bootstrap
-
-templates/wrapper.blade.php runs a tiny inline script in `<head>`
-that reads `localStorage['ptero-theme']` and sets `data-theme` on `<html>`
-before any stylesheet or script has been parsed.
 
 ### Chart.js
 
@@ -280,20 +264,19 @@ Canvas does not resolve `var()`, so the console graphs cannot take Tailwind
 colours directly. `ptColor()` in `resources/scripts/lib/theme.ts` reads the
 token back out of the computed style and returns a literal `rgb()` / `rgba()`
 string for Chart.js. Grid and tick colours are re-resolved on every chart
-render, so they follow the current theme.
+render, so they match the panel.
 
 ## What changes
 
-35 files. Full detail lives in `manifest.json`; the summary:
+32 files. Full detail lives in `manifest.json`; the summary:
 
 **Build & chrome**
 
 | File | Action |
 | --- | --- |
 | `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
-| `resources/views/templates/wrapper.blade.php` | replace â€” stylesheet link + no-FOUC bootstrap (title, favicon and meta tags stay stock) |
-| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” tokens, fonts, shell/auth/dashboard/console/files |
-| `public/themes/pterodactyl/fonts/*.woff2` | create â€” Montserrat + Playfair Display |
+| `resources/views/templates/wrapper.blade.php` | replace â€” stylesheet link only (title, favicon and meta tags stay stock) |
+| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” Aternos tokens + shell/auth/dashboard/console/files styles |
 | `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
 
 **Shell**
@@ -321,8 +304,7 @@ render, so they follow the current theme.
 
 | File | Action |
 | --- | --- |
-| `resources/scripts/lib/theme.ts` | create â€” `getTheme` / `setTheme` / `toggleTheme` / `subscribeTheme` / `ptColor` |
-| `resources/scripts/components/elements/ThemeToggle.tsx` | create â€” React toggle button |
+| `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
 
@@ -332,20 +314,15 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the
   same edit into `tailwind.config.js` only if you add a *new* ramp.
-- **Type** â€” swap the `.woff2` files under `public/themes/pterodactyl/fonts/`
-  and update the `@font-face` `src` plus `--pt-font-body` / `--pt-font-heading`.
-- **Default theme** - the bootstrap falls back to `prefers-color-scheme`. Change it in the inline
-  script in `wrapper.blade.php`.
-- **Toggle placement** â€” `NavigationBar.tsx` wraps the button in
-  `<span className="pt-theme-slot">`; move the whole span if you want it
-  elsewhere.
+- **Type** - edit `--pt-font-body` / `--pt-font-heading` in the stylesheet; the
+  system stack ships with no `.woff2` files.
 
 ## Known limitations
 
 - Syntax highlighting in the file editor still uses stock hex literals, so those
   few colours do not follow the theme.
 - Chart dataset colours (cyan/yellow) are captured when a chart is created.
-  They are identical in both themes, so this is not visible in practice.
+  They match the dark palette, so this is not visible in practice.
 - Because `tailwind.config.js` is replaced, upgrading the panel may overwrite
   it (and the other `replace` entries). Uninstall, upgrade, then reinstall.
 - The file editor and the activity/backup/admin sub-pages keep the stock

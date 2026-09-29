@@ -4,7 +4,7 @@
     @apply focus:ring-[3px] focus:ring-offset-2 focus:ring-offset-gray-700 focus:ring-opacity-50;
 
     /* Sharp, compact, letter-spaced controls. */
-    border-radius: 3px;
+    border-radius: 0;
 
     /* Sizing Controls */
     &.small {

@@ -1,5 +1,5 @@
 /*
- * brine-theme - Aternos-style Pterodactyl Panel child theme (user panel only)
+ * brine-theme - dark violet/indigo Pterodactyl Panel child theme (user panel only)
  * Target: pterodactyl/panel v1.15.x
  *
  * Loaded from resources/views/templates/wrapper.blade.php - the normal user
@@ -17,18 +17,18 @@
  *
  * Brand
  * -----
- *   navy  #1a3c6d   primary / links / primary buttons / sidebar
- *   gold  #c8a44e   accent / active indicators / focus rings
- *   page  #f8f7f4   light theme background (off-white)
+ *   navy  #2b87d3   primary / links / primary buttons / focus rings
+ *   gold  #2b87d3   accent alias (the reference uses blue for every accent)
+ *   page  #19152e   dark violet/indigo background
  *
  * `blue` and `primary` in the Tailwind config resolve to the navy ramp and
  * `cyan` resolves to the gold ramp, so every stock brand-coloured utility
  * re-brands without component edits. red/green/yellow keep their semantics.
  *
- * The neutral/gray ramp is mirrored for the light theme: the stock panel
- * builds every surface out of neutral-700/800/900, so inverting the ramp keeps
- * every `text-neutral-* on bg-neutral-*` pairing readable while turning the
- * page light.
+ * The neutral/gray ramp carries every surface: the stock panel builds surfaces
+ * out of neutral-700/800/900, so the violet/indigo values below re-skin those
+ * pairings with no component edits. Corners are square everywhere - the radius
+ * reset below also kills the stock panel's rounding.
  *
  * Fonts are the system UI stack (no webfonts):
  * ../fonts - no CDN, no flash of unstyled text.
@@ -42,11 +42,11 @@
 
 /* ---------------------------------------------------------------- tokens -- */
 /*
- * Aternos-style dark palette (from aternos-panel.html). Dark only - the light
- * palette and the light/dark toggle have been removed.
+ * Dark violet/indigo palette (evolved from the aternos-panel.html reference).
+ * Dark only - the light palette and the light/dark toggle have been removed.
  *
- *   page #1a1f24 · surface #2d3943 · raised #21262d · border #3a4652
- *   text #e0e0e0 · muted #8a93a0 · accent #2b87d3
+ *   page #19152e · surface #2b254c · raised #120f1e · border #39335f
+ *   text #edeaf8 · muted #938daf · accent #2b87d3 · glow #7c5cf6
  *   success #22c55e · danger #ef4444 · warning #f59e0b
  */
 :root {
@@ -62,8 +62,8 @@
     --pt-navy-500: 55 140 211;
     --pt-navy-600: 43 135 211; /* #2b87d3 */
     --pt-navy-700: 30 111 184; /* #1e6fb8 hover */
-    --pt-navy-800: 36 48 64; /* active nav row #243040 */
-    --pt-navy-900: 26 31 36; /* page #1a1f24 */
+    --pt-navy-800: 35 30 64; /* active nav row #231e40 */
+    --pt-navy-900: 25 21 46; /* page #19152e */
 
     /* Accent alias: the reference uses blue for every accent, so the gold ramp
      * tracks navy with lighter steps for text and icons on dark surfaces. */
@@ -75,23 +75,35 @@
     --pt-gold-500: 55 140 211;
     --pt-gold-600: 43 135 211; /* #2b87d3 */
     --pt-gold-700: 30 111 184;
-    --pt-gold-800: 36 48 64;
-    --pt-gold-900: 26 31 36;
+    --pt-gold-800: 35 30 64;
+    --pt-gold-900: 25 21 46;
 
     /* Surfaces and text (dark only, no mirror). */
-    --pt-gray-50: 235 238 242; /* brightest text */
-    --pt-gray-100: 192 200 208; /* nav item text #c0c8d0 */
-    --pt-gray-200: 154 163 173; /* meta text #9aa3ad */
-    --pt-gray-300: 138 147 160; /* muted text #8a93a0 */
-    --pt-gray-400: 122 132 144; /* nav labels #7a8490 */
-    --pt-gray-500: 74 86 98; /* hover surface #4a5662 */
-    --pt-gray-600: 58 70 82; /* borders / hover #3a4652 */
-    --pt-gray-700: 45 57 67; /* card, sidebar, header #2d3943 */
-    --pt-gray-800: 26 31 36; /* page #1a1f24 */
-    --pt-gray-900: 22 27 34; /* raised chrome #161b22 */
+    --pt-gray-50: 237 234 248; /* brightest text #edeaf8 */
+    --pt-gray-100: 200 195 222; /* nav item text #c8c3de */
+    --pt-gray-200: 166 160 194; /* meta text #a6a0c2 */
+    --pt-gray-300: 147 141 175; /* muted text #938daf */
+    --pt-gray-400: 134 128 162; /* nav labels #8680a2 */
+    --pt-gray-500: 72 65 118; /* hover surface #484176 */
+    --pt-gray-600: 57 51 95; /* borders / hover #39335f */
+    --pt-gray-700: 43 37 76; /* card, sidebar, header #2b254c */
+    --pt-gray-800: 25 21 46; /* page #19152e */
+    --pt-gray-900: 18 15 30; /* raised chrome #120f1e */
 
-    --pt-black: 13 17 23; /* console #0d1117 */
+    --pt-black: 10 8 18; /* console #0a0812 */
     --pt-white: 255 255 255;
+
+    /* Decorative violet glow for the auth page background. */
+    --pt-violet-500: 124 92 246; /* #7c5cf6 */
+}
+
+/* ------------------------------------------------------ square corners -- */
+/* Nothing in this theme is rounded: force every radius (including the stock
+ * panel's input/button rounding and any CSS-module value) to zero. */
+*,
+*::before,
+*::after {
+    border-radius: 0 !important;
 }
 
 /* --------------------------------------------------------- semantic colour scales -- */
@@ -195,7 +207,7 @@
     flex: none;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 0.5rem;
+    border-radius: 0;
     background-color: rgb(var(--pt-gold-600));
     color: rgb(var(--pt-navy-900));
     font-family: var(--pt-font-heading);
@@ -243,7 +255,7 @@
     gap: 0.75rem;
     margin: 2px 0.5rem;
     padding: 0.58rem 0.75rem;
-    border-radius: 0.25rem;
+    border-radius: 0;
     font-size: 0.875rem;
     font-weight: 500;
     color: rgb(var(--pt-navy-100));
@@ -286,7 +298,7 @@
     left: -0.5rem;
     width: 3px;
     height: 62%;
-    border-radius: 0 3px 3px 0;
+    border-radius: 0;
     background-color: rgb(var(--pt-gold-600));
     transform: translateY(-50%);
 }
@@ -324,7 +336,7 @@
     width: 2rem;
     height: 2rem;
     border: 1px solid rgb(255 255 255 / 0.22);
-    border-radius: 0.3rem;
+    border-radius: 0;
     background-color: rgb(255 255 255 / 0.08);
     color: rgb(var(--pt-navy-100));
     font-size: 0.9rem;
@@ -385,7 +397,7 @@
     flex: none;
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 0.3rem;
+    border-radius: 0;
     border: 1px solid rgb(255 255 255 / 0.22);
     background-color: rgb(255 255 255 / 0.1);
     color: #ffffff;
@@ -425,7 +437,7 @@
     min-width: 2.25rem;
     height: 2.25rem;
     padding: 0 0.5rem;
-    border-radius: 0.3rem;
+    border-radius: 0;
     border: 1px solid transparent;
     background-color: transparent;
     color: rgb(var(--pt-navy-100));
@@ -456,7 +468,7 @@
     min-width: 2.25rem;
     padding: 0;
     border: 1px solid rgb(255 255 255 / 0.25);
-    border-radius: 9999px;
+    border-radius: 0;
     background-color: rgb(255 255 255 / 0.1);
     overflow: hidden;
     cursor: pointer;
@@ -549,7 +561,7 @@
     width: 2rem;
     height: 2rem;
     border: 1px solid rgb(255 255 255 / 0.22);
-    border-radius: 0.3rem;
+    border-radius: 0;
     background-color: rgb(255 255 255 / 0.08);
     color: #ffffff;
     cursor: pointer;
@@ -564,7 +576,7 @@
 
 /* ---------------------------------------------------------- auth screens -- */
 /*
- * Modern dark auth card: a floating, centred card on the #1a1f24 page with a
+ * Modern dark auth card: a floating, centred card on the #19152e page with a
  * soft accent glow, a logo chip instead of the old coloured masthead, a quiet
  * uppercase brand eyebrow, a strong title, dark inputs and an accent action.
  * Every auth route (login / register / checkpoint / forgot / reset) renders
@@ -579,7 +591,7 @@
     min-height: 100vh;
     padding: 2rem 1rem;
     background-color: rgb(var(--pt-gray-800));
-    background-image: radial-gradient(900px 480px at 50% -12%, rgb(var(--pt-navy-600) / 0.16), transparent 65%),
+    background-image: radial-gradient(900px 480px at 50% -12%, rgb(var(--pt-violet-500) / 0.18), transparent 65%),
         radial-gradient(700px 420px at 88% 108%, rgb(var(--pt-gold-600) / 0.05), transparent 60%);
 }
 
@@ -594,7 +606,7 @@
 .pt-auth-card {
     width: 100%;
     max-width: 420px;
-    border-radius: 16px;
+    border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
     border: 1px solid rgb(var(--pt-gray-600) / 0.55);
     box-shadow: 0 32px 64px -24px rgb(0 0 0 / 0.65), 0 2px 10px rgb(0 0 0 / 0.35);
@@ -612,7 +624,7 @@
     height: 3.5rem;
     margin: 0 auto 0.9rem;
     padding: 3px;
-    border-radius: 14px;
+    border-radius: 0;
     background-color: #ffffff;
     box-shadow: 0 12px 26px -12px rgb(0 0 0 / 0.7);
 }
@@ -674,7 +686,7 @@
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid rgb(var(--pt-gray-600) / 0.7);
     background-color: rgb(var(--pt-gray-900) / 0.85);
     color: rgb(var(--pt-gray-100));
@@ -700,7 +712,7 @@
     width: 100%;
     min-height: 2.75rem;
     margin-top: 0.35rem;
-    border-radius: 8px;
+    border-radius: 0;
     font-weight: 700;
     letter-spacing: 0.06em;
     box-shadow: 0 10px 22px -12px rgb(var(--pt-navy-600) / 0.9);
@@ -741,7 +753,7 @@
     position: relative;
     margin-bottom: 1.25rem;
     padding: 1.5rem 1.35rem 1.6rem;
-    border-radius: 4px;
+    border-radius: 0;
     border-bottom: 3px solid rgb(var(--pt-gold-600));
     background-image: linear-gradient(135deg, rgb(var(--pt-navy-700)), rgb(var(--pt-navy-900)));
     box-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
@@ -756,7 +768,7 @@
     width: 230px;
     height: 230px;
     border: 26px solid rgb(var(--pt-gold-600) / 0.14);
-    border-radius: 50%;
+    border-radius: 0;
     pointer-events: none;
 }
 
@@ -819,7 +831,7 @@
     margin-bottom: 0.6rem;
     padding: 0.95rem 1.1rem;
     border: 1px solid rgb(var(--pt-gray-500) / 0.45);
-    border-radius: 4px;
+    border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
     color: inherit;
     text-decoration: none;
@@ -850,7 +862,7 @@
     place-items: center;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: 0.35rem;
+    border-radius: 0;
     background-color: rgb(var(--pt-navy-600));
     color: rgb(var(--pt-gold-300));
     font-size: 1.1rem;
@@ -897,7 +909,7 @@
     gap: 0.35rem;
     padding: 0.15rem 0.55rem;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: 0;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.1em;
@@ -973,7 +985,7 @@
 .pt-bar {
     height: 0.3rem;
     margin-top: 0.35rem;
-    border-radius: 999px;
+    border-radius: 0;
     background-color: rgb(var(--pt-gray-500) / 0.55);
     overflow: hidden;
 }
@@ -981,7 +993,7 @@
 .pt-bar > i {
     display: block;
     height: 100%;
-    border-radius: 999px;
+    border-radius: 0;
     background-image: linear-gradient(90deg, rgb(var(--pt-navy-400)), rgb(var(--pt-gold-500)));
     transition: width 300ms ease;
 }
@@ -1038,7 +1050,7 @@
     gap: 1rem;
     margin-bottom: 1rem;
     padding: 1.05rem 1.25rem;
-    border-radius: 4px;
+    border-radius: 0;
     border-bottom: 3px solid rgb(var(--pt-gold-600));
     background-image: linear-gradient(120deg, rgb(var(--pt-navy-700)), rgb(var(--pt-navy-900)));
     box-shadow: 0 12px 30px rgb(0 0 0 / 0.22);
@@ -1112,7 +1124,7 @@
     min-width: 0;
     padding: 0.5rem 0.6rem;
     border: 1px solid rgb(var(--pt-gray-500) / 0.45);
-    border-radius: 4px;
+    border-radius: 0;
     background-color: rgb(var(--pt-navy-800));
     color: rgb(var(--pt-navy-200));
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -1161,7 +1173,7 @@
     gap: 0.75rem;
     padding: 0.7rem 1rem;
     border: 1px solid rgb(var(--pt-gold-600) / 0.65);
-    border-radius: 4px;
+    border-radius: 0;
     background-color: rgb(var(--pt-navy-900) / 0.97);
     box-shadow: 0 16px 36px rgb(0 0 0 / 0.4);
     pointer-events: auto;

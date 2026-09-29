@@ -1,8 +1,9 @@
 # brine-theme
 
-A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) matching the **Aternos**
-control-panel design — dark `#1a1f24` page, `#2d3943` surfaces, blue `#2b87d3`
-accent, the system UI font stack, and a fixed sidebar shell.
+A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
+control-panel layout and a dark violet/indigo palette — `#19152e` page,
+`#2b254c` surfaces, blue `#2b87d3` accent, the system UI font stack, and a
+fixed sidebar shell.
 
 What it changes on top of the stock panel:
 
@@ -263,13 +264,13 @@ to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
 
 ### Neutral ramp
 
-The `neutral` / `gray` ramp is the Aternos dark ramp, read off the reference
-mock: `700` is the card/sidebar/header surface (`#2d3943`), `800` the page
-(`#1a1f24`), `900` raised chrome (`#161b22`), `black` the terminal
-(`#0d1117`), and the upper steps are the text greys (`#e0e0e0` down to
-`#7a8490`). The stock panel builds every surface from
-`neutral-700/800/900`, so the whole panel lands on the reference colours
-without per-page overrides.
+The `neutral` / `gray` ramp is the dark violet/indigo ramp: `700` is the
+card/sidebar/header surface (`#2b254c`), `800` the page (`#19152e`), `900`
+raised chrome (`#120f1e`), `black` the terminal (`#0a0812`), and the upper
+steps are the violet-tinted text greys (`#edeaf8` down to `#8680a2`). The
+stock panel builds every surface from `neutral-700/800/900`, so the whole
+panel lands on the palette without per-page overrides. Corners are square
+everywhere: a global radius reset also neutralises the stock panel's rounding.
 
 ### Fonts
 
@@ -298,7 +299,7 @@ render, so they match the panel.
 | --- | --- |
 | `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
 | `resources/views/templates/wrapper.blade.php` | replace â€” stylesheet link only (title, favicon and meta tags stay stock) |
-| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” Aternos tokens + shell/auth/dashboard/console/files styles |
+| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” violet/indigo tokens + shell/auth/dashboard/console/files styles |
 | `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
 
 **Shell**

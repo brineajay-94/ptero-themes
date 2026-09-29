@@ -1,7 +1,7 @@
 {
     "name": "brine-theme",
     "version": "1.0.0",
-    "description": "Aternos-style dark theme for the Pterodactyl Panel user area - #1a1f24 page, #2d3943 surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
+    "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
@@ -30,7 +30,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Aternos dark tokens (#1a1f24 page, #2d3943 surface, #2b87d3 accent, system fonts), shell/auth/dashboard/console/file-manager styles"
+            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",

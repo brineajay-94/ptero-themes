@@ -21,7 +21,7 @@
             @else
                 <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
             @endif
-            <meta name="theme-color" content="#1a1f24">
+            <meta name="theme-color" content="#19152e">
         @show
 
         @section('user-data')
@@ -37,7 +37,7 @@
             @endif
         @show
 
-        {{-- brine-theme: dark palette + Aternos tokens. Must be present before the
+        {{-- brine-theme: dark violet/indigo palette. Must be present before the
              React bundle paints so every Tailwind colour resolves. --}}
         <link rel="stylesheet" href="/themes/pterodactyl/css/pterodactyl-theme.css?v={{ config('app.version', '1.0.0') }}">
 

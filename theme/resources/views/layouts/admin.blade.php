@@ -18,7 +18,7 @@
         @else
             <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
         @endif
-        <meta name="theme-color" content="#1a1f24">
+        <meta name="theme-color" content="#19152e">
 
         @include('layouts.scripts')
 

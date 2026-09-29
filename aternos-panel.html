@@ -8,8 +8,8 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #1a1f24;
-    color: #e0e0e0;
+    background: #19152e;
+    color: #edeaf8;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -17,12 +17,12 @@
   /* Header */
   .header {
     height: 52px;
-    background: #2d3943;
+    background: #2b254c;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-    border-bottom: 1px solid #1a1f24;
+    border-bottom: 1px solid #19152e;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -40,33 +40,33 @@
   .logo-icon {
     width: 28px; height: 28px;
     background: #2b87d3;
-    border-radius: 6px;
+    border-radius: 0;
     display: flex; align-items: center; justify-content: center;
     font-size: 14px; font-weight: 800; color: #fff;
   }
   .server-badge {
-    background: #1a1f24;
+    background: #19152e;
     padding: 4px 12px;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 13px;
-    color: #b0b8c0;
+    color: #c8c3de;
   }
   .server-badge strong { color: #fff; }
   .header-right { display: flex; align-items: center; gap: 12px; }
   .header-btn {
     background: transparent;
     border: none;
-    color: #b0b8c0;
+    color: #c8c3de;
     cursor: pointer;
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 13px;
   }
-  .header-btn:hover { background: #3a4652; color: #fff; }
+  .header-btn:hover { background: #39335f; color: #fff; }
   .user-avatar {
     width: 32px; height: 32px;
     background: #2b87d3;
-    border-radius: 50%;
+    border-radius: 0;
     display: flex; align-items: center; justify-content: center;
     font-weight: 600; font-size: 13px; color: #fff;
   }
@@ -77,8 +77,8 @@
   /* Sidebar */
   .sidebar {
     width: 220px;
-    background: #2d3943;
-    border-right: 1px solid #1a1f24;
+    background: #2b254c;
+    border-right: 1px solid #19152e;
     padding: 12px 0;
     flex-shrink: 0;
     overflow-y: auto;
@@ -89,7 +89,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #7a8490;
+    color: #8680a2;
     font-weight: 600;
   }
   .nav-item {
@@ -97,15 +97,15 @@
     align-items: center;
     gap: 10px;
     padding: 9px 16px;
-    color: #c0c8d0;
+    color: #c8c3de;
     cursor: pointer;
     font-size: 14px;
     border-left: 3px solid transparent;
     transition: all 0.15s;
   }
-  .nav-item:hover { background: #3a4652; color: #fff; }
+  .nav-item:hover { background: #39335f; color: #fff; }
   .nav-item.active {
-    background: #243040;
+    background: #231e40;
     color: #fff;
     border-left-color: #2b87d3;
   }
@@ -117,15 +117,15 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px 24px;
-    background: #1a1f24;
+    background: #19152e;
   }
   .page { display: none; }
   .page.active { display: block; }
 
   /* Status bar (always visible on top of content) */
   .status-bar {
-    background: #2d3943;
-    border-radius: 8px;
+    background: #2b254c;
+    border-radius: 0;
     padding: 16px 20px;
     display: flex;
     align-items: center;
@@ -137,18 +137,18 @@
   .status-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .status-dot {
     width: 12px; height: 12px;
-    border-radius: 50%;
+    border-radius: 0;
     background: #22c55e;
     box-shadow: 0 0 8px #22c55e88;
   }
   .status-dot.offline { background: #ef4444; box-shadow: 0 0 8px #ef444488; }
   .status-text { font-weight: 600; font-size: 16px; }
-  .status-meta { color: #9aa3ad; font-size: 13px; }
+  .status-meta { color: #a6a0c2; font-size: 13px; }
   .status-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 0;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -164,24 +164,24 @@
   .btn-restart { background: #f59e0b; color: #fff; }
   .btn-restart:hover { background: #d97706; }
   .btn-secondary {
-    background: #3a4652;
-    color: #e0e0e0;
+    background: #39335f;
+    color: #edeaf8;
   }
-  .btn-secondary:hover { background: #4a5662; }
+  .btn-secondary:hover { background: #484176; }
   .btn-primary { background: #2b87d3; color: #fff; }
   .btn-primary:hover { background: #1e6fb8; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* Cards */
   .card {
-    background: #2d3943;
-    border-radius: 8px;
+    background: #2b254c;
+    border-radius: 0;
     margin-bottom: 16px;
     overflow: hidden;
   }
   .card-header {
     padding: 14px 18px;
-    border-bottom: 1px solid #1a1f24;
+    border-bottom: 1px solid #19152e;
     font-weight: 600;
     font-size: 15px;
     display: flex;
@@ -199,7 +199,7 @@
   .info-item label {
     display: block;
     font-size: 12px;
-    color: #8a93a0;
+    color: #938daf;
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -223,14 +223,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 0;
-    border-bottom: 1px solid #3a4652;
+    border-bottom: 1px solid #39335f;
   }
   .player-item:last-child { border-bottom: none; }
   .player-left { display: flex; align-items: center; gap: 10px; }
   .player-avatar {
     width: 28px; height: 28px;
-    background: #3a4652;
-    border-radius: 4px;
+    background: #39335f;
+    border-radius: 0;
     display: flex; align-items: center; justify-content: center;
     font-size: 12px;
   }
@@ -239,20 +239,20 @@
 
   /* Console */
   .console-wrap {
-    background: #0d1117;
-    border-radius: 8px;
+    background: #0a0812;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     height: 480px;
   }
   .console-toolbar {
-    background: #161b22;
+    background: #120f1e;
     padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #21262d;
+    border-bottom: 1px solid #120f1e;
   }
   .console-output {
     flex: 1;
@@ -261,30 +261,30 @@
     font-family: "SF Mono", "Fira Code", "Consolas", monospace;
     font-size: 13px;
     line-height: 1.55;
-    color: #c9d1d9;
+    color: #c8c3de;
   }
   .log-line { margin-bottom: 2px; white-space: pre-wrap; word-break: break-all; }
-  .log-time { color: #8b949e; }
-  .log-info { color: #58a6ff; }
+  .log-time { color: #938daf; }
+  .log-info { color: #559dd8; }
   .log-warn { color: #d29922; }
   .log-error { color: #f85149; }
   .log-success { color: #3fb950; }
   .console-input-row {
     display: flex;
-    border-top: 1px solid #21262d;
-    background: #161b22;
+    border-top: 1px solid #120f1e;
+    background: #120f1e;
   }
   .console-input {
     flex: 1;
     background: transparent;
     border: none;
-    color: #c9d1d9;
+    color: #c8c3de;
     padding: 12px 14px;
     font-family: "SF Mono", "Fira Code", "Consolas", monospace;
     font-size: 13px;
     outline: none;
   }
-  .console-input::placeholder { color: #484f58; }
+  .console-input::placeholder { color: #39335f; }
   .console-send {
     background: #2b87d3;
     border: none;
@@ -309,12 +309,12 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: #9aa3ad;
+    color: #a6a0c2;
     flex: 1;
   }
   .breadcrumb span { cursor: pointer; }
   .breadcrumb span:hover { color: #2b87d3; }
-  .breadcrumb .sep { color: #5a6570; cursor: default; }
+  .breadcrumb .sep { color: #484176; cursor: default; }
   .file-table {
     width: 100%;
     border-collapse: collapse;
@@ -323,18 +323,18 @@
     text-align: left;
     padding: 10px 14px;
     font-size: 12px;
-    color: #8a93a0;
+    color: #938daf;
     font-weight: 600;
-    border-bottom: 1px solid #3a4652;
+    border-bottom: 1px solid #39335f;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
   .file-table td {
     padding: 10px 14px;
-    border-bottom: 1px solid #3a4652;
+    border-bottom: 1px solid #39335f;
     font-size: 14px;
   }
-  .file-table tr:hover td { background: #3a4652; }
+  .file-table tr:hover td { background: #39335f; }
   .file-name {
     display: flex;
     align-items: center;
@@ -343,14 +343,14 @@
   }
   .file-name:hover { color: #2b87d3; }
   .file-icon { width: 18px; height: 18px; opacity: 0.9; }
-  .file-size, .file-date { color: #8a93a0; font-size: 13px; }
+  .file-size, .file-date { color: #938daf; font-size: 13px; }
   .file-actions { display: flex; gap: 6px; opacity: 0; }
   .file-table tr:hover .file-actions { opacity: 1; }
   .icon-btn {
-    background: none; border: none; color: #9aa3ad;
-    cursor: pointer; padding: 4px; border-radius: 4px;
+    background: none; border: none; color: #a6a0c2;
+    cursor: pointer; padding: 4px; border-radius: 0;
   }
-  .icon-btn:hover { background: #4a5662; color: #fff; }
+  .icon-btn:hover { background: #484176; color: #fff; }
 
   /* Options form */
   .option-row {
@@ -358,15 +358,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid #3a4652;
+    border-bottom: 1px solid #39335f;
   }
   .option-row:last-child { border-bottom: none; }
   .option-label { font-size: 14px; }
-  .option-desc { font-size: 12px; color: #8a93a0; margin-top: 2px; }
+  .option-desc { font-size: 12px; color: #938daf; margin-top: 2px; }
   .toggle {
     width: 44px; height: 24px;
-    background: #3a4652;
-    border-radius: 12px;
+    background: #39335f;
+    border-radius: 0;
     position: relative;
     cursor: pointer;
     transition: background 0.2s;
@@ -377,17 +377,17 @@
     position: absolute;
     width: 18px; height: 18px;
     background: #fff;
-    border-radius: 50%;
+    border-radius: 0;
     top: 3px; left: 3px;
     transition: transform 0.2s;
   }
   .toggle.on::after { transform: translateX(20px); }
   select, input[type="text"], input[type="number"] {
-    background: #1a1f24;
-    border: 1px solid #3a4652;
-    color: #e0e0e0;
+    background: #19152e;
+    border: 1px solid #39335f;
+    color: #edeaf8;
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 13px;
     outline: none;
   }
@@ -400,16 +400,16 @@
     gap: 12px;
   }
   .software-card {
-    background: #1a1f24;
-    border: 1px solid #3a4652;
-    border-radius: 8px;
+    background: #19152e;
+    border: 1px solid #39335f;
+    border-radius: 0;
     padding: 16px;
     cursor: pointer;
     transition: border-color 0.15s;
   }
   .software-card:hover, .software-card.selected { border-color: #2b87d3; }
   .software-card h4 { margin-bottom: 4px; font-size: 15px; }
-  .software-card p { font-size: 12px; color: #8a93a0; }
+  .software-card p { font-size: 12px; color: #938daf; }
 
   /* Responsive */
   @media (max-width: 768px) {
@@ -555,7 +555,7 @@
       </div>
 
       <div class="card">
-        <div class="card-header">Online Players <span style="font-weight:400;color:#8a93a0;font-size:13px">(3)</span></div>
+        <div class="card-header">Online Players <span style="font-weight:400;color:#938daf;font-size:13px">(3)</span></div>
         <div class="card-body" style="padding-top:8px;padding-bottom:8px">
           <ul class="player-list">
             <li class="player-item">
@@ -609,8 +609,8 @@
       </div>
       <div class="console-wrap">
         <div class="console-toolbar">
-          <span style="font-size:13px;color:#8b949e">Server Console</span>
-          <span style="font-size:12px;color:#484f58">Auto-scroll ON</span>
+          <span style="font-size:13px;color:#938daf">Server Console</span>
+          <span style="font-size:12px;color:#39335f">Auto-scroll ON</span>
         </div>
         <div class="console-output" id="consoleOutput">
           <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Starting minecraft server version 1.21.1</div>
@@ -652,7 +652,7 @@
           <button class="btn btn-primary btn-sm">Share on mclo.gs</button>
         </div>
         <div class="card-body" style="padding:0">
-          <div class="console-output" style="height:500px;background:#0d1117;border-radius:0 0 8px 8px">
+          <div class="console-output" style="height:500px;background:#0a0812;border-radius: 0">
             <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Starting minecraft server version 1.21.1</div>
             <div class="log-line"><span class="log-time">[12:01:14]</span> <span class="log-info">[Server thread/INFO]</span>: Loading properties</div>
             <div class="log-line"><span class="log-time">[12:01:15]</span> <span class="log-info">[Server thread/INFO]</span>: Default game type: SURVIVAL</div>
@@ -662,7 +662,7 @@
             <div class="log-line"><span class="log-time">[12:08:33]</span> <span class="log-warn">[Server thread/WARN]</span>: Can't keep up! Is the server overloaded? Running 2142ms or 42 ticks behind</div>
             <div class="log-line"><span class="log-time">[12:15:45]</span> <span class="log-info">[Server thread/INFO]</span>: Notch joined the game</div>
             <div class="log-line"><span class="log-time">[12:22:10]</span> <span class="log-error">[Server thread/ERROR]</span>: Failed to handle packet for /10.0.0.99</div>
-            <div class="log-line"><span class="log-time">[12:22:10]</span> <span class="log-error">java.net.SocketException: Connection reset</div>
+            <div class="log-line"><span class="log-time">[12:22:10]</span> <span class="log-error">java.net.SocketException: Connection reset</span></div>
           </div>
         </div>
       </div>
@@ -765,7 +765,7 @@
       <div class="card">
         <div class="card-header">Server Software</div>
         <div class="card-body">
-          <p style="margin-bottom:16px;color:#9aa3ad;font-size:14px">Current: <strong style="color:#fff">Paper 1.21.1</strong></p>
+          <p style="margin-bottom:16px;color:#a6a0c2;font-size:14px">Current: <strong style="color:#fff">Paper 1.21.1</strong></p>
           <div class="software-grid">
             <div class="software-card selected">
               <h4>Paper</h4>
@@ -793,7 +793,7 @@
             </div>
           </div>
           <div style="margin-top:20px">
-            <label style="font-size:13px;color:#8a93a0">Version</label><br>
+            <label style="font-size:13px;color:#938daf">Version</label><br>
             <select style="margin-top:6px;width:200px">
               <option>1.21.1</option>
               <option>1.21</option>
@@ -834,13 +834,13 @@
             <input type="text" placeholder="Minecraft username" style="flex:1">
             <button class="btn btn-primary">Add</button>
           </div>
-          <p style="color:#8a93a0;font-size:13px">Whitelist is currently disabled. Enable it in Options.</p>
+          <p style="color:#938daf;font-size:13px">Whitelist is currently disabled. Enable it in Options.</p>
         </div>
       </div>
       <div class="card">
         <div class="card-header">Banned Players</div>
         <div class="card-body">
-          <p style="color:#8a93a0;font-size:13px">No banned players.</p>
+          <p style="color:#938daf;font-size:13px">No banned players.</p>
         </div>
       </div>
     </div>
@@ -1023,7 +1023,7 @@
       <div class="card">
         <div class="card-header">Share Access</div>
         <div class="card-body">
-          <p style="margin-bottom:16px;color:#9aa3ad;font-size:14px">Grant friends access to this server without sharing your account.</p>
+          <p style="margin-bottom:16px;color:#a6a0c2;font-size:14px">Grant friends access to this server without sharing your account.</p>
           <div style="display:flex;gap:8px;margin-bottom:20px">
             <input type="text" placeholder="Aternos username" style="flex:1">
             <button class="btn btn-primary">Add</button>
@@ -1204,7 +1204,7 @@
       const tr = document.createElement('tr');
       const icon = f.type === 'folder'
         ? '<svg class="file-icon" viewBox="0 0 24 24" fill="#2b87d3" stroke="none"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>'
-        : '<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="#9aa3ad" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+        : '<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="#a6a0c2" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
       tr.innerHTML = `
         <td>
           <div class="file-name" onclick="${f.type === 'folder' ? `navigateTo('${f.name === '..' ? parentPath(path) : (path === '/' ? '/' + f.name : path + '/' + f.name)}')` : `alert('Preview: ${f.name}')`}">

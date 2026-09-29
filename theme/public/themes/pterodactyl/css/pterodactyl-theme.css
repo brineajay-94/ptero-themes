@@ -95,11 +95,60 @@
 
     /* Decorative violet glow for the auth page background. */
     --pt-violet-500: 124 92 246; /* #7c5cf6 */
+    --pt-violet-400: 167 139 250; /* #a78bfa */
+    --pt-cyan-500: 34 211 238; /* #22d3ee */
+
+    /* ------------------------------------------------------------ glass -- *
+     * Frosted-surface recipe, applied selectively (see the glass section at
+     * the end of this file). Chrome surfaces - sidebar, topbar, drawer, auth
+     * card, hero, console head - get a real backdrop blur; the repeated server
+     * cards deliberately do NOT, because one backdrop-filter per card is the
+     * single most expensive thing you can put on a scrolling list. They read as
+     * glass from the tint, the hairline border and the top inner highlight.
+     */
+    --pt-glass-blur: 18px;
+    --pt-glass-saturate: 165%;
+    --pt-glass-tint: 255 255 255 / 0.055;
+    --pt-glass-tint-strong: 255 255 255 / 0.085;
+    --pt-glass-border: 255 255 255 / 0.13;
+    --pt-glass-border-hover: 255 255 255 / 0.26;
+    --pt-glass-highlight: 255 255 255 / 0.14;
+    --pt-glass-radius: 14px;
+    --pt-glass-radius-sm: 10px;
+    --pt-glass-radius-lg: 20px;
+    --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.28);
+
+    /* Frosted gradients live here rather than inline. Two reasons: the fallbacks
+     * for reduced-transparency / forced-colors then reuse the exact stops
+     * instead of drifting, and `rgb(var(--pt-*) / <alpha>)` inside a gradient
+     * is a construct Prettier 2.7's postcss parser cannot read inside a media
+     * query (it reports "Unbalanced parenthesis" on CSS that is perfectly
+     * valid - postcss and every browser accept it). Naming the gradients keeps
+     * the stylesheet parseable by the version this panel ships. */
+    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.3), transparent 62%),
+        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.26), transparent 64%),
+        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.1), transparent 62%),
+        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.14), transparent 64%);
+    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-700) / 0.5), rgb(var(--pt-violet-500) / 0.16));
+    --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-navy-700)), rgb(var(--pt-violet-500)));
+    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-700) / 0.5), rgb(var(--pt-cyan-500) / 0.09));
+    --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-navy-700)), rgb(var(--pt-cyan-500) / 0.25));
+    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.28), transparent 68%);
+    --pt-topbar-rule: linear-gradient(
+        90deg,
+        rgb(var(--pt-violet-400) / 0.85),
+        rgb(var(--pt-navy-400) / 0.9) 45%,
+        transparent
+    );
 }
 
 /* ------------------------------------------------------ square corners -- */
-/* Nothing in this theme is rounded: force every radius (including the stock
- * panel's input/button rounding and any CSS-module value) to zero. */
+/* Baseline: nothing in this theme is rounded. This kills the stock panel's
+ * input/button rounding and any CSS-module value in one place, which is what
+ * keeps the dense, unstyled surfaces (tables, file rows, form grids) flat. The
+ * glass surfaces later in this file opt back in by restating their radius with
+ * `!important` at class specificity, so this reset stays the default and the
+ * exceptions are visible where they are made. */
 *,
 *::before,
 *::after {
@@ -159,9 +208,32 @@
  * webpack build (static preview) and so the markup stays readable.
  */
 
+/* Fixed aurora field behind every screen. Frosted surfaces need something to
+ * refract, and a flat page colour makes backdrop-filter invisible - these wide,
+ * low-opacity radial blooms are what give the glass its violet/cyan depth.
+ * Fixed (not scrolling) so the sidebar and topbar always have depth behind
+ * them; z-index 0 keeps it below the content and the chrome layers. */
+.pt-shell::before,
+.pt-auth-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--pt-aurora);
+}
+
 .pt-shell {
+    position: relative;
     min-height: 100vh;
     background-color: rgb(var(--pt-gray-800));
+}
+
+/* Content sits above the aurora field; the sidebar/topbar are positioned and
+ * keep their own stacking, so only the scrolling body needs to be lifted. */
+.pt-shell-body {
+    position: relative;
+    z-index: 1;
 }
 
 .pt-sidebar {
@@ -584,6 +656,7 @@
  */
 
 .pt-auth-page {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -598,6 +671,8 @@
 /* Width AND auto margins, in addition to the flex centring above - the card
    stays dead-centre on every desktop no matter how the flexbox resolves. */
 .pt-auth {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 420px;
     margin: 0 auto;
@@ -1186,4 +1261,363 @@
     text-transform: uppercase;
     color: rgb(var(--pt-gold-300));
     white-space: nowrap;
+}
+
+/* ==================================================================== glass ==
+ *
+ * Frosted-surface layer, applied selectively.
+ *
+ * What is frosted (a real backdrop-filter, so content scrolling underneath is
+ * genuinely blurred):
+ *     .pt-sidebar  .pt-topbar  .pt-drawer-panel  .pt-auth-card
+ * What only *looks* frosted (tint + hairline + top highlight, no blur):
+ *     .pt-server-card  .pt-hero  .pt-console-head  and the small controls
+ *
+ * The split is deliberate. backdrop-filter forces the compositor to re-sample
+ * and re-blur everything behind the element on every frame, so putting one on
+ * each row of a scrolling server list is the fastest way to make a panel feel
+ * broken on a laptop. Chrome surfaces are few, fixed and always on screen, so
+ * blurring those costs a handful of layers; the repeated cards get the same
+ * visual vocabulary without the per-row cost.
+ *
+ * Everything degrades safely: without backdrop-filter support the tint simply
+ * sits on the page colour, and `prefers-reduced-transparency` / high-contrast
+ * users get opaque surfaces (see the media queries at the end of this file).
+ */
+
+/* ---------------------------------------------------------- radii opt-in -- */
+/* Restate the radius at class specificity so it beats the `*` reset above. */
+.pt-sidebar,
+.pt-topbar,
+.pt-drawer-panel,
+.pt-auth-card,
+.pt-hero,
+.pt-console-head,
+.pt-server-card,
+.pt-nav-item,
+.pt-burger,
+.pt-avatar-btn,
+.pt-logout-btn,
+.pt-drawer-close,
+.pt-chip,
+.pt-server-tile,
+.pt-brand-mark,
+.fm-path,
+.fm-mass {
+    border-radius: var(--pt-glass-radius) !important;
+}
+
+.pt-hero,
+.pt-auth-card,
+.pt-console-head {
+    border-radius: var(--pt-glass-radius-lg) !important;
+}
+
+.pt-nav-item,
+.pt-chip,
+.pt-server-tile,
+.pt-burger,
+.pt-logout-btn,
+.pt-drawer-close,
+.pt-avatar-btn {
+    border-radius: var(--pt-glass-radius-sm) !important;
+}
+
+.pt-chip {
+    border-radius: 999px !important;
+}
+
+/* --------------------------------------------------------- sidebar (glass) -- */
+
+.pt-sidebar {
+    background-color: rgb(var(--pt-navy-900) / 0.62);
+    border-right: 1px solid var(--pt-glass-border);
+    box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.35);
+    -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+}
+
+.pt-brand {
+    background-color: rgb(var(--pt-navy-900) / 0.45);
+    border-bottom: 1px solid var(--pt-glass-border);
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.pt-sidebar-foot {
+    background-color: rgb(var(--pt-navy-900) / 0.45);
+    border-top: 1px solid var(--pt-glass-border);
+}
+
+/* --------------------------------------------------------- topbar (glass) -- */
+
+/* The topbar used to be a flat slab of --pt-navy-700 (#1e6fb8), which is the
+ * brightest thing on the page and pulled the eye away from the content. As
+ * glass it goes dark and translucent so the aurora reads through it, and the
+ * brand accent moves down to the 2px gradient rule on its lower edge. */
+.pt-topbar {
+    background-color: rgb(var(--pt-navy-900) / 0.55);
+    border-bottom: 0;
+    box-shadow: inset 0 -1px 0 var(--pt-glass-border), 0 2px 14px rgb(0 0 0 / 0.28);
+    -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+}
+
+/* The 2px gold rule moves onto a pseudo-element so it can be a gradient -
+   a flat gold line under a blurred bar reads as a seam, a fading one reads as
+   a light source. */
+.pt-topbar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background-image: var(--pt-topbar-rule);
+    pointer-events: none;
+}
+
+.pt-nav-item.active {
+    background-color: rgb(255 255 255 / 0.12);
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+/* The active marker becomes a small glass pill rather than a raw blue bar. */
+.pt-nav-item.active::before {
+    width: 3px;
+    height: 1.15rem;
+    background-color: rgb(var(--pt-violet-400));
+    box-shadow: 0 0 10px rgb(var(--pt-violet-500) / 0.8);
+}
+
+/* ------------------------------------------------------- drawer (glass) -- */
+
+.pt-drawer-panel {
+    background-color: rgb(var(--pt-navy-900) / 0.72);
+    border-right: 1px solid var(--pt-glass-border);
+    box-shadow: 0 0 60px rgb(0 0 0 / 0.6);
+    -webkit-backdrop-filter: blur(22px) saturate(var(--pt-glass-saturate));
+    backdrop-filter: blur(22px) saturate(var(--pt-glass-saturate));
+}
+
+/* ------------------------------------------------------ auth card (glass) -- */
+
+.pt-auth-card {
+    background-color: rgb(var(--pt-gray-700) / 0.55);
+    border: 1px solid var(--pt-glass-border);
+    box-shadow: var(--pt-glass-shadow), inset 0 1px 0 var(--pt-glass-highlight);
+    -webkit-backdrop-filter: blur(24px) saturate(var(--pt-glass-saturate));
+    backdrop-filter: blur(24px) saturate(var(--pt-glass-saturate));
+}
+
+/* Top inner highlight: the single detail that reads as "glass" rather than
+   "translucent rectangle". Kept as a gradient so it fades out before the edge. */
+.pt-auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 45%;
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent);
+    pointer-events: none;
+}
+
+.pt-auth-card {
+    position: relative;
+    isolation: isolate;
+}
+
+.pt-auth-footer {
+    background-color: rgb(var(--pt-gray-900) / 0.35);
+    border-top: 1px solid var(--pt-glass-border);
+}
+
+/* Inputs stay legible: a barely-tinted dark well rather than a clear pane, so
+   the placeholder and caret contrast against the page colour is unchanged. */
+.pt-auth input:not([type='checkbox']):not([type='radio']),
+.pt-auth textarea,
+.pt-auth select {
+    background-color: rgb(var(--pt-gray-900) / 0.72);
+    border-color: var(--pt-glass-border);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+.pt-auth-emblem {
+    background-color: rgb(255 255 255 / 0.94);
+    box-shadow: 0 12px 26px -10px rgb(0 0 0 / 0.75), 0 0 0 1px var(--pt-glass-border);
+}
+
+/* ------------------------------------------------- hero / console (tinted) -- */
+
+.pt-hero,
+.pt-console-head {
+    border: 1px solid var(--pt-glass-border);
+    border-bottom-width: 1px;
+    background-image: var(--pt-frost-hero);
+    box-shadow: var(--pt-glass-shadow), inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+/* The decorative corner ring becomes a soft violet bloom instead of a hard
+   bordered square, which is what the frosted card is echoing. */
+.pt-hero::after {
+    border: 0;
+    border-radius: 50% !important;
+    background-image: var(--pt-frost-bloom);
+}
+
+.pt-console-head {
+    background-image: var(--pt-frost-console);
+}
+
+.pt-console-head .pt-power {
+    border-radius: var(--pt-glass-radius-sm) !important;
+}
+
+/* ------------------------------------------------ server cards (tinted) -- */
+/* No backdrop-filter here on purpose - see the header comment. */
+
+.pt-server-card {
+    background-color: rgb(var(--pt-gray-700) / 0.5);
+    border-color: var(--pt-glass-border);
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.pt-server-card:hover,
+.pt-server-card:focus-visible {
+    border-color: var(--pt-glass-border-hover);
+    background-color: rgb(var(--pt-gray-700) / 0.68);
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+
+/* Status rail glows instead of reading as a flat colour block. */
+.pt-server-card::before {
+    background-image: linear-gradient(180deg, var(--pt-status, rgb(var(--pt-gray-500))), transparent);
+    box-shadow: 0 0 12px -2px var(--pt-status, rgb(var(--pt-gray-500)));
+    opacity: 0.85;
+}
+
+.pt-server-tile {
+    background-image: linear-gradient(140deg, rgb(var(--pt-navy-500) / 0.55), rgb(var(--pt-violet-500) / 0.4));
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.pt-bar {
+    border-radius: 999px !important;
+    background-color: rgb(var(--pt-gray-900) / 0.55);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+.pt-bar > i {
+    border-radius: 999px !important;
+}
+
+/* ------------------------------------------------------------- controls -- */
+/* Small controls get the tint + highlight so they read as part of the same
+   material as the chrome they sit on. */
+
+.pt-burger,
+.pt-avatar-btn,
+.pt-logout-btn,
+.pt-drawer-close {
+    background-color: rgb(255 255 255 / 0.1);
+    border-color: var(--pt-glass-border);
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.pt-burger:hover,
+.pt-logout-btn:hover,
+.pt-drawer-close:hover,
+.pt-avatar-btn:hover {
+    background-color: rgb(255 255 255 / 0.18);
+    border-color: var(--pt-glass-border-hover);
+}
+
+.pt-logout-btn:hover,
+.pt-logout-btn:focus-visible {
+    background-color: rgb(var(--pt-violet-500) / 0.85);
+    border-color: rgb(var(--pt-violet-400) / 0.9);
+    color: #ffffff;
+}
+
+/* Chips are already translucent; rounding them is what makes them read as
+   pills rather than labels. */
+.pt-chip {
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.pt-chip--online {
+    background-color: rgb(var(--pt-green-600) / 0.2);
+    border-color: rgb(var(--pt-green-600) / 0.5);
+}
+
+.pt-chip--offline {
+    background-color: rgb(var(--pt-red-600) / 0.2);
+    border-color: rgb(var(--pt-red-600) / 0.5);
+}
+
+/* File manager chrome follows the same material; the rows themselves stay
+   solid so long path lists and file names keep their contrast. */
+.fm-path {
+    background-color: rgb(var(--pt-navy-800) / 0.7);
+    border-color: var(--pt-glass-border);
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+}
+
+.fm-mass {
+    background-color: rgb(var(--pt-navy-900) / 0.92);
+    border-color: rgb(var(--pt-violet-400) / 0.5);
+}
+
+/* --------------------------------------------------------- accessibility -- */
+/* Users who ask for less transparency get opaque surfaces. The blur is the
+   first thing to go: it is the expensive part and the least legible. */
+@media (prefers-reduced-transparency: reduce) {
+    .pt-sidebar,
+    .pt-topbar,
+    .pt-drawer-panel,
+    .pt-auth-card,
+    .pt-hero,
+    .pt-console-head,
+    .pt-server-card,
+    .pt-brand,
+    .pt-sidebar-foot,
+    .pt-drawer-scrim {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .pt-sidebar,
+    .pt-drawer-panel {
+        background-color: rgb(var(--pt-navy-900));
+    }
+
+    .pt-topbar {
+        background-color: rgb(var(--pt-navy-900));
+    }
+
+    .pt-auth-card,
+    .pt-server-card {
+        background-color: rgb(var(--pt-gray-700));
+    }
+
+    .pt-hero,
+    .pt-console-head {
+        background-image: var(--pt-frost-hero-solid);
+    }
+}
+
+/* Forced-colours (Windows high contrast) drops every custom surface anyway;
+   make the borders visible so the panels are still distinguishable. */
+@media (forced-colors: active) {
+    .pt-sidebar,
+    .pt-topbar,
+    .pt-drawer-panel,
+    .pt-auth-card,
+    .pt-hero,
+    .pt-console-head,
+    .pt-server-card {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border: 1px solid CanvasText;
+    }
 }

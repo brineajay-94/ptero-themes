@@ -2,14 +2,24 @@
 
 A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
 control-panel layout and a dark violet/indigo palette — `#19152e` page,
-`#2b254c` surfaces, blue `#2b87d3` accent, the system UI font stack, and a
-fixed sidebar shell.
+`#2b254c` surfaces, blue `#2b87d3` accent, the system UI font stack, a fixed
+sidebar shell and frosted glass surfaces over a violet/cyan aurora.
 
 What it changes on top of the stock panel:
 
-- **Shell** â€” Aternos-style fixed sidebar (brand block, permission-filtered
-  server + account navigation, user footer), sticky topbar with a blue
-  rule, and a sliding mobile drawer with a hamburger burger.
+- **Glass** — the sidebar, topbar, mobile drawer and login card are genuinely
+  frosted (`backdrop-filter: blur + saturate`) over a fixed field of violet and
+  cyan blooms that sit behind every screen. Cards, the dashboard hero and the
+  console header use the same material vocabulary — hairline border, top inner
+  highlight, tinted fill — but deliberately **without** a blur: one
+  `backdrop-filter` per row of a scrolling server list is the single most
+  expensive thing you can put on a panel. Corners are rounded again on the
+  frosted surfaces only; dense, unstyled areas stay square.
+  Users who ask for less transparency (`prefers-reduced-transparency`) or run
+  Windows high contrast (`forced-colors`) get opaque surfaces automatically.
+- **Shell** — Aternos-style fixed sidebar (brand block, permission-filtered
+  server + account navigation, user footer), sticky topbar with a violet→blue
+  gradient hairline, and a sliding mobile drawer with a hamburger burger.
 - **Dashboard** — branded hero header with section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.
@@ -384,6 +394,15 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the
   same edit into `tailwind.config.js` only if you add a *new* ramp.
+- **Glass** - the frost strength is a token, not a per-surface value: tune
+  `--pt-glass-blur`, `--pt-glass-tint`, `--pt-glass-border` and
+  `--pt-glass-highlight` in the same `:root`, and the named gradients
+  (`--pt-aurora`, `--pt-frost-hero`, `--pt-frost-console`, `--pt-frost-bloom`,
+  `--pt-topbar-rule`) to recolour the whole frosted layer at once. Keep those
+  gradients as named tokens rather than inlining them: `rgb(var(--pt-*) / a)`
+  inside a gradient inside a media query is a construct Prettier 2.7 - the
+  version this panel ships - cannot parse, even though postcss and every browser
+  accept it.
 - **Type** - edit `--pt-font-body` / `--pt-font-heading` in the stylesheet; the
   system stack ships with no `.woff2` files.
 

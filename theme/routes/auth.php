@@ -19,26 +19,32 @@ Route::get('/register', [Auth\RegisterController::class, 'index'])->name('auth.r
 Route::get('/password', [Auth\LoginController::class, 'index'])->name('auth.forgot-password');
 Route::get('/password/reset/{token}', [Auth\LoginController::class, 'index'])->name('auth.reset');
 
-// Apply a throttle to authentication action endpoints, in addition to the
-// recaptcha endpoints to slow down manual attack spammers even more.
+// Apply a throttle to authentication action endpoints to slow down manual
+// attack spammers.
+//
+// brine-theme: the stock `recaptcha` middleware is NOT applied here. The panel
+// ships Google's public reCAPTCHA keys, so the free quota is shared by every
+// Pterodactyl install; once it is exhausted no token can be produced, and the
+// middleware would reject every login with HTTP 400 - a lockout, not a captcha.
+// AssetComposer reports recaptcha as disabled too, so the React forms no longer
+// render the widget. The throttle below is what still guards these endpoints.
+//
+// To restore the captcha, see the note in
+// app/Http/ViewComposers/AssetComposer.php.
 //
 // @see \Pterodactyl\Providers\RouteServiceProvider
 Route::middleware(['throttle:authentication'])->group(function () {
     // Login endpoints.
-    Route::post('/login', [Auth\LoginController::class, 'login'])->middleware('recaptcha');
+    Route::post('/login', [Auth\LoginController::class, 'login']);
     Route::post('/login/checkpoint', Auth\LoginCheckpointController::class)->name('auth.login-checkpoint');
 
     // brine-theme: public registration - creates a user through the
     // Application API using the key saved under Admin -> Registration.
-    Route::post('/register', [Auth\RegisterController::class, 'register'])
-        ->name('auth.post.register')
-        ->middleware('recaptcha');
+    Route::post('/register', [Auth\RegisterController::class, 'register'])->name('auth.post.register');
 
     // Forgot password route. A post to this endpoint will trigger an
     // email to be sent containing a reset token.
-    Route::post('/password', [Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
-        ->name('auth.post.forgot-password')
-        ->middleware('recaptcha');
+    Route::post('/password', [Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('auth.post.forgot-password');
 });
 
 // Password reset routes. This endpoint is hit after going through

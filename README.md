@@ -40,6 +40,16 @@ What it changes on top of the stock panel:
   rows with icon tiles, and a branded selection bar.
 - **Dark only** - one scheme matching `aternos-panel.html`: no light palette and
   no light/dark toggle anywhere in the panel.
+- **No reCAPTCHA** - the login, register and forgot-password forms do not render
+  a captcha, and the auth routes do not run the stock `recaptcha` middleware.
+  This is a bug fix, not a preference: the panel ships Google's **public**
+  reCAPTCHA keys (`config/recaptcha.php: _shipped_*`), identical in every
+  Pterodactyl install, so the free quota is shared across all of them. Once it
+  is exhausted no token can be produced, and the middleware rejects every
+  submission with HTTP 400 - which locks everyone out of the login form. The
+  `throttle:authentication` rate limiter stays on all three endpoints, so
+  brute-force attempts are still limited. Both files carry instructions for
+  restoring the captcha once you have your own keys.
 
 ## Scope
 

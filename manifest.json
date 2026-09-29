@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -210,12 +210,12 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo and SiteConfiguration.registration.enabled"
+            "note": "Exposes SiteConfiguration.logo and SiteConfiguration.registration.enabled; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
         },
         {
             "path": "routes/auth.php",
             "action": "replace",
-            "note": "Stock auth routes + GET/POST /auth/register (throttled, reCAPTCHA-aware)"
+            "note": "Stock auth routes + GET/POST /auth/register, throttled; drops the stock recaptcha middleware, which would reject every login with HTTP 400 once the shared public keys exhaust their quota"
         },
         {
             "path": "routes/admin.php",

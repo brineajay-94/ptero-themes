@@ -27,7 +27,25 @@ class AssetComposer
             'name' => config('app.name') ?? 'Pterodactyl',
             'locale' => config('app.locale') ?? 'en',
             'recaptcha' => [
-                'enabled' => config('recaptcha.enabled', false),
+                // brine-theme: reported as disabled so the <Reaptcha> widget
+                // never renders on login / register / forgot-password.
+                //
+                // This is not cosmetic. The panel ships Google's PUBLIC
+                // reCAPTCHA keys (config/recaptcha.php: _shipped_*), which are
+                // identical in every Pterodactyl install, so the free quota is
+                // shared by every user of the panel. Once it is exhausted the
+                // widget cannot be solved, the React form never gets a
+                // g-recaptcha-response token, and the stock VerifyReCaptcha
+                // middleware rejects the submission with HTTP 400 - which locks
+                // everyone out of the login form. Reporting false here keeps
+                // the React components on their no-token path.
+                //
+                // To bring the captcha back once you have your own keys from
+                // https://www.google.com/recaptcha/admin, set this to
+                // `config('recaptcha.enabled', false)`, re-add the
+                // `->middleware('recaptcha')` calls in routes/auth.php, and
+                // flip Admin -> Settings -> Advanced -> reCAPTCHA to Enabled.
+                'enabled' => false,
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
             // brine-theme: admin-uploaded hosting logo (Admin -> Branding), null until set.

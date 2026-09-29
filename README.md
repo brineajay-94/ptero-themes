@@ -403,6 +403,7 @@ render, so they match the panel.
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
+| `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
 | `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
 | `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,MassActionsBar,style.module.css}` | replace |
 
@@ -479,6 +480,22 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   accept it.
 - **Type** - edit `--pt-font-body` / `--pt-font-heading` in the stylesheet; the
   system stack ships with no `.woff2` files.
+- **Loading spinner** - the theme ships its own `components/elements/Spinner.tsx`
+  because the stock ring was broken twice over here:
+  - *Square.* The stock ring is `border-radius: 50%` on a plain `div`, and this
+    stylesheet resets corners with `* { border-radius: 0 !important; }` to keep
+    its dense surfaces flat. The spinner was never added to the opt-back-in list,
+    so the ring rendered as a square box on every page load. The override
+    re-asserts `50%` with `!important`, and `.pt-spinner` is in the exception
+    block so the reset stays the visible default.
+  - *Oversized.* `size={'large'}` was hardcoded at every page-level call site
+    (`ServerRouter`, `DashboardContainer`, `FileManagerContainer`), which is
+    `w-16 h-16` with a 6px border and `m-20` of dead margin when centered. The
+    override caps every step - small 14px, base 18px, large 22px - so a caller
+    still asking for `large` gets a small ring, and the hardcoded `large` props
+    are gone from the call sites.
+  - The ring colour follows `--pt-gold-500`, the same accent as the rest of the
+    theme, rather than the stock white. `isBlue` still works.
 
 ## Known limitations
 

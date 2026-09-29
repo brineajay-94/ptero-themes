@@ -194,7 +194,7 @@ export default () => {
 
     return (
         <div className={classNames(styles.terminal, 'relative')}>
-            <SpinnerOverlay visible={!connected} size={'large'} />
+            <SpinnerOverlay visible={!connected} />
             <div className={styles.terminal_bar}>
                 <span className={styles.terminal_dot} />
                 <span className={styles.terminal_title}>Console</span>

@@ -88,7 +88,7 @@ export default () => {
                 </div>
             </ErrorBoundary>
             {!files ? (
-                <Spinner size={'large'} centered />
+                <Spinner centered />
             ) : (
                 <>
                     {!files.length ? (

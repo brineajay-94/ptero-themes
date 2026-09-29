@@ -65,7 +65,7 @@ export default () => {
                     error ? (
                         <ServerError message={error} />
                     ) : (
-                        <Spinner size={'large'} centered />
+                        <Spinner centered />
                     )
                 ) : (
                     <>

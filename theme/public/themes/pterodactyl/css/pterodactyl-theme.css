@@ -1606,6 +1606,15 @@
     border-radius: 999px !important;
 }
 
+/* The loading ring is the one element that has to be a true circle. The stock
+ * Spinner is a div with `border-radius: 50%`, which the universal reset above
+ * flattens into a square box; this is the exception, at class specificity so
+ * it outranks `*`. Spinner.tsx also sets it inline, so the ring stays round
+ * even if this block is ever reordered. */
+.pt-spinner {
+    border-radius: 50% !important;
+}
+
 /* --------------------------------------------------------- sidebar (glass) -- */
 
 .pt-sidebar {

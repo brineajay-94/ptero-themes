@@ -63,7 +63,7 @@ const MassActionsBar = () => {
     return (
         <>
             <div css={tw`pointer-events-none fixed bottom-0 z-20 left-0 right-0 flex justify-center`}>
-                <SpinnerOverlay visible={loading} size={'large'} fixed>
+                <SpinnerOverlay visible={loading} fixed>
                     {loadingMessage}
                 </SpinnerOverlay>
                 <Dialog.Confirm

@@ -70,7 +70,7 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "Login card: brand emblem masthead, square container, compact spacing and the conditional Register link footer"
+            "note": "Login card: centred container, logo chip header, title/subtitle slot and the conditional Register link footer"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",

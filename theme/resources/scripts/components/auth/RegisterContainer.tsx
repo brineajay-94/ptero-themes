@@ -110,8 +110,8 @@ const RegisterContainer = ({ history }: RouteComponentProps) => {
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
-                    title={'Create an account'}
-                    subtitle={`Register a new ${brandName()} account to manage your servers.`}
+                    title={'Create your account'}
+                    subtitle={`Join ${brandName()} to deploy and manage your servers.`}
                     footer={
                         <>
                             Already have an account? <Link to={'/auth/login'}>Sign in</Link>

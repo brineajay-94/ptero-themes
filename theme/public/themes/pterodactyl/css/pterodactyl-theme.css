@@ -564,12 +564,11 @@
 
 /* ---------------------------------------------------------- auth screens -- */
 /*
- * The original brine-theme sign-in card: blue masthead, white emblem tile,
- * system-font heading on the #1a1f24 page. Vertical padding is tightened and
- * the container is square so the whole card fits on a laptop screen. Every
- * auth route (login / register / checkpoint / forgot / reset) renders through
- * LoginFormContainer. The heading is the panel's own site name and the emblem
- * is the Admin -> Branding upload (lib/brand.ts).
+ * Modern dark auth card: a floating, centred card on the #1a1f24 page with a
+ * soft accent glow, a logo chip instead of the old coloured masthead, a quiet
+ * uppercase brand eyebrow, a strong title, dark inputs and an accent action.
+ * Every auth route (login / register / checkpoint / forgot / reset) renders
+ * through LoginFormContainer; brand and emblem come from lib/brand.ts.
  */
 
 .pt-auth-page {
@@ -578,37 +577,44 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 1.25rem 1rem;
+    padding: 2rem 1rem;
     background-color: rgb(var(--pt-gray-800));
+    background-image: radial-gradient(900px 480px at 50% -12%, rgb(var(--pt-navy-600) / 0.16), transparent 65%),
+        radial-gradient(700px 420px at 88% 108%, rgb(var(--pt-gold-600) / 0.05), transparent 60%);
+}
+
+/* Width AND auto margins, in addition to the flex centring above - the card
+   stays dead-centre on every desktop no matter how the flexbox resolves. */
+.pt-auth {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
 }
 
 .pt-auth-card {
     width: 100%;
     max-width: 420px;
-    border-radius: 0;
+    border-radius: 16px;
     background-color: rgb(var(--pt-gray-700));
-    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
-    box-shadow: 0 14px 44px rgb(0 0 0 / 0.16);
+    border: 1px solid rgb(var(--pt-gray-600) / 0.55);
+    box-shadow: 0 32px 64px -24px rgb(0 0 0 / 0.65), 0 2px 10px rgb(0 0 0 / 0.35);
     overflow: hidden;
 }
 
 .pt-auth-top {
-    padding: 1.125rem 1.5rem 0.875rem;
+    padding: 2.25rem 1.75rem 0;
     text-align: center;
-    background-color: rgb(var(--pt-navy-600));
-    border-bottom: 3px solid rgb(var(--pt-gold-600));
-    color: #ffffff;
 }
 
 .pt-auth-emblem {
     display: block;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin: 0 auto 0.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0 auto 0.9rem;
     padding: 3px;
-    border-radius: 0.5rem;
+    border-radius: 14px;
     background-color: #ffffff;
-    box-shadow: 0 4px 14px rgb(0 0 0 / 0.28);
+    box-shadow: 0 12px 26px -12px rgb(0 0 0 / 0.7);
 }
 
 .pt-auth-emblem img {
@@ -619,9 +625,11 @@
 
 .pt-auth-top h1 {
     font-family: var(--pt-font-heading);
-    font-size: 1.25rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-gray-300));
     margin-bottom: 0;
 }
 
@@ -631,50 +639,58 @@
 }
 
 .pt-auth-body {
-    padding: 1.125rem 1.5rem 1.25rem;
+    padding: 1.5rem 1.75rem 1.75rem;
     color: rgb(var(--pt-gray-200));
 }
 
 .pt-auth-body h2 {
     font-family: var(--pt-font-heading);
-    font-size: 1.125rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: 0.2rem;
-    color: rgb(var(--pt-navy-600));
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+    color: rgb(var(--pt-gray-50));
 }
 
 .pt-auth-subtitle {
-    margin-bottom: 0.875rem;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: rgb(var(--pt-gray-300));
+    margin-bottom: 1.4rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgb(var(--pt-gray-400));
 }
 
-/* Field labels. The stock Label is a styled-component and twin.macro inlines
-   its colours into the generated class, so the element carries NO
-   `text-neutral-700` class to hook onto - it would keep gray-700, the exact
-   colour of the card, and vanish. Style it on the element instead.
-   (ScreenBlock and other text outside .pt-auth keep their own colours.) */
+/* Field labels: twin.macro inlines colours inside styled-components, so the
+   Label element carries no utility class to target - style it on the element. */
 .pt-auth label {
     display: block;
+    margin-bottom: 0.4rem;
     color: rgb(var(--pt-gray-300));
-    font-size: 0.8125rem;
-    letter-spacing: 0.02em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
 }
 
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    border-radius: 2px;
-    border-color: rgb(var(--pt-gray-500) / 0.7);
+    border-radius: 8px;
+    border: 1px solid rgb(var(--pt-gray-600) / 0.7);
+    background-color: rgb(var(--pt-gray-900) / 0.85);
+    color: rgb(var(--pt-gray-100));
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pt-auth input::placeholder,
+.pt-auth textarea::placeholder {
+    color: rgb(var(--pt-gray-500));
 }
 
 .pt-auth input:not([type='checkbox']):not([type='radio']):focus,
 .pt-auth textarea:focus,
 .pt-auth select:focus {
-    border-color: rgb(var(--pt-navy-600));
-    box-shadow: 0 0 0 3px rgb(var(--pt-navy-600) / 0.18);
+    border-color: rgb(var(--pt-navy-500));
+    box-shadow: 0 0 0 3px rgb(var(--pt-navy-600) / 0.25);
 }
 
 .pt-auth button[type='submit'] {
@@ -682,28 +698,41 @@
     align-items: center;
     justify-content: center;
     width: 100%;
+    min-height: 2.75rem;
     margin-top: 0.35rem;
-    border-radius: 2px;
+    border-radius: 8px;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
+    box-shadow: 0 10px 22px -12px rgb(var(--pt-navy-600) / 0.9);
+    transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.pt-auth button[type='submit']:hover {
+    filter: brightness(1.08);
+}
+
+.pt-auth button[type='submit']:active {
+    transform: translateY(1px);
 }
 
 .pt-auth a {
-    color: rgb(var(--pt-navy-600));
-    font-weight: 700;
+    color: rgb(var(--pt-navy-400));
+    font-weight: 600;
     text-decoration: none;
 }
 
 .pt-auth a:hover {
+    color: rgb(var(--pt-navy-300));
     text-decoration: underline;
 }
 
 .pt-auth-footer {
-    padding: 0.7rem 1rem;
-    border-top: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    padding: 0.9rem 1.5rem;
+    border-top: 1px solid rgb(var(--pt-gray-600) / 0.5);
+    background-color: rgb(var(--pt-gray-900) / 0.45);
     text-align: center;
-    font-size: 0.75rem;
-    color: rgb(var(--pt-gray-300));
+    font-size: 0.78rem;
+    color: rgb(var(--pt-gray-400));
 }
 
 /* ------------------------------------------------------------- dashboard -- */

@@ -12,9 +12,11 @@ What it changes on top of the stock panel:
 - **Dashboard** — branded hero header with section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.
-- **Login** — the stock login is replaced with a compact square card: navy masthead
-  with the brand emblem, gold rule, system-font heading, one-screen height
-  (checkpoint, forgot and reset screens follow the same treatment).
+- **Login** — a modern floating auth card, centred both ways on the page: soft
+  accent glow on the dark backdrop, a white logo chip instead of the old
+  coloured masthead, an uppercase brand eyebrow, a strong "Welcome back" title,
+  dark inputs with a navy focus ring and a full-width accent button (checkpoint,
+  forgot and reset screens follow the same treatment).
 - **Registration** — a public sign-up page (`/auth/register`) with email, first
   and last name, username, password and confirm-password. It appears behind a
   "Don't have an account? Register here" link on the login card only when the

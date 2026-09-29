@@ -6,15 +6,19 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
+use Pterodactyl\Models\User;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
+use Pterodactyl\Services\Users\UserCreationService;
+use Pterodactyl\Exceptions\Model\DataValidationException;
 
 class RegisterController extends Controller
 {
-    public function __construct(private SettingsRepositoryInterface $settings)
-    {
+    public function __construct(
+        private SettingsRepositoryInterface $settings,
+        private UserCreationService $creationService,
+    ) {
     }
 
     /**
@@ -33,10 +37,10 @@ class RegisterController extends Controller
     }
 
     /**
-     * Create a new panel user through the Application API
-     * (POST /api/application/users) using the Application API key the admin
-     * saved under Admin -> Registration. The key never leaves the server and
-     * the password is hashed by the API, never here.
+     * Create the account directly through the panel's own user service - the
+     * exact same UserCreationService the Admin -> Users page uses. That hashes
+     * the password, assigns a UUID, logs the event and sends the welcome
+     * e-mail. No Application API key and no HTTP call to ourselves.
      */
     public function register(Request $request): JsonResponse
     {
@@ -53,76 +57,73 @@ class RegisterController extends Controller
                 'password' => 'required|string|min:8|confirmed',
             ]);
         } catch (ValidationException $exception) {
-            return response()->json([
-                'errors' => collect($exception->errors())
-                    ->flatten()
-                    ->map(fn ($message) => ['code' => 'ValidationFailed', 'detail' => $message])
-                    ->values()
-                    ->all(),
-            ], 422);
-        }
-
-        $key = $this->apiKey();
-        if ($key === '') {
-            return response()->json([
-                'errors' => [[
-                    'code' => 'RegistrationNotConfigured',
-                    'detail' => 'Registration is enabled but no Application API key is configured. An administrator must save one under Admin -> Registration.',
-                ]],
-            ], 500);
+            return $this->validationResponse($exception->errors());
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $key,
-                'Accept' => 'application/json',
-            ])->asJson()->timeout(20)->post(rtrim(config('app.url'), '/') . '/api/application/users', [
+            $this->creationService->handle([
                 'email' => $data['email'],
                 'username' => $data['username'],
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
+                'name_first' => $data['first_name'],
+                'name_last' => $data['last_name'],
                 'password' => $data['password'],
                 'root_admin' => false,
-                'language' => config('app.locale') ?: 'en',
+                'language' => $this->language(),
             ]);
+        } catch (DataValidationException $exception) {
+            // Duplicate e-mail/username, username policy, ... - the model's own
+            // messages are user friendly, hand them straight to the form.
+            return $this->validationResponse($exception->getMessageBag()->toArray());
         } catch (\Throwable $exception) {
-            Log::error('brine-theme: registration API call failed: ' . $exception->getMessage());
+            Log::error('brine-theme: registration failed: ' . $exception->getMessage());
 
-            return response()->json([
-                'errors' => [[
-                    'code' => 'RegistrationUnreachable',
-                    'detail' => 'The panel API could not be reached - check that the Application API key and APP_URL are correct.',
-                ]],
-            ], 502);
-        }
-
-        if ($response->failed()) {
-            $detail = $response->json('errors.0.detail');
-            if (!is_string($detail) || $detail === '') {
-                $detail = 'The panel rejected the request (HTTP ' . $response->status() . ').';
+            // The account is committed before the welcome e-mail is sent, so a
+            // mail failure must NOT read as "registration failed" - the user
+            // would retry and hit "e-mail already taken".
+            if (User::query()->where('email', $data['email'])->exists()) {
+                return response()->json(['data' => ['registered' => true]]);
             }
 
             return response()->json([
-                'errors' => [['code' => 'RegistrationFailed', 'detail' => $detail]],
-            ], 422);
+                'errors' => [[
+                    'code' => 'RegistrationFailed',
+                    'detail' => 'The account could not be created. Please try again, or contact an administrator.',
+                ]],
+            ], 500);
         }
 
         return response()->json(['data' => ['registered' => true]]);
     }
 
-    private function enabled(): bool
+    /**
+     * Wrap any set of validation messages into the errors array the panel's
+     * httpErrorToHuman() renders.
+     */
+    private function validationResponse(array $errors): JsonResponse
     {
-        return $this->settings->get('Brine::registration_enabled') === '1';
+        return response()->json([
+            'errors' => collect($errors)
+                ->flatten()
+                ->map(fn ($message) => ['code' => 'ValidationFailed', 'detail' => $message])
+                ->values()
+                ->all(),
+        ], 422);
     }
 
     /**
-     * The stored Application API key, with an optional pasted "Bearer "
-     * prefix stripped.
+     * Prefer the panel locale, but only when it is one of the languages the
+     * User model accepts - otherwise fall back to English.
      */
-    private function apiKey(): string
+    private function language(): string
     {
-        $key = trim((string) $this->settings->get('Brine::registration_api_key', ''));
+        $locale = (string) (config('app.locale') ?: 'en');
+        $available = array_keys((new User)->getAvailableLanguages());
 
-        return (string) preg_replace('/^Bearer\s+/i', '', $key);
+        return in_array($locale, $available, true) ? $locale : 'en';
+    }
+
+    private function enabled(): bool
+    {
+        return $this->settings->get('Brine::registration_enabled') === '1';
     }
 }

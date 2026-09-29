@@ -254,5 +254,4 @@ Route::group(['prefix' => 'branding'], function () {
 Route::group(['prefix' => 'registration'], function () {
     Route::get('/', [Admin\RegistrationController::class, 'index'])->name('admin.registration');
     Route::post('/', [Admin\RegistrationController::class, 'update'])->name('admin.registration.update');
-    Route::delete('/', [Admin\RegistrationController::class, 'destroy'])->name('admin.registration.destroy');
 });

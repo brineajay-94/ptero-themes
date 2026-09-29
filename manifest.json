@@ -195,17 +195,17 @@
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",
             "action": "create",
-            "note": "POST /auth/register - creates the user through the Application API with the saved key"
+            "note": "POST /auth/register - creates the account directly with the panel's own UserCreationService (hashed password, welcome e-mail, no API key)"
         },
         {
             "path": "app/Http/Controllers/Admin/RegistrationController.php",
             "action": "create",
-            "note": "Admin -> Registration: enable/disable public sign-up and store the Application API key"
+            "note": "Admin -> Registration: enable/disable public sign-up"
         },
         {
             "path": "resources/views/admin/registration.blade.php",
             "action": "create",
-            "note": "Registration settings page with the enable switch and API key field"
+            "note": "Registration settings page with the enable switch"
         },
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",

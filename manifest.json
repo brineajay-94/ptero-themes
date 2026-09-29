@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -25,17 +25,22 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundImage()/backgroundStyle() - site name, uploaded icon, registration switch and the two background slots from window.SiteConfiguration"
+            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, uploaded icon, registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers for the auth screens and the dashboard - shell/auth/dashboard/console/file-manager styles"
+            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with overlay adjusters for the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card - shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
             "action": "create",
             "note": "Brand mark used by the sidebar and the login screen"
+        },
+        {
+            "path": "resources/scripts/components/QuickLinks.tsx",
+            "action": "create",
+            "note": "Admin-configured Home/Discord/Status links: <AuthLinks> row above the auth card, <TopbarLinks> icons in the dashboard topbar (no Home there)"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",
@@ -45,12 +50,12 @@
         {
             "path": "resources/scripts/components/Sidebar.tsx",
             "action": "create",
-            "note": "Aternos-style sidebar with brand block, permission-filtered server/account navigation and user footer"
+            "note": "Aternos-style sidebar with brand block (site icon, falling back to the first letter), permission-filtered server/account navigation and user footer"
         },
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
             "action": "replace",
-            "note": "Topbar: burger, title, search, nav links, avatar (theme toggle removed)"
+            "note": "Topbar: burger, title, search, nav links, the admin quick-link icons, avatar (theme toggle removed)"
         },
         {
             "path": "resources/scripts/routers/DashboardRouter.tsx",
@@ -70,7 +75,7 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "Login card: centred container, logo chip header, title/subtitle slot and the conditional Register link footer"
+            "note": "Login card: centred container, logo chip header, title/subtitle slot, the Home/Login breadcrumb and quick-link buttons above the card, and the conditional Register link footer"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
@@ -185,12 +190,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon, the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch) and each slot's overlay colour + intensity"
+            "note": "Admin -> Site Settings: site name, icon, the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch), each slot's overlay colour + intensity, and the Home/Discord/Status quick links"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Site Settings page: name + icon, then a per-area background block (Login & Register, Dashboard) each with a switch, a link-or-upload field, and an overlay intensity/colour adjuster with a live preview"
+            "note": "Site Settings page with server-rendered tabs (no JS): General & backgrounds (name, icon, two background blocks with overlay adjusters) and Links (Home/Discord/Status, each with a switch and URL)"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",
@@ -210,7 +215,7 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
+            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links; validates link targets server-side; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
         },
         {
             "path": "routes/auth.php",

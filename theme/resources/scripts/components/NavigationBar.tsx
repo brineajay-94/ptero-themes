@@ -8,6 +8,7 @@ import { ApplicationStore } from '@/state';
 import SearchContainer from '@/components/dashboard/search/SearchContainer';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import Avatar from '@/components/Avatar';
+import { TopbarLinks } from '@/components/QuickLinks';
 
 export interface NavigationBarProps {
     title: string;
@@ -40,6 +41,7 @@ export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
                 <NavLink to={'/'} exact title={'Dashboard'} aria-label={'Dashboard'} activeClassName={'active'}>
                     <FontAwesomeIcon icon={faThLarge} />
                 </NavLink>
+                <TopbarLinks />
                 {rootAdmin && (
                     <a href={'/admin'} title={'Admin'} aria-label={'Admin'} rel={'noreferrer'}>
                         <FontAwesomeIcon icon={faShieldAlt} />

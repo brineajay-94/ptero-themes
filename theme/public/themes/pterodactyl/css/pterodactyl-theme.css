@@ -357,6 +357,7 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0;
+    overflow: hidden;
     background-color: rgb(var(--pt-gold-600));
     color: rgb(var(--pt-navy-900));
     font-family: var(--pt-font-heading);
@@ -364,6 +365,16 @@
     font-weight: 800;
     line-height: 1;
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+}
+
+/* The site icon uploaded in Admin -> Site Settings fills the mark. The accent
+ * chip behind it is only the fallback for when no icon has been uploaded and the
+ * component falls back to the first letter of the site name. */
+.pt-brand-mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .pt-brand-name {
@@ -748,17 +759,21 @@
 /* Width AND auto margins, in addition to the flex centring above - the card
    stays dead-centre on every desktop no matter how the flexbox resolves. Lifted
    above the image (z-index 0) and the aurora (1). */
+/* The auth card was 420px wide with 2.25rem of top padding, which made a short
+ * form - "email, password, one button" - look like a settings panel. 360px with
+ * tighter padding is enough for the longest label on the register form while
+ * reading as a login box. */
 .pt-auth {
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 420px;
+    max-width: 360px;
     margin: 0 auto;
 }
 
 .pt-auth-card {
     width: 100%;
-    max-width: 420px;
+    max-width: 360px;
     border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
     border: 1px solid rgb(var(--pt-gray-600) / 0.55);
@@ -767,15 +782,15 @@
 }
 
 .pt-auth-top {
-    padding: 2.25rem 1.75rem 0;
+    padding: 1.5rem 1.5rem 0;
     text-align: center;
 }
 
 .pt-auth-emblem {
     display: block;
-    width: 3.5rem;
-    height: 3.5rem;
-    margin: 0 auto 0.9rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0 auto 0.7rem;
     padding: 3px;
     border-radius: 0;
     background-color: #ffffff;
@@ -804,7 +819,7 @@
 }
 
 .pt-auth-body {
-    padding: 1.5rem 1.75rem 1.75rem;
+    padding: 1.15rem 1.5rem 1.4rem;
     color: rgb(var(--pt-gray-200));
 }
 
@@ -892,12 +907,89 @@
 }
 
 .pt-auth-footer {
-    padding: 0.9rem 1.5rem;
+    padding: 0.7rem 1.25rem;
     border-top: 1px solid rgb(var(--pt-gray-600) / 0.5);
     background-color: rgb(var(--pt-gray-900) / 0.45);
     text-align: center;
     font-size: 0.78rem;
     color: rgb(var(--pt-gray-400));
+}
+
+/* ------------------------------------------------- auth quick links + crumbs -- */
+/* Breadcrumb pinned to the top-left of the auth page, and the admin's quick
+ * links as a row of pill buttons sitting above the card. Both are rendered by
+ * QuickLinkRow in LoginFormContainer and are absent entirely when the admin has
+ * not enabled any links. */
+
+.pt-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.75rem;
+    color: rgb(var(--pt-gray-400));
+}
+
+.pt-crumb {
+    color: rgb(var(--pt-gray-300));
+    text-decoration: none;
+    transition: color 150ms ease;
+}
+
+.pt-crumb:hover,
+.pt-crumb:focus-visible {
+    color: #ffffff;
+    text-decoration: underline;
+    outline: none;
+}
+
+.pt-crumb.is-current {
+    color: rgb(var(--pt-gray-100));
+    font-weight: 600;
+}
+
+.pt-crumb-sep {
+    color: rgb(var(--pt-gray-500));
+}
+
+.pt-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.pt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--pt-glass-border);
+    background-color: rgb(var(--pt-gray-700) / 0.5);
+    color: rgb(var(--pt-gray-100));
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.pt-link:hover,
+.pt-link:focus-visible {
+    background-color: rgb(var(--pt-gray-700) / 0.78);
+    border-color: var(--pt-glass-border-hover);
+    color: #ffffff;
+    outline: none;
+}
+
+/* If only one link is enabled it should not stretch across the full width. */
+.pt-links .pt-link:only-child {
+    flex: 0 1 auto;
 }
 
 /* ------------------------------------------------------------- dashboard -- */

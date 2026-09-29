@@ -52,6 +52,15 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
      */
     private const SLOTS = ['auth', 'dashboard'];
 
+    /**
+     * Quick links shown on the auth screens and in the dashboard topbar.
+     */
+    public const LINK_SLOTS = [
+        'home' => ['label' => 'Home', 'help' => 'Usually the panel home page. Leave empty to send people to /'],
+        'discord' => ['label' => 'Discord', 'help' => 'Your community invite link, e.g. https://discord.gg/example'],
+        'status' => ['label' => 'Status', 'help' => 'A status or uptime page, e.g. https://status.example.com'],
+    ];
+
     public function __construct(
         private SettingsRepositoryInterface $settings,
         private AlertsMessageBag $alert,
@@ -60,9 +69,20 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
     public function index(): View
     {
+        $links = [];
+        foreach (array_keys(self::LINK_SLOTS) as $slot) {
+            $links[$slot] = [
+                'enabled' => $this->bool('Brine::link_' . $slot . '_enabled'),
+                'url' => (string) $this->settings->get('Brine::link_' . $slot . '_url', ''),
+            ];
+        }
+
         return view('admin.site-settings', [
+            'tab' => request('tab') === 'links' ? 'links' : 'general',
+            'link_slots' => self::LINK_SLOTS,
             'name' => $this->siteName(),
             'icon' => $this->iconUrl(),
+            'links' => $links,
             'backgrounds' => [
                 'auth' => [
                     'enabled' => $this->bool('Brine::bg_auth_enabled'),
@@ -76,6 +96,89 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Save the Links tab: one URL and one on/off switch per quick link.
+     *
+     * Switching a link off also clears its URL, so re-enabling it later does
+     * not silently resurrect a stale target that was edited months ago.
+     */
+    public function updateLinks(Request $request): RedirectResponse
+    {
+        $rules = [];
+        foreach (array_keys(self::LINK_SLOTS) as $slot) {
+            $rules[$slot . '_enabled'] = 'nullable|boolean';
+            $rules[$slot . '_url'] = 'nullable|string|max:2048';
+        }
+        $request->validate($rules);
+
+        $errors = [];
+
+        foreach (array_keys(self::LINK_SLOTS) as $slot) {
+            $enabled = $request->boolean($slot . '_enabled');
+            $url = trim((string) $request->input($slot . '_url', ''));
+
+            if (!$enabled) {
+                $this->settings->set('Brine::link_' . $slot . '_enabled', '0');
+                $this->settings->set('Brine::link_' . $slot . '_url', '');
+
+                continue;
+            }
+
+            // Home is allowed to stay empty: it then points at the panel root.
+            if ($url === '' && $slot !== 'home') {
+                $errors[] = sprintf('The %s link needs a URL, or turn it off.', self::LINK_SLOTS[$slot]['label']);
+
+                continue;
+            }
+
+            if ($url !== '' && $this->safeLink($url) === null) {
+                $errors[] = sprintf(
+                    'The %s link was rejected - use a full https:// address or a path starting with a single slash.',
+                    self::LINK_SLOTS[$slot]['label']
+                );
+
+                continue;
+            }
+
+            $this->settings->set('Brine::link_' . $slot . '_enabled', '1');
+            $this->settings->set('Brine::link_' . $slot . '_url', $url);
+        }
+
+        if ($errors === []) {
+            $this->alert->success('Links saved.')->flash();
+        } else {
+            $this->alert->danger(implode(' ', $errors))->flash();
+        }
+
+        return redirect()->route('admin.site-settings', ['tab' => 'links']);
+    }
+
+    /**
+     * Normalise a link target, or null when unsafe.
+     *
+     * These become hrefs in rendered markup, so a `javascript:` or `data:` value
+     * would be a stored XSS against every visitor. Protocol-relative URLs are
+     * rejected too - "//evil.com" looks relative but leaves the site.
+     */
+    private function safeLink(string $url): ?string
+    {
+        if ($url === '') {
+            return null;
+        }
+
+        if (strpos($url, '/') === 0) {
+            return strpos($url, '//') === 0 ? null : $url;
+        }
+
+        if (!preg_match('#^https?://#i', $url)) {
+            return null;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) && $host !== '' ? $url : null;
     }
 
     /**

@@ -9,6 +9,12 @@ use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 class AssetComposer
 {
     /**
+     * Quick-link slots offered in Admin -> Site Settings -> Links.
+     * Keep in step with SiteSettingsController::LINK_SLOTS.
+     */
+    private const LINK_SLOTS = ['home', 'discord', 'status'];
+
+    /**
      * AssetComposer constructor.
      */
     public function __construct(
@@ -70,6 +76,10 @@ class AssetComposer
                 'auth' => $this->overlay('auth'),
                 'dashboard' => $this->overlay('dashboard'),
             ],
+            // brine-theme: the quick links set in Admin -> Site Settings -> Links.
+            // Each entry is null when the admin has switched it off, so the
+            // components just leave that button out.
+            'links' => $this->links(),
         ]);
     }
 
@@ -154,6 +164,79 @@ class AssetComposer
             ),
             'strength' => number_format($intensity / 100, 2, '.', ''),
         ];
+    }
+
+    /**
+     * The quick links, keyed by slot, each null when disabled or unset.
+     *
+     * Only http(s) and site-relative (/...) targets are accepted, because the
+     * value becomes an href in rendered markup: a `javascript:` or `data:` URL
+     * here would be a stored XSS against every visitor. The admin form
+     * validates on save; this re-checks on read for the same reason the
+     * background slot does.
+     *
+     * @return array<string, string|null>
+     */
+    private function links(): array
+    {
+        $links = [];
+
+        foreach (self::LINK_SLOTS as $slot) {
+            $links[$slot] = null;
+
+            if ($this->settings->get('Brine::link_' . $slot . '_enabled') !== '1') {
+                continue;
+            }
+
+            $url = $this->settings->get('Brine::link_' . $slot . '_url');
+            if (!is_string($url)) {
+                continue;
+            }
+
+            $url = trim($url);
+
+            // Home is allowed to be enabled with no URL, and then means "the
+            // panel root". Resolving that here rather than in the components
+            // keeps a disabled link (null) distinguishable from an enabled one
+            // with a default, so the admin's switch always means something.
+            if ($url === '' && $slot === 'home') {
+                $links[$slot] = '/';
+
+                continue;
+            }
+
+            if ($url !== '' && ($safe = $this->safeLink($url)) !== null) {
+                $links[$slot] = $safe;
+            }
+        }
+
+        return $links;
+    }
+
+    /**
+     * Normalise a link target, or null when it is not safe to emit.
+     *
+     * Site-relative paths stay relative (they survive a panel moving to a
+     * subdirectory); anything absolute must be http(s).
+     */
+    private static function safeLink(string $url): ?string
+    {
+        if ($url === '') {
+            return null;
+        }
+
+        if (strpos($url, '/') === 0) {
+            // Reject protocol-relative URLs (//evil.com) - they leave the site.
+            return strpos($url, '//') === 0 ? null : $url;
+        }
+
+        if (!preg_match('#^https?://#i', $url)) {
+            return null;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) && $host !== '' ? $url : null;
     }
 
     /**

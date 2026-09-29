@@ -56,18 +56,29 @@ What it changes on top of the stock panel:
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
-  - **Site Settings** (`/admin/site-settings`) — one page, three blocks. **Name &
-    icon** sets the site name and the icon (favicon + login emblem). **Login &
-    Register** and **Dashboard** each take a background image — an **uploaded
-    file or a pasted image link** (PNG, JPG, GIF, WEBP, SVG), with their own
-    on/off switch — plus an **overlay adjuster**: an intensity slider and a
-    colour picker, with a live preview, so any photo stays readable under the
-    dark text. Defaults are black at 78% (auth) and 62% (dashboard).
+  - **Site Settings** (`/admin/site-settings`) — two tabs, both server-rendered
+    so they work with no JavaScript. **General & backgrounds** sets the site name
+    and icon, plus a background image for the auth screens and one for the
+    dashboard, each with its own on/off switch, an **uploaded file or pasted
+    image link** (PNG, JPG, GIF, WEBP, SVG) and an **overlay adjuster** (intensity
+    slider + colour picker, live preview; defaults black at 78% / 62%).
+    **Links** sets up to three quick links — **Home**, **Discord**, **Status** —
+    each with a URL and an on/off switch.
   - **Registration** (`/admin/registration`) — switches public sign-up on or off.
 
-  The page is responsive: the three blocks stack full-width on a phone, the
-  preview sits beside its controls on desktop, and the range input stays
-  full-width so it is usable on touch.
+  The page is responsive: the blocks stack full-width on a phone, the preview
+  sits beside its controls on desktop, and the range input stays full-width so
+  it is usable on touch.
+
+- **Quick links** — the enabled links appear as buttons above the login and
+  register forms, under a `Home / Login` (or `Home / Register`) breadcrumb in the
+  top-left. **Discord** and **Status** also appear as icons in the dashboard
+  topbar; **Home** is deliberately left off the dashboard, where you already are.
+  Disabling a link in the admin removes the button entirely.
+
+- **Branding in the sidebar** — the mark beside the site name is your uploaded
+  icon rather than the first letter of the panel name, falling back to the letter
+  when no icon has been uploaded.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   icon uploaded on the Site Settings page (falling back to the theme emblem) - the
   stock `/favicons` folder is removed on install and restored on uninstall.
@@ -381,8 +392,8 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon, both background slots |
-| `resources/views/admin/site-settings.blade.php` | create - Site Settings page: name/icon + two background slots with overlay adjusters |
+| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon, both background slots + overlays, the three quick links |
+| `resources/views/admin/site-settings.blade.php` | create - Site Settings page, server-rendered General & Links tabs |
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
@@ -390,7 +401,7 @@ render, so they match the panel.
 | `routes/auth.php` | replace - stock routes + `GET/POST /auth/register`, no recaptcha middleware |
 | `routes/admin.php` | replace - stock routes + `/admin/site-settings` + `/admin/registration` |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration menu items, icon favicon |
-| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()` from `SiteConfiguration` |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
@@ -402,7 +413,7 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   favicon (user panel + admin) come from that file; tick "remove" there to fall
   back to the theme emblem. The stock `public/favicons` folder is moved into the
   backup on install and restored on uninstall.
-- **Site name** - set it in the *Name & icon* block. It is stored as the panel's
+- **Site name** - set it in the *General & backgrounds* tab. It is stored as the panel's
   own name (`settings::app:name`), so the sidebar, topbar, login card, footer and
   page title all pick it up through `brandName()` without anything hardcoded.
 - **Backgrounds and overlay** - Admin -> **Site Settings** takes an uploaded file
@@ -415,6 +426,15 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   `Brine::bg_<area>_overlay_colour` / `_intensity` and shipped to the client as
   `--pt-bg-overlay-rgb{,-auth}` and `--pt-bg-overlay-strength{,-auth}`. Clear
   resets both to the black defaults.
+- **Quick links** - Admin -> **Site Settings** -> *Links*. Each of Home, Discord
+  and Status is a URL plus an on/off switch, stored as
+  `Brine::link_<slot>_enabled` / `_url`; a disabled link is omitted from
+  `SiteConfiguration.links` so the button disappears rather than just going dead.
+  Targets are validated **twice** - on save and again in `AssetComposer` - to
+  `https://` addresses and single-slash paths, because these become `href`s and a
+  `javascript:` value would be a stored XSS against every visitor. Protocol
+  relative `//host` targets are rejected as well. Home may be left empty, in
+  which case it points at `/`.
 - **Registration** - Admin -> **Registration** to turn public sign-up on or off.
   Accounts are created directly by the panel's own user service, so there is no
   API key to manage; the setting lives in panel settings

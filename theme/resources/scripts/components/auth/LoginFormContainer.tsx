@@ -1,9 +1,10 @@
 import React, { forwardRef } from 'react';
 import { Form } from 'formik';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
 import { brandName, logoUrl, registrationEnabled } from '@/lib/brand';
+import { AuthLinks } from '@/components/QuickLinks';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -11,8 +12,43 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
     footer?: React.ReactNode;
 };
 
+const QuickLinkRow = () => {
+    // "Home / Login" on the sign-in screen, "Home / Register" on sign-up, and
+    // the matching label on the forgot/reset screens. Read from the route so it
+    // stays right if an admin has turned public registration off.
+    const { pathname } = useLocation();
+    const isRegister = pathname.includes('/register');
+    const isForgot = pathname.includes('/password');
+    const isReset = pathname.includes('/reset');
+    const isLogin = !isRegister && !isForgot && !isReset;
+
+    return (
+        <>
+            <nav className={'pt-crumbs'} aria-label={'Breadcrumb'}>
+                <Link to={'/'} className={'pt-crumb'}>
+                    Home
+                </Link>
+                <span className={'pt-crumb-sep'} aria-hidden={'true'}>
+                    /
+                </span>
+                {isRegister ? (
+                    <span className={'pt-crumb is-current'}>Register</span>
+                ) : isForgot ? (
+                    <span className={'pt-crumb is-current'}>Forgot password</span>
+                ) : isReset ? (
+                    <span className={'pt-crumb is-current'}>Reset password</span>
+                ) : isLogin ? (
+                    <span className={'pt-crumb is-current'}>Login</span>
+                ) : null}
+            </nav>
+            <AuthLinks />
+        </>
+    );
+};
+
 export default forwardRef<HTMLFormElement, Props>(({ title, subtitle, footer, ...props }, ref) => (
     <div className={'pt-auth'}>
+        <QuickLinkRow />
         <div className={'pt-auth-card'}>
             <div className={'pt-auth-top'}>
                 <span className={'pt-auth-emblem'}>

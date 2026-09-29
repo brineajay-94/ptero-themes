@@ -8,6 +8,7 @@ interface BrandWindow extends Window {
             auth?: { rgb?: string; strength?: string };
             dashboard?: { rgb?: string; strength?: string };
         };
+        links?: { home?: string | null; discord?: string | null; status?: string | null };
     };
 }
 
@@ -50,6 +51,31 @@ export const registrationEnabled = (): boolean =>
  */
 export const backgroundImage = (area: 'auth' | 'dashboard'): string | null =>
     (window as BrandWindow).SiteConfiguration?.backgrounds?.[area] || null;
+
+/**
+ * The quick links configured in Admin -> Site Settings -> Links.
+ *
+ * AssetComposer has already dropped any that are switched off, and re-checked
+ * that each target is http(s) or a single-slash path - these values become
+ * hrefs, so a `javascript:` URL would be a stored XSS against every visitor.
+ * A link with no value is simply not rendered.
+ */
+export const quickLinks = (): { home?: string; discord?: string; status?: string } => {
+    const links = (window as BrandWindow).SiteConfiguration?.links || {};
+
+    return {
+        ...(links.home ? { home: links.home } : {}),
+        ...(links.discord ? { discord: links.discord } : {}),
+        ...(links.status ? { status: links.status } : {}),
+    };
+};
+
+/**
+ * A quick link's href, or null when the admin has that slot switched off (or
+ * saved a target AssetComposer rejected). Callers skip the button on null - that
+ * is what makes the admin's per-link toggle actually hide something.
+ */
+export const linkHref = (slot: 'home' | 'discord' | 'status'): string | null => quickLinks()[slot] || null;
 
 /**
  * Build the inline style that points a background layer at the configured

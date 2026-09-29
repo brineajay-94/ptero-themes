@@ -58,6 +58,13 @@
             .bs-site-settings .box-header .bs-ss-toggle { margin-top: 6px; }
             .bs-site-settings .bs-ss-output { min-width: 0; }
         }
+        /* Tabs are plain links into ?tab= (server-rendered), so they need no
+           JS. Just give them breathing room and let long labels wrap. */
+        .bs-site-settings .bs-ss-tabs { margin-bottom: 18px; }
+        .bs-site-settings .bs-ss-tabs > li > a { padding: 10px 16px; }
+        @media (max-width: 480px) {
+            .bs-site-settings .bs-ss-tabs > li > a { padding: 10px 10px; font-size: 13px; }
+        }
     </style>
 
     <div class="bs-site-settings">
@@ -65,6 +72,25 @@
             <div class="alert alert-danger">{{ $error }}</div>
         @endforeach
 
+        {{-- Server-rendered tabs, deliberately NOT AdminLTE's tab plugin.
+             The plugin is jQuery-driven and needs data-toggle="tab"; the
+             previous attempt at these tabs silently died because the markup ran
+             before jQuery loaded. These are plain links and the controller picks
+             the pane from ?tab=, so they work with no JavaScript at all. --}}
+        <ul class="nav nav-tabs bs-ss-tabs">
+            <li class="{{ $tab === 'general' ? 'active' : '' }}">
+                <a href="{{ route('admin.site-settings', ['tab' => 'general']) }}">
+                    <i class="fa fa-picture-o"></i> <span>General &amp; backgrounds</span>
+                </a>
+            </li>
+            <li class="{{ $tab === 'links' ? 'active' : '' }}">
+                <a href="{{ route('admin.site-settings', ['tab' => 'links']) }}">
+                    <i class="fa fa-link"></i> <span>Links</span>
+                </a>
+            </li>
+        </ul>
+
+        @if ($tab === 'general')
         {{-- ================================================== identity -- --}}
         <form action="{{ route('admin.site-settings.general') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -282,6 +308,59 @@
                 @method('DELETE')
             </form>
         @endforeach
+        @endif
+
+        @if ($tab === 'links')
+            <form action="{{ route('admin.site-settings.links') }}" method="POST">
+                @csrf
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-link"></i> Quick links</h3>
+                    </div>
+                    <div class="box-body">
+                        <p class="help-block">
+                            These appear as buttons on the <strong>login and register</strong> screens, above the form. Home
+                            and Status also appear in the <strong>dashboard topbar</strong>.
+                        </p>
+
+                        @foreach ($link_slots as $slot => $meta)
+                            @php $link = $links[$slot]; @endphp
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="checkbox no-margin-bottom">
+                                        <input id="{{ $slot }}LinkEnabled" name="{{ $slot }}_enabled" type="checkbox" value="1"
+                                               {{ old($slot . '_enabled', $link['enabled']) ? 'checked' : '' }} />
+                                        <label for="{{ $slot }}LinkEnabled" class="strong">Show the {{ $meta['label'] }} link</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label" for="{{ $slot }}LinkUrl">{{ $meta['label'] }} URL</label>
+                                <input type="text" id="{{ $slot }}LinkUrl" name="{{ $slot }}_url" class="form-control"
+                                       maxlength="2048" placeholder="https://example.com"
+                                       value="{{ old($slot . '_url', $link['url']) }}" />
+                                <p class="help-block">
+                                    {{ $meta['help'] }}
+                                    @if ($slot === 'home')
+                                        Site-relative paths such as <code>/</code> are fine too.
+                                    @endif
+                                    Only <code>https://</code> addresses and single-slash paths are accepted - a
+                                    <code>javascript:</code> URL here would be a security problem.
+                                </p>
+                            </div>
+
+                            @if ($slot !== 'home')
+                                <hr>
+                            @endif
+                        @endforeach
+                    </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save links</button>
+                    </div>
+                </div>
+            </form>
+        @endif
     </div>
 
     {{-- brine-theme: live overlay preview.

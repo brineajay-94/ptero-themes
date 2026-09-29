@@ -65,20 +65,6 @@ export default () => {
                     Spin up, manage and monitor every server you own - files, backups, databases and schedules all live
                     in one place.
                 </p>
-                <div className={'pt-hero-stats'}>
-                    <div className={'pt-hero-stat'}>
-                        <b>{servers ? servers.pagination.total : '—'}</b>
-                        <span>{servers && servers.pagination.total === 1 ? 'Server' : 'Servers'}</span>
-                    </div>
-                    <div className={'pt-hero-stat'}>
-                        <b>{servers ? servers.pagination.totalPages : '—'}</b>
-                        <span>Pages</span>
-                    </div>
-                    <div className={'pt-hero-stat'}>
-                        <b>{rootAdmin ? 'Admin' : 'Member'}</b>
-                        <span>Access</span>
-                    </div>
-                </div>
             </section>
 
             <div className={'flex flex-wrap justify-between items-center gap-3'}>

@@ -770,40 +770,6 @@
     color: rgb(var(--pt-navy-200));
 }
 
-.pt-hero-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.15rem;
-}
-
-.pt-hero-stat {
-    min-width: 7rem;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid rgb(255 255 255 / 0.16);
-    border-radius: 4px;
-    background-color: rgb(255 255 255 / 0.08);
-}
-
-.pt-hero-stat b {
-    display: block;
-    font-family: var(--pt-font-heading);
-    font-size: 1.3rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: rgb(var(--pt-gold-300));
-}
-
-.pt-hero-stat span {
-    display: block;
-    margin-top: 0.15rem;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-navy-200));
-}
-
 .pt-section-title {
     display: flex;
     align-items: center;

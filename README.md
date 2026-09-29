@@ -9,7 +9,7 @@ What it changes on top of the stock panel:
 - **Shell** â€” Aternos-style fixed sidebar (brand block, permission-filtered
   server + account navigation, user footer), sticky topbar with a blue
   rule, and a sliding mobile drawer with a hamburger burger.
-- **Dashboard** â€” branded hero header with welcome stats, section title, and
+- **Dashboard** — branded hero header with section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.
 - **Login** — the stock login is replaced with a compact square card: navy masthead

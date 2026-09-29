@@ -105,7 +105,7 @@
         {
             "path": "resources/scripts/components/dashboard/DashboardContainer.tsx",
             "action": "replace",
-            "note": "Branded hero header with welcome stats, section title and empty state"
+            "note": "Branded hero header, section title and empty state"
         },
         {
             "path": "resources/scripts/components/dashboard/ServerRow.tsx",

@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -185,12 +185,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon, and the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch)"
+            "note": "Admin -> Site Settings: site name, icon, the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch) and each slot's overlay colour + intensity"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Site Settings page with General and Background tabs"
+            "note": "Site Settings page: name + icon, then a per-area background block (Login & Register, Dashboard) each with a switch, a link-or-upload field, and an overlay intensity/colour adjuster with a live preview"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",

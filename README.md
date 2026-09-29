@@ -56,13 +56,18 @@ What it changes on top of the stock panel:
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
-  - **Site Settings** (`/admin/site-settings`) — two tabs. **General** sets the
-    site name and the icon (favicon + login emblem). **Background** sets a
-    background image for the auth screens and one for the dashboard, each with
-    its own on/off switch and either an **uploaded file or a pasted image
-    link** (PNG, JPG, GIF, WEBP, SVG). Images are dimmed automatically so the
-    dark theme stays readable over any photo.
+  - **Site Settings** (`/admin/site-settings`) — one page, three blocks. **Name &
+    icon** sets the site name and the icon (favicon + login emblem). **Login &
+    Register** and **Dashboard** each take a background image — an **uploaded
+    file or a pasted image link** (PNG, JPG, GIF, WEBP, SVG), with their own
+    on/off switch — plus an **overlay adjuster**: an intensity slider and a
+    colour picker, with a live preview, so any photo stays readable under the
+    dark text. Defaults are black at 78% (auth) and 62% (dashboard).
   - **Registration** (`/admin/registration`) — switches public sign-up on or off.
+
+  The page is responsive: the three blocks stack full-width on a phone, the
+  preview sits beside its controls on desktop, and the range input stays
+  full-width so it is usable on touch.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   icon uploaded on the Site Settings page (falling back to the theme emblem) - the
   stock `/favicons` folder is removed on install and restored on uninstall.
@@ -377,7 +382,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon, both background slots |
-| `resources/views/admin/site-settings.blade.php` | create - Site Settings page, General + Background tabs |
+| `resources/views/admin/site-settings.blade.php` | create - Site Settings page: name/icon + two background slots with overlay adjusters |
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
@@ -397,16 +402,19 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   favicon (user panel + admin) come from that file; tick "remove" there to fall
   back to the theme emblem. The stock `public/favicons` folder is moved into the
   backup on install and restored on uninstall.
-- **Site name** - set it on the same *General* tab. It is stored as the panel's
+- **Site name** - set it in the *Name & icon* block. It is stored as the panel's
   own name (`settings::app:name`), so the sidebar, topbar, login card, footer and
   page title all pick it up through `brandName()` without anything hardcoded.
-- **Backgrounds** - Admin -> **Site Settings** -> *Background* takes an uploaded
-  file *or* a pasted `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`,
+- **Backgrounds and overlay** - Admin -> **Site Settings** takes an uploaded file
+  *or* a pasted `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`,
   `.webp` or `.svg`, per area. Uploads land in
   `public/themes/pterodactyl/backgrounds/bg-<area>.<ext>`; a pasted link wins
   over a stored upload and deletes it. Anything else - a `data:` URI, a relative
-  path, a non-image link - is rejected on save and ignored on render. The scrim
-  strength is `--pt-bg-dim` / `--pt-bg-dim-strong` in the stylesheet's `:root`.
+  path, a non-image link - is rejected on save and ignored on render.
+  The overlay is a colour and a strength (0-100%) per area, stored as
+  `Brine::bg_<area>_overlay_colour` / `_intensity` and shipped to the client as
+  `--pt-bg-overlay-rgb{,-auth}` and `--pt-bg-overlay-strength{,-auth}`. Clear
+  resets both to the black defaults.
 - **Registration** - Admin -> **Registration** to turn public sign-up on or off.
   Accounts are created directly by the panel's own user service, so there is no
   API key to manage; the setting lives in panel settings

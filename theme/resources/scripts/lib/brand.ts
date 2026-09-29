@@ -4,6 +4,10 @@ interface BrandWindow extends Window {
         logo?: string | null;
         registration?: { enabled?: boolean };
         backgrounds?: { auth?: string | null; dashboard?: string | null };
+        overlay?: {
+            auth?: { rgb?: string; strength?: string };
+            dashboard?: { rgb?: string; strength?: string };
+        };
     };
 }
 
@@ -59,6 +63,22 @@ export const backgroundImage = (area: 'auth' | 'dashboard'): string | null =>
  */
 export const backgroundStyle = (area: 'auth' | 'dashboard'): React.CSSProperties | undefined => {
     const image = backgroundImage(area);
+    if (!image) return undefined;
 
-    return image ? ({ [`--pt-bg-${area}-image`]: `url("${image}")` } as React.CSSProperties) : undefined;
+    // The overlay ships in SiteConfiguration as a validated triplet plus a 0-1
+    // strength (AssetComposer normalises it), so this needs no further checks.
+    const overlay = (window as BrandWindow).SiteConfiguration?.overlay?.[area];
+
+    return {
+        [`--pt-bg-${area}-image`]: `url("${image}")`,
+        ...(area === 'auth'
+            ? {
+                  '--pt-bg-overlay-rgb-auth': overlay?.rgb,
+                  '--pt-bg-overlay-strength-auth': overlay?.strength,
+              }
+            : {
+                  '--pt-bg-overlay-rgb': overlay?.rgb,
+                  '--pt-bg-overlay-strength': overlay?.strength,
+              }),
+    } as React.CSSProperties;
 };

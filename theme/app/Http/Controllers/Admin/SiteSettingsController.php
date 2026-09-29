@@ -40,6 +40,14 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     private const BACKGROUND_MAX_KB = 8192;
 
     /**
+     * Default scrim strength per slot, as a percentage. The auth screens get
+     * the heavier one because their text is the smallest on the panel; 0 would
+     * be a completely unlegible raw photo and 100 a solid colour.
+     */
+    private const OVERLAY_DEFAULT = ['auth' => 78, 'dashboard' => 62];
+    private const OVERLAY_DEFAULT_COLOUR = '#000000';
+
+    /**
      * Slot names, each with its own fixed filename and the CSS hook it drives.
      */
     private const SLOTS = ['auth', 'dashboard'];
@@ -59,10 +67,12 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
                 'auth' => [
                     'enabled' => $this->bool('Brine::bg_auth_enabled'),
                     'image' => $this->backgroundImage('auth'),
+                    'overlay' => $this->overlay('auth'),
                 ],
                 'dashboard' => [
                     'enabled' => $this->bool('Brine::bg_dashboard_enabled'),
                     'image' => $this->backgroundImage('dashboard'),
+                    'overlay' => $this->overlay('dashboard'),
                 ],
             ],
         ]);
@@ -86,7 +96,7 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         if ($name === '') {
             $this->alert->danger('The site name cannot be empty.')->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         $this->settings->set('settings::app:name', $name);
@@ -95,21 +105,21 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             $this->deleteFile($this->iconFile());
             $this->alert->success('Site name saved and the custom icon was removed.')->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         $upload = $request->file('icon');
         if ($upload === null) {
             $this->alert->success('Site name saved.')->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         $directory = $this->imageDirectory();
         if (($problem = $this->ensureWritable($directory)) !== null) {
             $this->alert->danger($problem)->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         $this->deleteFile($this->iconFile());
@@ -120,18 +130,18 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             Log::error('brine-theme: site icon upload failed: ' . $e->getMessage());
             $this->alert->danger('Saving the icon failed: ' . $e->getMessage())->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         if ($this->iconUrl() === null) {
             $this->alert->danger('The icon did not land in <code>public/themes/pterodactyl/images/</code> - check permissions on <code>public/themes</code>.')->flash();
 
-            return redirect()->route('admin.site-settings', ['tab' => 'general']);
+            return redirect()->route('admin.site-settings');
         }
 
         $this->alert->success('Site settings saved - the icon is now the favicon and the login emblem.')->flash();
 
-        return redirect()->route('admin.site-settings', ['tab' => 'general']);
+        return redirect()->route('admin.site-settings');
     }
 
     /**
@@ -140,14 +150,20 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
      */
     public function updateBackground(Request $request): RedirectResponse
     {
-        $request->validate([
+        $rules = [
             'auth_enabled' => 'nullable|boolean',
             'auth_url' => 'nullable|string|max:2048',
             'auth_file' => 'nullable|file|mimes:' . implode(',', self::BACKGROUND_TYPES) . '|max:' . self::BACKGROUND_MAX_KB,
             'dashboard_enabled' => 'nullable|boolean',
             'dashboard_url' => 'nullable|string|max:2048',
             'dashboard_file' => 'nullable|file|mimes:' . implode(',', self::BACKGROUND_TYPES) . '|max:' . self::BACKGROUND_MAX_KB,
-        ]);
+        ];
+        foreach (self::SLOTS as $slot) {
+            $rules[$slot . '_overlay_intensity'] = 'nullable|integer|min:0|max:100';
+            $rules[$slot . '_overlay_colour'] = 'nullable|string|max:32';
+        }
+
+        $request->validate($rules);
 
         $messages = [];
 
@@ -156,18 +172,72 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             if ($saved !== null) {
                 $messages[] = $saved;
             }
+
+            $overlayProblem = $this->saveOverlay($slot, $request);
+            if ($overlayProblem !== null) {
+                $messages[] = $overlayProblem;
+            }
         }
 
         $this->settings->set('Brine::bg_auth_enabled', $request->boolean('auth_enabled') ? '1' : '0');
         $this->settings->set('Brine::bg_dashboard_enabled', $request->boolean('dashboard_enabled') ? '1' : '0');
 
         if ($messages === []) {
-            $this->alert->success('Backgrounds saved.')->flash();
+            $this->alert->success('Backgrounds and overlays saved.')->flash();
         } else {
             $this->alert->danger(implode(' ', $messages))->flash();
         }
 
-        return redirect()->route('admin.site-settings', ['tab' => 'background']);
+        return redirect()->route('admin.site-settings');
+    }
+
+    /**
+     * Store the scrim colour and strength for one slot.
+     *
+     * The colour is normalised to lowercase #rrggbb here rather than trusted,
+     * because it is interpolated into a CSS custom property and then into a
+     * colour function - anything that is not a hex triplet would either break
+     * the stylesheet or inject a second declaration.
+     */
+    private function saveOverlay(string $slot, Request $request): ?string
+    {
+        $intensity = $request->input($slot . '_overlay_intensity');
+        if ($intensity !== null && $intensity !== '') {
+            $this->settings->set('Brine::bg_' . $slot . '_overlay_intensity', (string) max(0, min(100, (int) $intensity)));
+        }
+
+        $colour = trim((string) $request->input($slot . '_overlay_colour', ''));
+        if ($colour === '') {
+            return null;
+        }
+
+        $normalised = $this->normaliseHex($colour);
+        if ($normalised === null) {
+            return sprintf('The %s overlay colour was rejected - use a hex value like #000000 or #1b1436.', $slot);
+        }
+
+        $this->settings->set('Brine::bg_' . $slot . '_overlay_colour', $normalised);
+
+        return null;
+    }
+
+    /**
+     * Accept #rgb / #rrggbb with or without the leading hash; return lowercase
+     * #rrggbb, or null for anything else.
+     */
+    private function normaliseHex(string $value): ?string
+    {
+        $hex = ltrim(trim($value), '#');
+
+        if (strlen($hex) === 3 && ctype_xdigit($hex)) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
+            return null;
+        }
+
+        return '#' . strtolower($hex);
     }
 
     /**
@@ -182,10 +252,14 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         $this->deleteFile($this->backgroundFile($slot));
         $this->settings->forget('Brine::bg_' . $slot . '_url');
         $this->settings->set('Brine::bg_' . $slot . '_enabled', '0');
+        // The overlay only matters while an image is showing, so reset it to the
+        // shipped default rather than leaving a stale value behind.
+        $this->settings->forget('Brine::bg_' . $slot . '_overlay_intensity');
+        $this->settings->forget('Brine::bg_' . $slot . '_overlay_colour');
 
         $this->alert->success(ucfirst($slot) . ' background cleared.')->flash();
 
-        return redirect()->route('admin.site-settings', ['tab' => 'background']);
+        return redirect()->route('admin.site-settings');
     }
 
     // ------------------------------------------------------------------ slots --
@@ -283,6 +357,26 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     private function bool(string $key): bool
     {
         return $this->settings->get($key) === '1';
+    }
+
+    /**
+     * The scrim settings for one slot, with defaults filled in.
+     *
+     * @return array{colour: string, intensity: int}
+     */
+    private function overlay(string $slot): array
+    {
+        $colour = $this->settings->get('Brine::bg_' . $slot . '_overlay_colour');
+        $intensity = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
+
+        return [
+            'colour' => is_string($colour) && $this->normaliseHex($colour) !== null
+                ? $this->normaliseHex($colour)
+                : self::OVERLAY_DEFAULT_COLOUR,
+            'intensity' => is_numeric($intensity)
+                ? max(0, min(100, (int) $intensity))
+                : self::OVERLAY_DEFAULT[$slot],
+        ];
     }
 
     // ---------------------------------------------------------------- helpers --

@@ -147,12 +147,24 @@
      * .pt-shell / .pt-auth-page; when a slot is switched off the property is
      * absent, so these keep the plain page colour.
      *
-     * --pt-bg-dim is the scrim between the image and the aurora. It exists so
-     * an arbitrary admin-supplied photo stays legible underneath dark text
-     * without the theme needing to know anything about the image.
+     * --pt-bg-overlay-* is the scrim between the image and the aurora, so an
+     * arbitrary admin-supplied photo stays legible underneath dark text without
+     * the theme needing to know anything about the image. The colour is an
+     * "R G B" triplet and the strength a 0-1 number, which is what lets them
+     * combine in one `rgb(var(...) / var(...))`.
+     *
+     * These four are the shipped defaults and the *fallbacks*: Admin -> Site
+     * Settings writes the per-area values inline when the admin changes them, so
+     * a slot the admin has never touched (or has cleared) still paints a sane
+     * black scrim rather than nothing.
+     *
+     *   auth       0 0 0 / 0.78   - its text is the smallest on the panel
+     *   dashboard  0 0 0 / 0.62
      */
-    --pt-bg-dim: 0.62;
-    --pt-bg-dim-strong: 0.78;
+    --pt-bg-overlay-rgb: 0 0 0;
+    --pt-bg-overlay-strength: 0.62;
+    --pt-bg-overlay-rgb-auth: 0 0 0;
+    --pt-bg-overlay-strength-auth: 0.78;
 }
 
 /* ------------------------------------------------------ square corners -- */
@@ -227,9 +239,15 @@
  * between the two. `--pt-bg-*-image` is set inline by the React shell / auth
  * router only when that slot is enabled, so the defaults stay page-colour.
  *
- * `background-image: var(--pt-bg-x-image, none)` is what makes "not set" a
- * no-op: with no custom property in scope the fallback keyword paints nothing
- * and this layer stays fully transparent.
+ * Layer order matters and is easy to get backwards: in a comma-separated
+ * `background-image` the FIRST layer paints on top, so the scrim gradient has
+ * to come FIRST and the photo second. Written the other way round the opaque
+ * photo hides the scrim completely and the overlay controls appear to do
+ * nothing at all.
+ *
+ * `var(--pt-bg-x-image, none)` is what makes "not set" a no-op: with no custom
+ * property in scope the fallback keyword paints nothing and the layer is just
+ * the scrim, i.e. invisible.
  *
  * `background-position: center / background-size: cover` so any aspect ratio
  * fills the viewport; the attachment is fixed so the photo does not scroll
@@ -241,24 +259,26 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: var(--pt-bg-auth-image, none),
-        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim)), rgb(0 0 0 / var(--pt-bg-dim)));
+    background-image: linear-gradient(
+            rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength)),
+            rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength))
+        ),
+        var(--pt-bg-dashboard-image, none);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
 
-.pt-shell::after {
-    background-image: var(--pt-bg-dashboard-image, none),
-        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim)), rgb(0 0 0 / var(--pt-bg-dim)));
-}
-
-/* The auth card sits directly on the photo, so it gets the heavier scrim - the
- * body text there is the smallest on the panel. */
+/* The auth screens get their own overlay pair, because the admin can tune each
+ * area separately - the login card's text is the smallest on the panel and
+ * usually wants more scrim than the dashboard. */
 .pt-auth-page::after {
-    background-image: var(--pt-bg-auth-image, none),
-        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim-strong)), rgb(0 0 0 / var(--pt-bg-dim-strong)));
+    background-image: linear-gradient(
+            rgb(var(--pt-bg-overlay-rgb-auth) / var(--pt-bg-overlay-strength-auth)),
+            rgb(var(--pt-bg-overlay-rgb-auth) / var(--pt-bg-overlay-strength-auth))
+        ),
+        var(--pt-bg-auth-image, none);
 }
 
 /* Fixed aurora field behind every screen. Frosted surfaces need something to

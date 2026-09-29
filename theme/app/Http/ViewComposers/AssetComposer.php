@@ -62,6 +62,14 @@ class AssetComposer
                 'auth' => $this->background('auth'),
                 'dashboard' => $this->background('dashboard'),
             ],
+            // brine-theme: the scrim each background sits under, set in Admin ->
+            // Site Settings. `rgb` is the channel triplet the stylesheet feeds to
+            // `rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength))`,
+            // matching the --pt-* convention everywhere else.
+            'overlay' => [
+                'auth' => $this->overlay('auth'),
+                'dashboard' => $this->overlay('dashboard'),
+            ],
         ]);
     }
 
@@ -102,6 +110,50 @@ class AssetComposer
         $files = glob(public_path('themes/pterodactyl/backgrounds/bg-' . $slot . '.*'));
 
         return is_array($files) && count($files) > 0 ? '/themes/pterodactyl/backgrounds/' . basename($files[0]) : null;
+    }
+
+    /**
+     * The scrim colour and strength for one background slot.
+     *
+     * The colour is returned as an "R G B" triplet rather than a hex string so
+     * the client can drop it straight into `rgb(var(...) / ...)` alongside the
+     * palette tokens. Anything that is not a hex value - a value predating the
+     * theme, or one written straight into the settings table - falls back to
+     * black rather than reaching the stylesheet.
+     *
+     * @return array{rgb: string, strength: string}
+     */
+    private function overlay(string $slot): array
+    {
+        $colour = '#000000';
+        $intensity = $slot === 'auth' ? 78 : 62;
+
+        try {
+            $stored = $this->settings->get('Brine::bg_' . $slot . '_overlay_colour');
+            if (is_string($stored) && preg_match('/^#?([0-9a-fA-F]{6})$/', trim($stored), $m) === 1) {
+                $colour = '#' . strtolower($m[1]);
+            }
+
+            $storedIntensity = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
+            if (is_numeric($storedIntensity)) {
+                $intensity = max(0, min(100, (int) $storedIntensity));
+            }
+        } catch (\Throwable) {
+            // A settings lookup that fails (database down on a page render) must
+            // not take the panel's login screen with it; the defaults are fine.
+        }
+
+        $hex = ltrim($colour, '#');
+
+        return [
+            'rgb' => sprintf(
+                '%d %d %d',
+                hexdec(substr($hex, 0, 2)),
+                hexdec(substr($hex, 2, 2)),
+                hexdec(substr($hex, 4, 2))
+            ),
+            'strength' => number_format($intensity / 100, 2, '.', ''),
+        ];
     }
 
     /**

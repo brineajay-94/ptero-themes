@@ -69,16 +69,25 @@ What it changes on top of the stock panel:
   The page is responsive: the blocks stack full-width on a phone, the preview
   sits beside its controls on desktop, and the range input stays full-width so
   it is usable on touch.
-
 - **Quick links** — the enabled links appear as buttons above the login and
   register forms. A `Home / Login` (or `Home / Register`) breadcrumb sits in the
-  page's top-left corner, pinned to the viewport rather than to the card. **Discord** and **Status** also appear as icons in the dashboard
-  topbar; **Home** is deliberately left off the dashboard, where you already are.
-  Disabling a link in the admin removes the button entirely.
+  page's top-left corner, pinned to the viewport rather than to the card.
+  **Discord** and **Status** also appear as icons in the dashboard topbar, next
+  to a **Home** button. Disabling a link in the admin removes the button
+  entirely. The Discord glyph is the real brand mark, inlined as SVG — the panel
+  only ships FontAwesome's *solid* set, so the Discord icon is not available as
+  a dependency and the theme does not add one just for it.
 
-- **Branding in the sidebar** — the mark beside the site name is your uploaded
-  icon rather than the first letter of the panel name, falling back to the letter
-  when no icon has been uploaded.
+- **Slim dashboard topbar** — burger, title, then **Home** and the enabled quick
+  links. Search, the admin shortcut, the account avatar, sign-out and the old
+  dashboard shortcut are gone from it. Account and Admin Area are sidebar
+  entries, and sign-out is the button at the bottom of the sidebar (and the
+  mobile drawer), so all of it is still one click away — **except search, which
+  had no other home and is therefore removed from the panel entirely.**
+
+- **Branding in the sidebar** — the site icon beside the panel name is shown as
+  it is: no chip, no background, no box. It falls back to the first letter of the
+  panel name when no icon has been uploaded.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   icon uploaded on the Site Settings page (falling back to the theme emblem) - the
   stock `/favicons` folder is removed on install and restored on uninstall.

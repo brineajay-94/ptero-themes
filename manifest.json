@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -40,22 +40,22 @@
         {
             "path": "resources/scripts/components/QuickLinks.tsx",
             "action": "create",
-            "note": "Admin-configured Home/Discord/Status links: <AuthLinks> row above the auth card, <TopbarLinks> icons in the dashboard topbar (no Home there)"
+            "note": "Admin-configured Home/Discord/Status links plus <TopbarHome>: <AuthLinks> row above the auth card, icons in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",
             "action": "create",
-            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image"
+            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it"
         },
         {
             "path": "resources/scripts/components/Sidebar.tsx",
             "action": "create",
-            "note": "Aternos-style sidebar with brand block (site icon, falling back to the first letter), permission-filtered server/account navigation and user footer"
+            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer"
         },
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
             "action": "replace",
-            "note": "Topbar: burger, title, search, nav links, the admin quick-link icons, avatar (theme toggle removed)"
+            "note": "Slim topbar: burger, title, Home and the admin quick-link icons only - search, admin, avatar, sign-out and the old dashboard shortcut removed"
         },
         {
             "path": "resources/scripts/routers/DashboardRouter.tsx",

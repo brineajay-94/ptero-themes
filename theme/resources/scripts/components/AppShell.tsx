@@ -86,12 +86,7 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
             <aside className={'pt-sidebar'}>{sidebar()}</aside>
 
             <div className={'pt-shell-body'}>
-                <NavigationBar
-                    title={title}
-                    subtitle={subtitle}
-                    onMenu={() => setDrawerOpen(true)}
-                    onLogout={onLogout}
-                />
+                <NavigationBar title={title} subtitle={subtitle} onMenu={() => setDrawerOpen(true)} />
                 <main className={'pt-shell-main'}>{children}</main>
             </div>
 

@@ -350,26 +350,27 @@
     text-decoration: none;
 }
 
+/* The site icon is shown as-is: no chip, no background, no box. It only gets a
+ * colour when the component has fallen back to the first letter of the panel
+ * name (no icon uploaded), where there is no artwork to carry the contrast. */
 .pt-brand-mark {
     display: grid;
     place-items: center;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: 0;
     overflow: hidden;
-    background-color: rgb(var(--pt-gold-600));
-    color: rgb(var(--pt-navy-900));
+    background-color: transparent;
+    color: rgb(var(--pt-gold-300));
     font-family: var(--pt-font-heading);
     font-size: 1.35rem;
     font-weight: 800;
     line-height: 1;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
 }
 
-/* The site icon uploaded in Admin -> Site Settings fills the mark. The accent
- * chip behind it is only the fallback for when no icon has been uploaded and the
- * component falls back to the first letter of the site name. */
+/* The site icon uploaded in Admin -> Site Settings fills the mark at its own
+ * aspect ratio, with no surrounding chrome. */
 .pt-brand-mark img {
     display: block;
     width: 100%;
@@ -1483,7 +1484,6 @@
 .pt-drawer-close,
 .pt-chip,
 .pt-server-tile,
-.pt-brand-mark,
 .fm-path,
 .fm-mass {
     border-radius: var(--pt-glass-radius) !important;

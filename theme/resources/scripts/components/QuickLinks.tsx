@@ -89,17 +89,24 @@ export const AuthLinks: React.FC = () => {
  * The centred topbar cluster: Home, then whichever of Discord and Status the
  * admin has enabled.
  *
- * Home is a plain link to / rather than one of the toggleable Links - it is the
- * panel's own front door, so it renders whether or not anything is configured.
+ * Home follows the admin's Home link like every other quick link, rather than
+ * pointing at the panel root. An admin who sets Home to their public site
+ * expects the topbar button to go there too, and a toggle should mean the same
+ * thing everywhere it appears - so a disabled Home removes the button instead
+ * of silently sending people to the dashboard.
  */
 export const TopbarLinkCluster: React.FC = () => {
     const links = resolve('bar');
+    const home = linkHref('home');
+    if (home === null && links.length === 0) return null;
 
     return (
         <nav className={'pt-topbar-links'} aria-label={'Quick links'}>
-            <a href={'/'} title={'Home'} aria-label={'Home'}>
-                <Glyph slot={'home'} />
-            </a>
+            {home !== null && (
+                <a href={home} title={'Home'} aria-label={'Home'}>
+                    <Glyph slot={'home'} />
+                </a>
+            )}
             {links.map(({ slot, href }) => (
                 <a
                     key={slot}

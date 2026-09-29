@@ -50,9 +50,32 @@ What it changes on top of the stock panel:
 ## Requirements
 
 - A working Pterodactyl Panel install (the directory that contains `artisan`
-  and `package.json`).
-- Node.js available when you rebuild the frontend assets (`yarn`, `corepack`
+  and `package.json`), Pterodactyl **1.12 – 1.15**, on **Tailwind 2.1 or newer**
+  (the panel's own stylesheets use `bg-*/75`-style opacity modifiers, which the
+  pre-2.1 classic engine cannot parse).
+- Node.js available when you rebuild the frontend assets. Node **17 or newer**
+  also needs `NODE_OPTIONS=--openssl-legacy-provider`, because webpack hashes
+  with md4 and OpenSSL 3 dropped it — `install.sh`/`install.ps1` add the flag
+  automatically when they detect node 17+, and drop it on older versions.
 - PHP/artisan available to clear the Laravel caches.
+
+### Frontend compatibility
+
+`tailwind.config.js` is replaced, so it adapts to the Tailwind the panel has
+installed:
+
+| Installed Tailwind | Panels | What the config emits |
+| --- | --- | --- |
+| 2.1 / 2.2 | Blueprint-era panels | `mode: 'jit'` + `purge`, palette baked in as hex |
+| 3.0.x | 1.12 – 1.13 with an old lockfile | `content`, palette baked in as hex |
+| 3.1+ | 1.14 – 1.15 | `content`, palette as `rgb(var(--pt-*))` |
+
+Tailwind 3.0.x and 2.x cannot apply an opacity modifier (`bg-blue-500/75`) to a
+colour stored in a CSS variable, which is what the stock panel stylesheets use;
+those engines get literal hex instead — the same colours, frozen at build time.
+The console also drops the optional `xterm-addon-unicode11` package, so the
+build does not depend on a dependency older panels do not ship.
+
 
 ## Preview
 
@@ -377,8 +400,17 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 
 ## Verification
 
-Checks run against a clean `pterodactyl/panel` v1.15.1 checkout with this
-package installed:
+Checks run against a clean `pterodactyl/panel` v1.15.1 checkout (Tailwind 3.4.18,
+webpack 5.105) with this package installed:
+
+- `yarn build:production` succeeds with 0 errors. The built bundles resolve the
+  brand ramp through `rgb(var(--pt-*))`, expand opacity modifiers
+  (`bg-blue-500/75` -> `rgb(var(--pt-navy-500) / 0.75)`) and contain no literal
+  `<alpha-value>`.
+- The same `tailwind.config.js` also compiles under Tailwind 3.1.0, 3.0.24 and
+  2.2.19 against a stylesheet exercising `@apply bg-blue-500/75 text-blue-200/75
+  text-primary-500/50` plus hover/focus/disabled variants. 2.0.x cannot, its
+  classic engine having no opacity modifiers at all.
 
 - `tsc --noEmit` â€” passes.
 - `eslint` on every touched TS/TSX/JS file â€” 0 errors (files are LF, matching

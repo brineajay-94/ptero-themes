@@ -4,7 +4,6 @@ import { FitAddon } from 'xterm-addon-fit';
 import { SearchAddon } from 'xterm-addon-search';
 import { SearchBarAddon } from 'xterm-addon-search-bar';
 import { WebLinksAddon } from 'xterm-addon-web-links';
-import { Unicode11Addon } from 'xterm-addon-unicode11';
 import { ScrollDownHelperAddon } from '@/plugins/XtermScrollDownHelperAddon';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
 import { ServerContext } from '@/state/server';
@@ -21,9 +20,9 @@ import 'xterm/css/xterm.css';
 import styles from './style.module.css';
 
 const theme = {
-    background: th`colors.black`.toString(),
+    background: 'rgb(var(--pt-black))',
     cursor: 'transparent',
-    black: th`colors.black`.toString(),
+    black: 'rgb(var(--pt-black))',
     red: '#E54B4B',
     green: '#9ECE58',
     yellow: '#FAED70',
@@ -60,7 +59,6 @@ export default () => {
     const searchAddon = new SearchAddon();
     const searchBar = new SearchBarAddon({ searchAddon });
     const webLinksAddon = new WebLinksAddon();
-    const unicode11Addon = new Unicode11Addon();
     const scrollDownHelperAddon = new ScrollDownHelperAddon();
     const { connected, instance } = ServerContext.useStoreState((state) => state.socket);
     const [canSendCommands] = usePermissions(['control.console']);
@@ -129,13 +127,9 @@ export default () => {
             terminal.loadAddon(searchAddon);
             terminal.loadAddon(searchBar);
             terminal.loadAddon(webLinksAddon);
-            terminal.loadAddon(unicode11Addon);
             terminal.loadAddon(scrollDownHelperAddon);
 
             terminal.open(ref.current);
-
-            // Activate Unicode 11 for proper emoji and special character width handling
-            terminal.unicode.activeVersion = '11';
 
             fitAddon.fit();
             searchBar.addNewStyle(zIndex);

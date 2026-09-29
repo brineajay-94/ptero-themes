@@ -315,6 +315,26 @@ function Find-Tool {
 function Invoke-AssetBuild {
     # yarn -> corepack -> npm. package.json's build:production shells out to
     # `yarn run clean`, so with npm alone the clean + webpack steps are run directly.
+    #
+    # Node 17+ ships OpenSSL 3, which refuses the md4 hashing webpack's css-loader
+    # does (error:0308010C digital envelope routines::unsupported) - opt builds back
+    # into the legacy provider there; older node rejects the flag, so it is only
+    # added when the major version warrants it - and never twice.
+    if (-not ($env:NODE_OPTIONS -like '*--openssl-legacy-provider*')) {
+        $node = Find-Tool @('node', 'node.exe')
+        $major = 0
+        if ($node) {
+            # `node -v` is the portable probe: PowerShell 5.1 strips the double
+            # quotes out of a `node -p "..."` argument, which would leave a
+            # syntax error on stderr and silently read as "version unknown".
+            $version = (& $node -v 2>$null | Select-Object -First 1)
+            if ("$version" -match '^v(\d+)\.') { $major = [int]$Matches[1] }
+        }
+        if ($major -ge 17) {
+            $env:NODE_OPTIONS = (@($env:NODE_OPTIONS, '--openssl-legacy-provider') | Where-Object { $_ }) -join ' '
+            Write-Host "==> node $major detected - adding --openssl-legacy-provider to NODE_OPTIONS"
+        }
+    }
     Push-Location $PanelPath
     try {
         $yarn = Find-Tool @('yarn', 'yarn.cmd', 'yarn.ps1')
@@ -361,7 +381,8 @@ if ($Build) {
         Write-Host ''
         Write-Host "error: the files are installed, but building the panel assets failed (exit $code)." -ForegroundColor Red
         Write-Host 'Rebuild them yourself, then run this installer again with -Build:'
-        Write-Host "  cd '$PanelPath'; yarn install --frozen-lockfile; yarn build:production"
+        Write-Host "  cd '$PanelPath'; yarn install --frozen-lockfile"
+        Write-Host "  `$env:NODE_OPTIONS='--openssl-legacy-provider'; yarn build:production  # drop it on node 16 and older"
         Write-Host "  php artisan view:clear; php artisan cache:clear; php artisan config:clear"
         exit 1
     }
@@ -391,7 +412,8 @@ else {
 Files installed. Now rebuild the panel and clear its caches:
 
   cd '$PanelPath'
-  yarn install --frozen-lockfile; yarn build:production
+  yarn install --frozen-lockfile
+  `$env:NODE_OPTIONS='--openssl-legacy-provider'; yarn build:production  # drop it on node 16 and older
   php artisan view:clear; php artisan cache:clear; php artisan config:clear
 
 Then hard-refresh the browser (Ctrl+Shift+R).

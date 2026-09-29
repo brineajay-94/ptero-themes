@@ -305,14 +305,34 @@ find_tool() {
 manual_build_hint() {
     cat <<EOF
   cd '$1'
-  yarn install --frozen-lockfile && yarn build:production
+  yarn install --frozen-lockfile
+  NODE_OPTIONS=--openssl-legacy-provider yarn build:production
   php artisan view:clear && php artisan cache:clear && php artisan config:clear
+  (drop the NODE_OPTIONS prefix if node --version reports 16 or older)
 EOF
+}
+
+# Node 17+ ships OpenSSL 3, which refuses the md4 hashing webpack's css-loader
+# does (error:0308010C digital envelope routines::unsupported). Opt builds back
+# into the legacy provider on those versions; node < 17 rejects the flag, so it
+# is only ever added when the major version warrants it - and never twice.
+maybe_legacy_openssl() {
+    if [ -n "${NODE_OPTIONS:-}" ] && printf '%s' "$NODE_OPTIONS" | grep -q -- '--openssl-legacy-provider'; then
+        return 0
+    fi
+    major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null)" || major=''
+    [ -n "$major" ] || return 0
+    if [ "$major" -ge 17 ] 2>/dev/null; then
+        export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--openssl-legacy-provider"
+        echo "==> node $major detected - adding --openssl-legacy-provider to NODE_OPTIONS"
+    fi
+    return 0
 }
 
 # Compiles the panel assets with whatever tooling this machine actually has.
 run_build() {
     augment_path
+    maybe_legacy_openssl
     local tool
 
     if tool="$(find_tool yarn)"; then
@@ -369,8 +389,10 @@ else
 Files installed. Now rebuild the panel and clear its caches:
 
   cd '$PANEL_DIR'
-  yarn install --frozen-lockfile && yarn build:production
+  yarn install --frozen-lockfile
+  NODE_OPTIONS=--openssl-legacy-provider yarn build:production
   php artisan view:clear && php artisan cache:clear && php artisan config:clear
+  (drop the NODE_OPTIONS prefix if node --version reports 16 or older)
 
 Then hard-refresh the browser (Ctrl+Shift+R).
 EOF

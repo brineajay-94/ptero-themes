@@ -142,6 +142,64 @@
             font-size: 12px;
             text-align: center;
         }
+
+        /* ---------------------------------------------------- theme tab -- */
+        .bs-ss-themes { display: grid; gap: 10px; margin-top: 14px; }
+
+        .bs-ss .bs-ss-theme {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0;
+            padding: 12px 14px;
+            border: 1px solid #dfe3ea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 400;
+            transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+        }
+        .bs-ss .bs-ss-theme:hover { border-color: #b9c1ce; background-color: #fbfcfd; }
+        .bs-ss .bs-ss-theme.is-selected {
+            border-color: #3c8dbc;
+            background-color: #f2f8fc;
+            box-shadow: 0 0 0 1px #3c8dbc inset;
+        }
+
+        /* The native radio stays in the DOM for the form and for keyboard and
+           screen-reader use, but the card is the visible control. */
+        .bs-ss .bs-ss-theme-input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        .bs-ss .bs-ss-theme-input:focus-visible + .bs-ss-theme-swatch {
+            outline: 2px solid #3c8dbc;
+            outline-offset: 3px;
+        }
+
+        .bs-ss .bs-ss-theme-swatch {
+            display: flex;
+            flex: 0 0 auto;
+            overflow: hidden;
+            width: 74px;
+            height: 46px;
+            border: 1px solid rgba(15, 23, 42, 0.18);
+            border-radius: 6px;
+        }
+        .bs-ss .bs-ss-theme-swatch > i { flex: 1 1 0; }
+
+        .bs-ss .bs-ss-theme-body { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; }
+        .bs-ss .bs-ss-theme-name { font-size: 14px; font-weight: 600; }
+        .bs-ss .bs-ss-theme-tag { vertical-align: middle; margin-left: 6px; font-weight: 400; }
+        .bs-ss .bs-ss-theme-blurb { margin-top: 3px; color: #8a94a6; font-size: 12px; line-height: 1.45; }
+
+        .bs-ss .bs-ss-theme-tick { flex: 0 0 auto; color: #3c8dbc; opacity: 0; }
+        .bs-ss .bs-ss-theme.is-selected .bs-ss-theme-tick { opacity: 1; }
+
+        /* The swatch is a colour sample, so it needs a visible edge on the light
+           card as well as the dark one. */
+        .bs-ss .bs-ss-theme-swatch.is-light { border-color: rgba(15, 23, 42, 0.24); }
+
+        @media (max-width: 600px) {
+            .bs-ss .bs-ss-theme { flex-wrap: wrap; }
+            .bs-ss .bs-ss-theme-swatch { width: 100%; height: 34px; }
+        }
     </style>
 
     <div class="bs-ss">
@@ -155,6 +213,11 @@
             <li class="{{ $tab === 'general' ? 'active' : '' }}">
                 <a href="{{ route('admin.site-settings', ['tab' => 'general']) }}">
                     <i class="fa fa-picture-o"></i> <span>General &amp; backgrounds</span>
+                </a>
+            </li>
+            <li class="{{ $tab === 'theme' ? 'active' : '' }}">
+                <a href="{{ route('admin.site-settings', ['tab' => 'theme']) }}">
+                    <i class="fa fa-paint-brush"></i> <span>Theme</span>
                 </a>
             </li>
             <li class="{{ $tab === 'links' ? 'active' : '' }}">
@@ -356,6 +419,53 @@
             @endforeach
         @endif
 
+        @if ($tab === 'theme')
+            {{-- ================================================= 4. palettes -- --}}
+            <form action="{{ route('admin.site-settings.theme') }}" method="POST">
+                @csrf
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-paint-brush"></i> Panel theme</h3>
+                    </div>
+                    <div class="box-body">
+                        <p class="help-block">
+                            Recolours the <strong>user panel</strong> - dashboard, server pages, console, file
+                            manager and the login screens. The AdminLTE admin area you are in keeps its own look, and
+                            the change is instant on your next click. Nothing is downloaded and no rebuild is needed.
+                        </p>
+
+                        <div class="bs-ss-themes">
+                            @foreach ($themes as $slug => $meta)
+                                @php $selected = old('theme', $theme) === $slug; @endphp
+                                <label class="bs-ss-theme {{ $selected ? 'is-selected' : '' }}" for="theme{{ $slug }}">
+                                    <input type="radio" name="theme" id="theme{{ $slug }}" value="{{ $slug }}"
+                                           class="bs-ss-theme-input" @if ($selected) checked @endif />
+                                    <span class="bs-ss-theme-swatch {{ $meta['dark'] ? 'is-dark' : 'is-light' }}">
+                                        @foreach ($meta['swatch'] as $i => $hex)
+                                            <i style="background: {{ $hex }}"></i>
+                                        @endforeach
+                                    </span>
+                                    <span class="bs-ss-theme-body">
+                                        <span class="bs-ss-theme-name">
+                                            {{ $meta['label'] }}
+                                            @if ($slug === 'default')
+                                                <span class="label label-default bs-ss-theme-tag">shipped</span>
+                                            @endif
+                                        </span>
+                                        <span class="bs-ss-theme-blurb">{{ $meta['blurb'] }}</span>
+                                    </span>
+                                    <i class="fa fa-check bs-ss-theme-tick"></i>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save theme</button>
+                    </div>
+                </div>
+            </form>
+        @endif
+
         @if ($tab === 'links')
             <form action="{{ route('admin.site-settings.links') }}" method="POST">
                 @csrf
@@ -471,6 +581,32 @@
                 var scrim = byId(scrimId);
                 if (scrim) scrim.style.display = '';
             };
+
+            // ---- theme cards: the radio is the control, the card is its face.
+            // Only the selected card is outlined; nothing is applied here,
+            // because the palettes live in the stylesheet and changing one
+            // means a request, not a live repaint of this page.
+            var themeCards = document.querySelectorAll('.bs-ss-theme');
+            var syncCards = function () {
+                Array.prototype.forEach.call(themeCards, function (card) {
+                    var input = card.querySelector('.bs-ss-theme-input');
+                    card.classList.toggle('is-selected', !!(input && input.checked));
+                });
+            };
+            Array.prototype.forEach.call(themeCards, function (card) {
+                var input = card.querySelector('.bs-ss-theme-input');
+                if (!input) return;
+                input.addEventListener('change', syncCards);
+                // Space/enter on a focused card picks it, so the whole card
+                // behaves like the control it stands in for.
+                card.addEventListener('keydown', function (e) {
+                    if (e.key !== ' ' && e.key !== 'Enter') return;
+                    e.preventDefault();
+                    input.checked = true;
+                    syncCards();
+                });
+            });
+            syncCards();
 
             ['auth', 'dashboard'].forEach(function (slot) {
                 var range = byId(slot + 'Intensity');

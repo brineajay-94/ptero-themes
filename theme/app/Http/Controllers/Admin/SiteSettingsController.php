@@ -5,6 +5,7 @@ namespace Pterodactyl\Http\Controllers\Admin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Prologue\Alerts\AlertsMessageBag;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
@@ -65,6 +66,46 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         'status' => ['label' => 'Status', 'help' => 'A status or uptime page, e.g. https://status.example.com'],
     ];
 
+    /**
+     * Palettes offered in the Theme tab.
+     *
+     * `swatch` is only ever drawn as inline styles on the admin's preview
+     * cards; the panel itself is never re-skinned from here. The real switch is
+     * the [data-pt-theme='<slug>'] block in pterodactyl-theme.css, and the
+     * wrapper puts the slug on <html>, so adding a palette means adding a CSS
+     * block and one row here - nothing else.
+     *
+     * Keep the slugs in step with AssetComposer::THEME_VARIANTS, which is the
+     * whitelist that stops a hand-edited settings row reaching the HTML
+     * attribute.
+     */
+    public const THEMES = [
+        'default' => [
+            'label' => 'Default (violet)',
+            'blurb' => 'The shipped look: deep violet page, indigo surfaces, blue accent, frosted glass.',
+            'dark' => true,
+            'swatch' => ['#19152e', '#2b254c', '#39335f', '#2b87d3', '#7c5cf6'],
+        ],
+        'blue' => [
+            'label' => 'Blue',
+            'blurb' => 'The same structure hue-shifted to ocean blue, with a slightly deeper page.',
+            'dark' => true,
+            'swatch' => ['#0d1e38', '#172a45', '#223858', '#1d63cd', '#3884ff'],
+        ],
+        'black' => [
+            'label' => 'Black',
+            'blurb' => 'Monochrome surfaces on true black. The accent stays blue so links still read as links.',
+            'dark' => true,
+            'swatch' => ['#0b0b0d', '#141417', '#1c1c20', '#2b87d3', '#5a5a64'],
+        ],
+        'light' => [
+            'label' => 'Light',
+            'blurb' => 'Full inversion: white cards on a near-white page, near-opaque glass, dark console kept.',
+            'dark' => false,
+            'swatch' => ['#f4f6fb', '#ffffff', '#d5d9e4', '#2563eb', '#6366f1'],
+        ],
+    ];
+
     public function __construct(
         private SettingsRepositoryInterface $settings,
         private AlertsMessageBag $alert,
@@ -82,12 +123,14 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         }
 
         return view('admin.site-settings', [
-            'tab' => request('tab') === 'links' ? 'links' : 'general',
+            'tab' => $this->tab(),
             'link_slots' => self::LINK_SLOTS,
             'name' => $this->siteName(),
             'icon' => $this->iconUrl(),
             'icon_url' => (string) $this->settings->get('Brine::icon_url', ''),
             'links' => $links,
+            'themes' => self::THEMES,
+            'theme' => $this->themeVariant(),
             'backgrounds' => [
                 'auth' => [
                     'enabled' => $this->bool('Brine::bg_auth_enabled'),
@@ -101,6 +144,55 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Which tab to show. Whitelisted rather than passed through, so a hand-typed
+     * ?tab= cannot reach the template as an arbitrary string.
+     */
+    private function tab(): string
+    {
+        $tab = request('tab');
+
+        return in_array($tab, ['general', 'links', 'theme'], true) ? $tab : 'general';
+    }
+
+    /**
+     * The saved palette slug, or 'default'.
+     */
+    private function themeVariant(): string
+    {
+        $variant = $this->settings->get('Brine::theme_variant');
+
+        return is_string($variant) && array_key_exists($variant, self::THEMES) ? $variant : 'default';
+    }
+
+    /**
+     * Save the Theme tab: which palette the user area is rendered with.
+     *
+     * The stored value is the only thing this changes - the palettes themselves
+     * live in pterodactyl-theme.css, so switching one is instant on the next
+     * request and needs no rebuild, no asset flush and no cache clear.
+     */
+    public function updateTheme(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'theme' => ['required', 'string', Rule::in(array_keys(self::THEMES))],
+        ]);
+
+        $variant = (string) $validated['theme'];
+
+        // 'default' clears the row rather than storing it, so an install that is
+        // later reset to the shipped look behaves exactly like a fresh one.
+        if ($variant === 'default') {
+            $this->settings->forget('Brine::theme_variant');
+            $this->alert->success('Theme reset to the default violet palette.')->flash();
+        } else {
+            $this->settings->set('Brine::theme_variant', $variant);
+            $this->alert->success('Theme saved: ' . self::THEMES[$variant]['label'] . '.')->flash();
+        }
+
+        return redirect()->route('admin.site-settings', ['tab' => 'theme']);
     }
 
     /**

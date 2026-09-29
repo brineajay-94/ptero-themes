@@ -56,20 +56,20 @@ What it changes on top of the stock panel:
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
-  - **Site Settings** (`/admin/site-settings`) — two tabs, both server-rendered
+  - **Site Settings** (`/admin/site-settings`) — three tabs, all server-rendered
     so they work with no JavaScript. **General** is a stack of independent blocks,
     each with its own **Save** button:
     - **Name & icon** — the site name, and the icon as an **uploaded file or
       pasted image link** (PNG, SVG, JPG, ICO, GIF, WEBP), with a live preview.
     - **Login & register background** — an on/off switch, an **uploaded file or
       pasted image link** (PNG, JPG, GIF, WEBP, SVG), an **intensity slider** for
-      the black scrim and a live preview, defaulting to 78%.
+      the scrim and a live preview, defaulting to 78%.
     - **Dashboard background** — the same controls, defaulting to 62%.
 
     Each background is saved through its own endpoint (`/background/{slot}`), so
-    saving one can no longer switch the other one off. **Links** sets up to three
-    quick links — **Home**, **Discord**, **Status** — each with a URL and an
-    on/off switch.
+    saving one can no longer switch the other one off. **Theme** picks the panel
+    palette — see *Palette picker* below. **Links** sets up to three quick links
+    — **Home**, **Discord**, **Status** — each with a URL and an on/off switch.
   - **Registration** (`/admin/registration`) — switches public sign-up on or off.
 
   The page is responsive: the blocks stack full-width on a phone, the preview
@@ -379,7 +379,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
-| `resources/views/templates/wrapper.blade.php` | replace â€” stylesheet link only (title, favicon and meta tags stay stock) |
+| `resources/views/templates/wrapper.blade.php` | replace - stylesheet link, plus `data-pt-theme` on `<html>` and a theme-color that follow the chosen palette (title and favicon stay stock) |
 | `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” violet/indigo tokens + shell/auth/dashboard/console/files styles |
 | `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
 
@@ -411,8 +411,8 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon (file or link), both background slots + scrim intensity, the three quick links |
-| `resources/views/admin/site-settings.blade.php` | create - Site Settings page: server-rendered General & Links tabs, per-block Save, live previews |
+| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon (file or link), both background slots + scrim intensity, the palette picker, the three quick links |
+| `resources/views/admin/site-settings.blade.php` | create - Site Settings page: server-rendered General / Theme / Links tabs, per-block Save, live previews |
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
@@ -452,6 +452,56 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   and shipped to the client as `--pt-bg-overlay-strength{,-auth}`, with the colour
   triplet pinned to `0 0 0`. Any colour row left over from an older install is
   cleared the next time that area is saved.
+- **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
+  whole user panel. Four palettes ship:
+
+  | Slug | Look | Page / surface / accent |
+  | --- | --- | --- |
+  | `default` | the shipped violet | `#19152e` / `#2b254c` / `#2b87d3` |
+  | `blue` | ocean blue, deeper page | `#0d1e38` / `#172a45` / `#1d63cd` |
+  | `black` | monochrome on true black | `#0b0b0d` / `#141417` / `#2b87d3` |
+  | `light` | full inversion | `#f4f6fb` / `#ffffff` / `#2563eb` |
+
+  Switching one is instant on the next click, with **no rebuild, no asset
+  flush and no cache clear** - the palettes are `[data-pt-theme='<slug>']`
+  blocks in `pterodactyl-theme.css` that re-point the same `--pt-*` tokens, and
+  the wrapper renders the slug onto `<html>`. That works because
+  `tailwind.config.js` emits every colour utility as `rgb(var(--pt-*))`, so the
+  stock panel's own `bg-neutral-800` / `text-neutral-300` / `border-cyan-500`
+  re-skin themselves with no component edits. The compiled bundle carries no
+  baked-in brand hex to disagree (verified: 196 `var(--pt-` references, zero
+  `#2b87d3`).
+
+  Two details worth knowing before editing a palette:
+  - **Source order decides, not specificity.** `:root` and `[data-pt-theme='x']`
+    are both (0,1,0), so the variant blocks must stay *below* `:root` in the
+    stylesheet. Moving them above silently reverts every panel to the default.
+  - **The light palette inverts the scrim to white.** A black wash under dark
+    text is a readability bug, so `AssetComposer` returns `255 255 255` for the
+    light variant and the stylesheet ships matching white `--pt-bg-overlay-rgb`
+    defaults. `--pt-black` and `--pt-white` are left alone on every palette -
+    they are only consumed by the console, and a terminal stays dark on all of
+    them.
+
+  The slug is validated against a whitelist in `AssetComposer` and again in the
+  controller, so a hand-edited settings row cannot inject markup into the
+  `<html>` attribute. Adding a fifth palette means adding a CSS block and one
+  row in `SiteSettingsController::THEMES`; nothing else changes.
+
+  Two things about the light palette worth knowing:
+  - **`gray-500` decides it.** The panel paints `text-neutral-500` 23 times -
+    more than any other shade - and `bg-neutral-500` 9 times, so that one step
+    has to be legible copy *and* a visible fill. It is solved against the
+    **darkest** surface it can land on (`gray-900`) rather than the card, since
+    a card-only check passes values that are unreadable on raised chrome. It
+    measures 4.62:1 on raised, 5.46:1 on the card, and all 19 text/surface pairs
+    clear 4.5:1.
+  - **Auth inputs invert cleanly; dashboard inputs stay dark.** The theme
+    restyles `.pt-auth` inputs itself, so the login and register forms go light
+    with everything else. The stock `Input.tsx` uses `bg-neutral-100`, which
+    under the inverted ramp is a dark field - so dashboard/server inputs read as
+    dark-inset on white. That is a deliberate-looking result, not a bug, but it
+    is the one place the light palette does not look like a plain inversion.
 - **Quick links** - Admin -> **Site Settings** -> *Links*. Each of Home, Discord
   and Status is a URL plus an on/off switch, stored as
   `Brine::link_<slot>_enabled` / `_url`; a disabled link is omitted from
@@ -503,6 +553,14 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   few colours do not follow the theme.
 - Chart dataset colours (cyan/yellow) are captured when a chart is created.
   They match the dark palette, so this is not visible in practice.
+- `text-neutral-500` on `gray-700` measures **1.56:1** in the default and
+  **blue** palettes, and 1.22:1 in **black** - well under the 3:1 floor. This
+  is pre-existing (the value is `72 65 118`, documented as the *hover surface*,
+  and it is unchanged from 1.7.1) and the panel uses that class as small muted
+  label text in a few places. It was left alone deliberately: the palettes exist
+  to re-skin the panel, not to restyle the shipped default, and changing
+  `gray-500` would move every existing install's surfaces. The light palette
+  does not have this problem - it was solved against the contrast floor.
 - Because `tailwind.config.js` is replaced, upgrading the panel may overwrite
   it (and the other `replace` entries). Uninstall, upgrade, then reinstall.
 - The file editor and the activity/backup/admin sub-pages keep the stock

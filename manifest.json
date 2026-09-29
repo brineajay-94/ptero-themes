@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.7.1",
+    "version": "1.8.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -15,7 +15,7 @@
         {
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
-            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only"
+            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame"
         },
         {
             "path": "resources/scripts/lib/theme.ts",
@@ -30,7 +30,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card - shell/auth/dashboard/console/file-manager styles"
+            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and [data-pt-theme] blocks for the blue / black / light palettes - shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -195,12 +195,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider) and the Home/Discord/Status quick links"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/blue/black/light) and the Home/Discord/Status quick links"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save) and Links (Home/Discord/Status, each with a switch and URL). Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
+            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",
@@ -220,7 +220,7 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links; validates link targets server-side; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
+            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist, and flips the photo scrim to white on the light palette so dark text stays readable; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
         },
         {
             "path": "routes/auth.php",

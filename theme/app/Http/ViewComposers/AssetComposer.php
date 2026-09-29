@@ -15,6 +15,22 @@ class AssetComposer
     private const LINK_SLOTS = ['home', 'discord', 'status'];
 
     /**
+     * Palettes selectable in Admin -> Site Settings -> Theme. Keep in step with
+     * SiteSettingsController::THEMES and with the [data-pt-theme='...'] blocks
+     * in pterodactyl-theme.css - a slug with no block simply renders as the
+     * default, which is why the whitelist here doubles as a safety net.
+     */
+    private const THEME_VARIANTS = ['default', 'blue', 'black', 'light'];
+
+    /**
+     * The scrim colour has to follow the palette. A black wash keeps dark text
+     * legible on the dark themes, but over the light theme's dark text it is
+     * the exact opposite of a scrim, so the light variant washes with white.
+     * This mirrors the --pt-bg-overlay-rgb defaults in the stylesheet.
+     */
+    private const LIGHT_VARIANT = 'light';
+
+    /**
      * AssetComposer constructor.
      */
     public function __construct(
@@ -82,7 +98,30 @@ class AssetComposer
             // Each entry is null when the admin has switched it off, so the
             // components just leave that button out.
             'links' => $this->links(),
+            // brine-theme: the palette chosen in Admin -> Site Settings -> Theme.
+            // The wrapper puts this on <html> as `data-pt-theme`, and the
+            // stylesheet re-points the --pt-* tokens for it. Anything not
+            // recognised falls back to the default so a stale settings row can
+            // never leave the panel with no palette at all.
+            'theme' => [
+                'variant' => $this->themeVariant(),
+            ],
         ]);
+    }
+
+    /**
+     * The selected palette slug, or 'default'.
+     *
+     * Validated against a whitelist here rather than trusted, because the value
+     * ends up in an HTML attribute on <html> and a hand-edited settings row
+     * could otherwise inject markup. The whitelist is the same list the admin
+     * form posts against.
+     */
+    private function themeVariant(): string
+    {
+        $variant = $this->settings->get('Brine::theme_variant');
+
+        return is_string($variant) && in_array($variant, self::THEME_VARIANTS, true) ? $variant : 'default';
     }
 
     /**
@@ -139,17 +178,23 @@ class AssetComposer
     /**
      * The scrim strength for one background slot.
      *
-     * The scrim is always black: the admin colour picker was removed, and black
-     * is the only scrim that reliably keeps light text legible over an arbitrary
-     * photo. The value is returned as an "R G B" triplet rather than a hex
-     * string so the client can drop it straight into `rgb(var(...) / ...)`
-     * alongside the palette tokens.
+     * The scrim is black on the dark themes and white on the light one - see
+     * the LIGHT_VARIANT note on the constant above. The value is returned as an
+     * "R G B" triplet rather than a hex string so the client can drop it
+     * straight into `rgb(var(...) / ...)` alongside the palette tokens.
      *
      * @return array{rgb: string, strength: string}
      */
     private function overlay(string $slot): array
     {
         $intensity = $slot === 'auth' ? 78 : 62;
+        $light = $this->themeVariant() === self::LIGHT_VARIANT;
+
+        // White over a photo costs more contrast than black does, so the light
+        // theme washes harder. Matches the --pt-bg-overlay-* light defaults.
+        if ($light) {
+            $intensity = $slot === 'auth' ? 82 : 72;
+        }
 
         try {
             $stored = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
@@ -162,7 +207,7 @@ class AssetComposer
         }
 
         return [
-            'rgb' => '0 0 0',
+            'rgb' => $light ? '255 255 255' : '0 0 0',
             'strength' => number_format($intensity / 100, 2, '.', ''),
         ];
     }

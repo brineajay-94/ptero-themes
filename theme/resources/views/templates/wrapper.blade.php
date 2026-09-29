@@ -1,5 +1,18 @@
 <!DOCTYPE html>
-<html>
+{{-- brine-theme: the palette selected in Admin -> Site Settings -> Theme. It is
+     rendered onto <html> server-side on purpose - a variant applied later from
+     JavaScript would show the default for a frame on every navigation. --}}
+@php
+    $ptThemeVariant = !empty($siteConfiguration['theme']['variant']) ? $siteConfiguration['theme']['variant'] : 'default';
+    $ptThemeColors = [
+        'default' => '#19152e',
+        'blue' => '#0d1e38',
+        'black' => '#0b0b0d',
+        'light' => '#f4f6fb',
+    ];
+    $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['default'];
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-pt-theme="{{ $ptThemeVariant }}">
     <head>
         <title>{{ config('app.name', 'Pterodactyl') }}</title>
 
@@ -21,7 +34,7 @@
             @else
                 <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
             @endif
-            <meta name="theme-color" content="#19152e">
+            <meta name="theme-color" content="{{ $ptThemeColor }}">
         @show
 
         @section('user-data')

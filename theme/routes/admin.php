@@ -243,6 +243,7 @@ Route::group(['prefix' => 'site-settings'], function () {
         ->where('slot', 'auth|dashboard')
         ->name('admin.site-settings.background');
     Route::post('/links', [Admin\SiteSettingsController::class, 'updateLinks'])->name('admin.site-settings.links');
+    Route::post('/theme', [Admin\SiteSettingsController::class, 'updateTheme'])->name('admin.site-settings.theme');
     Route::delete('/background/{slot}', [Admin\SiteSettingsController::class, 'clearBackground'])
         ->where('slot', 'auth|dashboard')
         ->name('admin.site-settings.background.clear');

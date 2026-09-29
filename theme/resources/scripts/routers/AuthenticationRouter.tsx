@@ -7,6 +7,7 @@ import ResetPasswordContainer from '@/components/auth/ResetPasswordContainer';
 import LoginCheckpointContainer from '@/components/auth/LoginCheckpointContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import { useHistory, useLocation } from 'react-router';
+import { backgroundStyle } from '@/lib/brand';
 
 export default () => {
     const history = useHistory();
@@ -14,7 +15,7 @@ export default () => {
     const { path } = useRouteMatch();
 
     return (
-        <div className={'pt-auth-page'}>
+        <div className={'pt-auth-page'} style={backgroundStyle('auth')}>
             <Switch location={location}>
                 <Route path={`${path}/login`} component={LoginContainer} exact />
                 <Route path={`${path}/register`} component={RegisterContainer} exact />

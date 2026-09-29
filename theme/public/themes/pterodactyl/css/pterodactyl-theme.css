@@ -140,6 +140,19 @@
         rgb(var(--pt-navy-400) / 0.9) 45%,
         transparent
     );
+
+    /* ------------------------------------------- admin background images -- *
+     * Set per-area in Admin -> Site Settings -> Background. The React shell and
+     * the auth router put the image in as an inline custom property on
+     * .pt-shell / .pt-auth-page; when a slot is switched off the property is
+     * absent, so these keep the plain page colour.
+     *
+     * --pt-bg-dim is the scrim between the image and the aurora. It exists so
+     * an arbitrary admin-supplied photo stays legible underneath dark text
+     * without the theme needing to know anything about the image.
+     */
+    --pt-bg-dim: 0.62;
+    --pt-bg-dim-strong: 0.78;
 }
 
 /* ------------------------------------------------------ square corners -- */
@@ -208,17 +221,60 @@
  * webpack build (static preview) and so the markup stays readable.
  */
 
+/* An admin-chosen background image (Admin -> Site Settings -> Background) is
+ * painted here, as its own fixed layer, rather than on the container's own
+ * background - the aurora below composites on top of it and the scrim sits
+ * between the two. `--pt-bg-*-image` is set inline by the React shell / auth
+ * router only when that slot is enabled, so the defaults stay page-colour.
+ *
+ * `background-image: var(--pt-bg-x-image, none)` is what makes "not set" a
+ * no-op: with no custom property in scope the fallback keyword paints nothing
+ * and this layer stays fully transparent.
+ *
+ * `background-position: center / background-size: cover` so any aspect ratio
+ * fills the viewport; the attachment is fixed so the photo does not scroll
+ * away under the content. */
+.pt-shell::after,
+.pt-auth-page::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--pt-bg-auth-image, none),
+        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim)), rgb(0 0 0 / var(--pt-bg-dim)));
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.pt-shell::after {
+    background-image: var(--pt-bg-dashboard-image, none),
+        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim)), rgb(0 0 0 / var(--pt-bg-dim)));
+}
+
+/* The auth card sits directly on the photo, so it gets the heavier scrim - the
+ * body text there is the smallest on the panel. */
+.pt-auth-page::after {
+    background-image: var(--pt-bg-auth-image, none),
+        linear-gradient(180deg, rgb(0 0 0 / var(--pt-bg-dim-strong)), rgb(0 0 0 / var(--pt-bg-dim-strong)));
+}
+
 /* Fixed aurora field behind every screen. Frosted surfaces need something to
  * refract, and a flat page colour makes backdrop-filter invisible - these wide,
  * low-opacity radial blooms are what give the glass its violet/cyan depth.
  * Fixed (not scrolling) so the sidebar and topbar always have depth behind
- * them; z-index 0 keeps it below the content and the chrome layers. */
+ * them; z-index 0 keeps it below the content and the chrome layers.
+ *
+ * Sits above the image layer (z-index 1 vs 0) so the brand colour survives
+ * whatever photo is underneath it. */
 .pt-shell::before,
 .pt-auth-page::before {
     content: '';
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
     background-image: var(--pt-aurora);
 }
@@ -229,11 +285,12 @@
     background-color: rgb(var(--pt-gray-800));
 }
 
-/* Content sits above the aurora field; the sidebar/topbar are positioned and
- * keep their own stacking, so only the scrolling body needs to be lifted. */
+/* Content sits above the background image (z-index 0) and the aurora (1); the
+ * sidebar/topbar are positioned and keep their own stacking, so only the
+ * scrolling body needs to be lifted. */
 .pt-shell-body {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .pt-sidebar {
@@ -669,10 +726,11 @@
 }
 
 /* Width AND auto margins, in addition to the flex centring above - the card
-   stays dead-centre on every desktop no matter how the flexbox resolves. */
+   stays dead-centre on every desktop no matter how the flexbox resolves. Lifted
+   above the image (z-index 0) and the aurora (1). */
 .pt-auth {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     width: 100%;
     max-width: 420px;
     margin: 0 auto;

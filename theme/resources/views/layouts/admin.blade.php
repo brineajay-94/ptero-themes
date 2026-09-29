@@ -83,9 +83,9 @@
                             <a href="{{ route('admin.settings')}}">
                                 <i class="fa fa-wrench"></i> <span>Settings</span>
                             </a>
-                        </li>                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.branding') ?: 'active' }}">
-                            <a href="{{ route('admin.branding') }}">
-                                <i class="fa fa-picture-o"></i> <span>Branding</span>
+                        </li>                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.site-settings') ?: 'active' }}">
+                            <a href="{{ route('admin.site-settings') }}">
+                                <i class="fa fa-picture-o"></i> <span>Site Settings</span>
                             </a>
                         </li>
                         <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">

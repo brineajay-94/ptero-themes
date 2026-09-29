@@ -55,10 +55,17 @@ class AssetComposer
             'registration' => [
                 'enabled' => $this->settings->get('Brine::registration_enabled') === '1',
             ],
+            // brine-theme: background images set in Admin -> Site Settings -> Background.
+            // Each slot is null when the switch is off or no image was chosen, so
+            // the React components simply skip the background layer.
+            'backgrounds' => [
+                'auth' => $this->background('auth'),
+                'dashboard' => $this->background('dashboard'),
+            ],
         ]);
     }
 
-    /**
+/**
      * glob() can return false (open_basedir / permission errors), which would
      * make count() throw a TypeError on PHP 8 - always normalise it here.
      */
@@ -66,8 +73,55 @@ class AssetComposer
     {
         $logos = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
 
-        return is_array($logos) && count($logos) > 0
-            ? '/themes/pterodactyl/images/' . basename($logos[0])
-            : null;
+        return is_array($logos) && count($logos) > 0 ? '/themes/pterodactyl/images/' . basename($logos[0]) : null;
+    }
+
+    /**
+     * Resolve one background slot (Admin -> Site Settings -> Background).
+     *
+     * Returns null when the slot is switched off or nothing was chosen. A
+     * pasted link wins over an uploaded copy, matching what the admin form
+     * shows: the link is what the admin most recently saved.
+     *
+     * The URL is echoed straight into a CSS url() in the React components, so
+     * only an absolute http(s) link to an image extension is ever returned.
+     * Anything else - a data: URI, a javascript: link, a relative path - is
+     * treated as "not set".
+     */
+    private function background(string $slot): ?string
+    {
+        if ($this->settings->get('Brine::bg_' . $slot . '_enabled') !== '1') {
+            return null;
+        }
+
+        $url = $this->settings->get('Brine::bg_' . $slot . '_url');
+        if (is_string($url) && self::isSafeImageUrl(trim($url))) {
+            return trim($url);
+        }
+
+        $files = glob(public_path('themes/pterodactyl/backgrounds/bg-' . $slot . '.*'));
+
+        return is_array($files) && count($files) > 0 ? '/themes/pterodactyl/backgrounds/' . basename($files[0]) : null;
+    }
+
+    /**
+     * Same allow-list the admin controller enforces on save. Kept in both
+     * places on purpose: the controller rejects a bad paste, and this is the
+     * second gate that stops a value that predates the theme (or was written
+     * straight to the settings table) from reaching the CSS.
+     */
+    private static function isSafeImageUrl(string $url): bool
+    {
+        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+            return false;
+        }
+
+        if (!in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'], true);
     }
 }

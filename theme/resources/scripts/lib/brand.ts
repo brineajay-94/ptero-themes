@@ -3,6 +3,7 @@ interface BrandWindow extends Window {
         name?: string;
         logo?: string | null;
         registration?: { enabled?: boolean };
+        backgrounds?: { auth?: string | null; dashboard?: string | null };
     };
 }
 
@@ -33,3 +34,31 @@ export const logoUrl = (): string | null => (window as BrandWindow).SiteConfigur
  */
 export const registrationEnabled = (): boolean =>
     (window as BrandWindow).SiteConfiguration?.registration?.enabled === true;
+
+/**
+ * Background image for one area of the panel, or null when the admin has not
+ * enabled it (Admin -> Site Settings -> Background). AssetComposer resolves the
+ * slot server-side - including rejecting anything that is not a plain http(s)
+ * image link - so the value here is already safe to drop into a CSS url().
+ *
+ * The name is used to build the CSS custom properties the stylesheet reads, so
+ * a background can be applied without any component knowing the token names.
+ */
+export const backgroundImage = (area: 'auth' | 'dashboard'): string | null =>
+    (window as BrandWindow).SiteConfiguration?.backgrounds?.[area] || null;
+
+/**
+ * Build the inline style that points a background layer at the configured
+ * image. Returns undefined when the admin has not enabled that slot, so React
+ * omits the `style` attribute entirely and the stylesheet keeps its own
+ * background untouched.
+ *
+ * Written as a custom property rather than a `background` shorthand so the
+ * stylesheet stays in charge of the layering (image, dim, then the aurora on
+ * top) - the component never has to reproduce it.
+ */
+export const backgroundStyle = (area: 'auth' | 'dashboard'): React.CSSProperties | undefined => {
+    const image = backgroundImage(area);
+
+    return image ? ({ [`--pt-bg-${area}-image`]: `url("${image}")` } as React.CSSProperties) : undefined;
+};

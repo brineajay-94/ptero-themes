@@ -56,12 +56,16 @@ What it changes on top of the stock panel:
 - The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
-  a **Branding** page (`/admin/branding`) where you upload your hosting logo, and
-  a **Registration** page (`/admin/registration`) that switches public sign-up on
-  or off.
+  - **Site Settings** (`/admin/site-settings`) — two tabs. **General** sets the
+    site name and the icon (favicon + login emblem). **Background** sets a
+    background image for the auth screens and one for the dashboard, each with
+    its own on/off switch and either an **uploaded file or a pasted image
+    link** (PNG, JPG, GIF, WEBP, SVG). Images are dimmed automatically so the
+    dark theme stays readable over any photo.
+  - **Registration** (`/admin/registration`) — switches public sign-up on or off.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
-  logo uploaded on the Branding page (falling back to the theme emblem) - the stock
-  `/favicons` folder is removed on install and restored on uninstall.
+  icon uploaded on the Site Settings page (falling back to the theme emblem) - the
+  stock `/favicons` folder is removed on install and restored on uninstall.
 - The **brand name** (sidebar, topbar subtitle, login card, footer) is read from
   the panel's own name setting - `config('app.name')`, exposed to the client as
   `window.SiteConfiguration.name` via `resources/scripts/lib/brand.ts`. Nothing is
@@ -372,30 +376,37 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `app/Http/Controllers/Admin/BrandingController.php` | create - logo upload/remove |
-| `resources/views/admin/branding.blade.php` | create - Admin -> Branding page |
+| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon, both background slots |
+| `resources/views/admin/site-settings.blade.php` | create - Site Settings page, General + Background tabs |
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
-| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` and `SiteConfiguration.registration` |
-| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` |
-| `routes/admin.php` | replace - stock routes + `/admin/branding` + `/admin/registration` |
-| `resources/views/layouts/admin.blade.php` | replace - Branding + Registration menu items, logo favicon |
-| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()` from `SiteConfiguration` |
+| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` |
+| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register`, no recaptcha middleware |
+| `routes/admin.php` | replace - stock routes + `/admin/site-settings` + `/admin/registration` |
+| `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration menu items, icon favicon |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
 
 ## Customising
 
-- **Hosting logo** - Admin -> **Branding** uploads your logo to
+- **Icon / logo** - Admin -> **Site Settings** -> *General* uploads to
   `public/themes/pterodactyl/images/custom-logo.<ext>`. The login emblem and the
-  favicon (user panel + admin) come from that file; remove it there to fall back
-  to the theme emblem. The stock `public/favicons` folder is moved into the
+  favicon (user panel + admin) come from that file; tick "remove" there to fall
+  back to the theme emblem. The stock `public/favicons` folder is moved into the
   backup on install and restored on uninstall.
-- **Branding** - set the panel name in `config/app.php` / `.env` (`APP_NAME`) or
-  wherever your deployment defines it; the sidebar, topbar, login card and footer
-  all pick it up through `brandName()`.
+- **Site name** - set it on the same *General* tab. It is stored as the panel's
+  own name (`settings::app:name`), so the sidebar, topbar, login card, footer and
+  page title all pick it up through `brandName()` without anything hardcoded.
+- **Backgrounds** - Admin -> **Site Settings** -> *Background* takes an uploaded
+  file *or* a pasted `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`,
+  `.webp` or `.svg`, per area. Uploads land in
+  `public/themes/pterodactyl/backgrounds/bg-<area>.<ext>`; a pasted link wins
+  over a stored upload and deletes it. Anything else - a `data:` URI, a relative
+  path, a non-image link - is rejected on save and ignored on render. The scrim
+  strength is `--pt-bg-dim` / `--pt-bg-dim-strong` in the stylesheet's `:root`.
 - **Registration** - Admin -> **Registration** to turn public sign-up on or off.
   Accounts are created directly by the panel's own user service, so there is no
   API key to manage; the setting lives in panel settings

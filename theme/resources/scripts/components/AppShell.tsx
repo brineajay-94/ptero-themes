@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import NavigationBar from '@/components/NavigationBar';
 import routes from '@/routers/routes';
 import http from '@/api/http';
-import { brandName } from '@/lib/brand';
+import { backgroundStyle, brandName } from '@/lib/brand';
 
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
@@ -82,7 +82,7 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
     );
 
     return (
-        <div className={'pt-shell'}>
+        <div className={'pt-shell'} style={backgroundStyle('dashboard')}>
             <aside className={'pt-sidebar'}>{sidebar()}</aside>
 
             <div className={'pt-shell-body'}>

@@ -229,17 +229,35 @@ Route::group(['prefix' => 'nests'], function () {
 
 /*
 |--------------------------------------------------------------------------
+| Site Settings Routes
+|--------------------------------------------------------------------------
+|
+| Endpoint: /admin/site-settings - the site name, the icon, and the two
+| background slots (auth and dashboard).
+|
+*/
+Route::group(['prefix' => 'site-settings'], function () {
+    Route::get('/', [Admin\SiteSettingsController::class, 'index'])->name('admin.site-settings');
+    Route::post('/general', [Admin\SiteSettingsController::class, 'updateGeneral'])->name('admin.site-settings.general');
+    Route::post('/background', [Admin\SiteSettingsController::class, 'updateBackground'])->name('admin.site-settings.background');
+    Route::delete('/background/{slot}', [Admin\SiteSettingsController::class, 'clearBackground'])
+        ->where('slot', 'auth|dashboard')
+        ->name('admin.site-settings.background.clear');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Branding Routes
 |--------------------------------------------------------------------------
 |
-| Endpoint: /admin/branding - upload the hosting logo; it replaces the login
-| emblem and the favicon everywhere.
+| Endpoint: /admin/branding - superseded by /admin/site-settings. Kept as
+| redirects so any old bookmark or menu link still lands in the right place.
 |
 */
 Route::group(['prefix' => 'branding'], function () {
-    Route::get('/', [Admin\BrandingController::class, 'index'])->name('admin.branding');
-    Route::post('/', [Admin\BrandingController::class, 'update'])->name('admin.branding.update');
-    Route::delete('/', [Admin\BrandingController::class, 'destroy'])->name('admin.branding.destroy');
+    Route::get('/', fn () => redirect()->route('admin.site-settings', ['tab' => 'general']));
+    Route::post('/', fn () => redirect()->route('admin.site-settings', ['tab' => 'general']));
+    Route::delete('/', fn () => redirect()->route('admin.site-settings', ['tab' => 'general']));
 });
 
 /*

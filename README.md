@@ -78,12 +78,15 @@ What it changes on top of the stock panel:
   only ships FontAwesome's *solid* set, so the Discord icon is not available as
   a dependency and the theme does not add one just for it.
 
-- **Slim dashboard topbar** — burger, title, then **Home** and the enabled quick
-  links. Search, the admin shortcut, the account avatar, sign-out and the old
-  dashboard shortcut are gone from it. Account and Admin Area are sidebar
-  entries, and sign-out is the button at the bottom of the sidebar (and the
-  mobile drawer), so all of it is still one click away — **except search, which
-  had no other home and is therefore removed from the panel entirely.**
+- **Slim dashboard topbar** — a three-column grid: burger and title on the left,
+  then **Home · Discord · Status** centred as a row of glass pills, then a
+  balancing spacer. The pills carry a soft resting treatment that strengthens on
+  hover, and Discord keeps its brand blurple so it reads as Discord at a glance.
+  Search, the admin shortcut, the account avatar, sign-out and the old dashboard
+  shortcut are gone from the bar. Account and Admin Area are sidebar entries,
+  and sign-out is the button at the bottom of the sidebar (and the mobile
+  drawer), so all of it is still one click away — **except search, which had no
+  other home and is therefore removed from the panel entirely.**
 
 - **Branding in the sidebar** — the site icon beside the panel name is shown as
   it is: no chip, no background, no box. It falls back to the first letter of the

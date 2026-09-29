@@ -15,15 +15,20 @@ export type QuickLinkSlot = 'home' | 'discord' | 'status';
  * icon. A 24x24 path costs a few hundred bytes and always resolves.
  *
  * Path from the Discord brand icon via Simple Icons (CC0-1.0).
+ *
+ * It is drawn 4% larger than the FontAwesome glyphs beside it. The brand mark
+ * fills far more of its 24x24 box than a FA solid icon does, so at an identical
+ * font-size it reads noticeably smaller and thinner next to them.
  */
 const DiscordMark: React.FC = () => (
     <svg
         viewBox={'0 0 24 24'}
-        width={'1em'}
-        height={'1em'}
+        width={'1.04em'}
+        height={'1.04em'}
         fill={'currentColor'}
         aria-hidden={'true'}
         focusable={'false'}
+        style={{ display: 'block' }}
     >
         <path
             d={
@@ -55,9 +60,6 @@ const Glyph: React.FC<{ slot: QuickLinkSlot }> = ({ slot }) => {
  * The admin's quick links, resolved once. Each entry is null when that link is
  * switched off, which is what makes the toggle in Admin -> Site Settings -> Links
  * hide the button rather than just disabling it.
- *
- * `auth` shows every enabled link as a labelled button above the login card;
- * `bar` shows only the ones that make sense in the dashboard topbar.
  */
 const resolve = (area: 'auth' | 'bar'): { slot: QuickLinkSlot; href: string }[] => {
     const slots: QuickLinkSlot[] = area === 'auth' ? ['home', 'discord', 'status'] : ['discord', 'status'];
@@ -83,28 +85,33 @@ export const AuthLinks: React.FC = () => {
     );
 };
 
-export const TopbarLinks: React.FC = () => {
+/**
+ * The centred topbar cluster: Home, then whichever of Discord and Status the
+ * admin has enabled.
+ *
+ * Home is a plain link to / rather than one of the toggleable Links - it is the
+ * panel's own front door, so it renders whether or not anything is configured.
+ */
+export const TopbarLinkCluster: React.FC = () => {
     const links = resolve('bar');
-    if (links.length === 0) return null;
 
     return (
-        <>
+        <nav className={'pt-topbar-links'} aria-label={'Quick links'}>
+            <a href={'/'} title={'Home'} aria-label={'Home'}>
+                <Glyph slot={'home'} />
+            </a>
             {links.map(({ slot, href }) => (
-                <a key={slot} href={href} title={LABELS[slot]} aria-label={LABELS[slot]} rel={'noopener noreferrer'}>
+                <a
+                    key={slot}
+                    className={'pt-topbar-link-' + slot}
+                    href={href}
+                    title={LABELS[slot]}
+                    aria-label={LABELS[slot]}
+                    rel={'noopener noreferrer'}
+                >
                     <Glyph slot={slot} />
                 </a>
             ))}
-        </>
+        </nav>
     );
 };
-
-/**
- * The Home button for the dashboard topbar. It is not one of the admin's
- * toggleable links - it is the panel's own front door - so it is rendered here
- * rather than through the Links settings.
- */
-export const TopbarHome: React.FC = () => (
-    <a href={'/'} title={'Home'} aria-label={'Home'}>
-        <FontAwesomeIcon icon={faHome} />
-    </a>
-);

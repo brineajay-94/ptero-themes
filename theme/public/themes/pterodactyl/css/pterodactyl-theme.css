@@ -98,6 +98,10 @@
     --pt-violet-400: 167 139 250; /* #a78bfa */
     --pt-cyan-500: 34 211 238; /* #22d3ee */
 
+    /* Discord's brand blurple, so the Discord quick link is recognisable at a
+     * glance without pulling the brand icon set into the panel. */
+    --pt-discord: 88 101 242; /* #5865f2 */
+
     /* ------------------------------------------------------------ glass -- *
      * Frosted-surface recipe, applied selectively (see the glass section at
      * the end of this file). Chrome surfaces - sidebar, topbar, drawer, auth
@@ -515,11 +519,15 @@
 
 /* ----------------------------------------------------------------- topbar -- */
 
+/* Three columns - title, centred link cluster, balancing spacer - so the
+ * cluster is genuinely centred at any width instead of right-aligned, and the
+ * title truncates inside its own column rather than sliding under the icons. */
 .pt-topbar {
     position: sticky;
     top: 0;
     z-index: 30;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 0.6rem;
     height: 3.5rem;
@@ -527,6 +535,76 @@
     background-color: rgb(var(--pt-navy-700));
     border-bottom: 2px solid rgb(var(--pt-gold-600));
     box-shadow: 0 2px 10px rgb(0 0 0 / 0.22);
+}
+
+.pt-topbar-lead {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.pt-topbar-tail {
+    min-width: 0;
+}
+
+/* ------------------------------------------------------------ link cluster -- */
+/* Frosted pills rather than bare glyphs, so the centred row reads as a set of
+ * controls instead of three icons floating in a bar. */
+.pt-topbar-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+/* A soft pill is always present, not only on hover: three bare glyphs floating in
+ * a bar read as leftovers, whereas a faint container that strengthens on hover
+ * reads as a deliberate control group. */
+.pt-topbar-links > a {
+    display: grid;
+    place-items: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 999px;
+    background-color: rgb(255 255 255 / 0.06);
+    color: rgb(var(--pt-gray-100));
+    font-size: 0.92rem;
+    line-height: 0;
+    text-decoration: none;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.pt-topbar-links > a:hover,
+.pt-topbar-links > a:focus-visible {
+    background-color: rgb(255 255 255 / 0.12);
+    border-color: var(--pt-glass-border-hover);
+    color: #ffffff;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+/* Discord keeps its brand blurple so it is recognisable at a glance; on hover
+ * the other links go white, so brightening it would lose the only cue that says
+ * "this one is Discord". */
+.pt-topbar-links > a.pt-topbar-link-discord {
+    color: rgb(var(--pt-discord));
+}
+
+.pt-topbar-links > a.pt-topbar-link-discord:hover,
+.pt-topbar-links > a.pt-topbar-link-discord:focus-visible {
+    background-color: rgb(88 101 242 / 0.22);
+    border-color: rgb(88 101 242 / 0.6);
+    color: rgb(var(--pt-discord));
+}
+
+@media (max-width: 480px) {
+    .pt-topbar-links > a {
+        width: 1.95rem;
+        height: 1.95rem;
+        font-size: 0.85rem;
+    }
 }
 
 .pt-topbar-title {

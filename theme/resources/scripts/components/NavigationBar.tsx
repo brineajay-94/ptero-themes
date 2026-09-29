@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
-import { TopbarHome, TopbarLinks } from '@/components/QuickLinks';
+import { TopbarLinkCluster } from '@/components/QuickLinks';
 
 export interface NavigationBarProps {
     title: string;
@@ -10,31 +10,34 @@ export interface NavigationBarProps {
 }
 
 /**
- * The topbar is deliberately sparse: burger, title, then the Home button and
- * whatever quick links the admin has enabled.
+ * The topbar is a three-column grid: burger + title on the left, the quick-link
+ * cluster in the middle, and an empty balancing column on the right.
+ *
+ * `1fr auto 1fr` rather than absolutely positioning the cluster at 50% - the two
+ * outer columns are equal, so the centre cell is genuinely centred at any width,
+ * and the title truncates inside its own column instead of sliding underneath
+ * the icons on a narrow screen.
  *
  * Search, the admin shortcut, the account avatar, sign-out and the old
- * dashboard shortcut used to live here as well. They are all still reachable -
- * Account and Admin Area are sidebar entries, sign-out is the button at the
- * bottom of the sidebar, and the dashboard is what Home opens - but sign-out was
- * the one that got hidden on small screens, so it is worth knowing the sidebar
- * (and the mobile drawer) is the only place it now appears.
- *
- * Search is the exception: it had no other home, so removing it removes the
- * panel's server search entirely.
+ * dashboard shortcut used to live here too. Account and Admin Area are sidebar
+ * entries, sign-out is the button at the bottom of the sidebar, and the
+ * dashboard is what Home opens. Search is the exception: it had no other home,
+ * so removing it removes the panel's server search entirely.
  */
 export default ({ title, subtitle, onMenu }: NavigationBarProps) => (
     <header className={'pt-topbar'}>
-        <button type={'button'} className={'pt-burger'} onClick={onMenu} aria-label={'Open navigation menu'}>
-            <FontAwesomeIcon icon={faBars} />
-        </button>
-        <div className={'pt-topbar-title'}>
-            {title}
-            {subtitle && <small>{subtitle}</small>}
+        <div className={'pt-topbar-lead'}>
+            <button type={'button'} className={'pt-burger'} onClick={onMenu} aria-label={'Open navigation menu'}>
+                <FontAwesomeIcon icon={faBars} />
+            </button>
+            <div className={'pt-topbar-title'}>
+                {title}
+                {subtitle && <small>{subtitle}</small>}
+            </div>
         </div>
-        <div className={'pt-topbar-actions'}>
-            <TopbarHome />
-            <TopbarLinks />
-        </div>
+
+        <TopbarLinkCluster />
+
+        <div className={'pt-topbar-tail'} aria-hidden={'true'} />
     </header>
 );

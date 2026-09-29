@@ -71,8 +71,8 @@ What it changes on top of the stock panel:
   it is usable on touch.
 
 - **Quick links** — the enabled links appear as buttons above the login and
-  register forms, under a `Home / Login` (or `Home / Register`) breadcrumb in the
-  top-left. **Discord** and **Status** also appear as icons in the dashboard
+  register forms. A `Home / Login` (or `Home / Register`) breadcrumb sits in the
+  page's top-left corner, pinned to the viewport rather than to the card. **Discord** and **Status** also appear as icons in the dashboard
   topbar; **Home** is deliberately left off the dashboard, where you already are.
   Disabling a link in the admin removes the button entirely.
 

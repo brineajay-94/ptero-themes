@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -70,12 +70,12 @@
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",
             "action": "replace",
-            "note": "Auth routes: centres the login card, adds /auth/register, applies the auth background image"
+            "note": "Auth routes: centres the login card, adds /auth/register, applies the auth background image, and owns the Home / Login breadcrumb pinned to the page top-left"
         },
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "Login card: centred container, logo chip header, title/subtitle slot, the Home/Login breadcrumb and quick-link buttons above the card, and the conditional Register link footer"
+            "note": "Login card: centred container, logo chip header, title/subtitle slot, the quick-link buttons above the card, and the conditional Register link footer"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",

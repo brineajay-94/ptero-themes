@@ -916,18 +916,28 @@
 }
 
 /* ------------------------------------------------- auth quick links + crumbs -- */
-/* Breadcrumb pinned to the top-left of the auth page, and the admin's quick
- * links as a row of pill buttons sitting above the card. Both are rendered by
- * QuickLinkRow in LoginFormContainer and are absent entirely when the admin has
- * not enabled any links. */
-
+/* The breadcrumb is page chrome, not part of the centred auth column: it is
+ * pinned to the viewport's top-left corner. .pt-auth-page is `position: relative`
+ * and fills the screen, so absolute positioning here anchors to the page rather
+ * than to the 360px column, and the card stays exactly where it was. */
 .pt-crumbs {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 3;
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    margin-bottom: 0.85rem;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     color: rgb(var(--pt-gray-400));
+}
+
+@media (max-width: 480px) {
+    .pt-crumbs {
+        top: 0.75rem;
+        left: 0.75rem;
+        font-size: 0.72rem;
+    }
 }
 
 .pt-crumb {
@@ -952,6 +962,8 @@
     color: rgb(var(--pt-gray-500));
 }
 
+/* The admin's quick links, as a row of pill buttons above the card. Rendered by
+ * AuthLinks and absent entirely when no link is enabled. */
 .pt-links {
     display: flex;
     flex-wrap: wrap;

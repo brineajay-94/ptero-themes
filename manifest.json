@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.6.2",
+    "version": "1.7.0",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -25,12 +25,12 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, uploaded icon, registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
+            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon (pasted link wins over the uploaded file), registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with overlay adjusters for the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card - shell/auth/dashboard/console/file-manager styles"
+            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card - shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -190,12 +190,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon, the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch), each slot's overlay colour + intensity, and the Home/Discord/Status quick links"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider) and the Home/Discord/Status quick links"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Site Settings page with server-rendered tabs (no JS): General & backgrounds (name, icon, two background blocks with overlay adjusters) and Links (Home/Discord/Status, each with a switch and URL)"
+            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save) and Links (Home/Discord/Status, each with a switch and URL). Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",

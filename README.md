@@ -57,13 +57,19 @@ What it changes on top of the stock panel:
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
   - **Site Settings** (`/admin/site-settings`) — two tabs, both server-rendered
-    so they work with no JavaScript. **General & backgrounds** sets the site name
-    and icon, plus a background image for the auth screens and one for the
-    dashboard, each with its own on/off switch, an **uploaded file or pasted
-    image link** (PNG, JPG, GIF, WEBP, SVG) and an **overlay adjuster** (intensity
-    slider + colour picker, live preview; defaults black at 78% / 62%).
-    **Links** sets up to three quick links — **Home**, **Discord**, **Status** —
-    each with a URL and an on/off switch.
+    so they work with no JavaScript. **General** is a stack of independent blocks,
+    each with its own **Save** button:
+    - **Name & icon** — the site name, and the icon as an **uploaded file or
+      pasted image link** (PNG, SVG, JPG, ICO, GIF, WEBP), with a live preview.
+    - **Login & register background** — an on/off switch, an **uploaded file or
+      pasted image link** (PNG, JPG, GIF, WEBP, SVG), an **intensity slider** for
+      the black scrim and a live preview, defaulting to 78%.
+    - **Dashboard background** — the same controls, defaulting to 62%.
+
+    Each background is saved through its own endpoint (`/background/{slot}`), so
+    saving one can no longer switch the other one off. **Links** sets up to three
+    quick links — **Home**, **Discord**, **Status** — each with a URL and an
+    on/off switch.
   - **Registration** (`/admin/registration`) — switches public sign-up on or off.
 
   The page is responsive: the blocks stack full-width on a phone, the preview
@@ -404,8 +410,8 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon, both background slots + overlays, the three quick links |
-| `resources/views/admin/site-settings.blade.php` | create - Site Settings page, server-rendered General & Links tabs |
+| `app/Http/Controllers/Admin/SiteSettingsController.php` | create - site name, icon (file or link), both background slots + scrim intensity, the three quick links |
+| `resources/views/admin/site-settings.blade.php` | create - Site Settings page: server-rendered General & Links tabs, per-block Save, live previews |
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
@@ -420,24 +426,31 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 
 ## Customising
 
-- **Icon / logo** - Admin -> **Site Settings** -> *General* uploads to
-  `public/themes/pterodactyl/images/custom-logo.<ext>`. The login emblem and the
-  favicon (user panel + admin) come from that file; tick "remove" there to fall
-  back to the theme emblem. The stock `public/favicons` folder is moved into the
-  backup on install and restored on uninstall.
-- **Site name** - set it in the *General & backgrounds* tab. It is stored as the panel's
+- **Icon / logo** - Admin -> **Site Settings** -> *Name & icon* takes an uploaded
+  file *or* a pasted `https://` link. Uploads land in
+  `public/themes/pterodactyl/images/custom-logo.<ext>`; a pasted link is stored as
+  `Brine::icon_url`, wins over a stored upload and deletes it. The login emblem,
+  the sidebar icon and the favicon (user panel + admin) all come from whichever one
+  is set, validated again on every render; tick "remove" to fall back to the theme
+  emblem. The stock `public/favicons` folder is moved into the backup on install
+  and restored on uninstall.
+- **Site name** - set it in the same *Name & icon* block. It is stored as the panel's
   own name (`settings::app:name`), so the sidebar, topbar, login card, footer and
   page title all pick it up through `brandName()` without anything hardcoded.
-- **Backgrounds and overlay** - Admin -> **Site Settings** takes an uploaded file
-  *or* a pasted `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`,
-  `.webp` or `.svg`, per area. Uploads land in
-  `public/themes/pterodactyl/backgrounds/bg-<area>.<ext>`; a pasted link wins
-  over a stored upload and deletes it. Anything else - a `data:` URI, a relative
-  path, a non-image link - is rejected on save and ignored on render.
-  The overlay is a colour and a strength (0-100%) per area, stored as
-  `Brine::bg_<area>_overlay_colour` / `_intensity` and shipped to the client as
-  `--pt-bg-overlay-rgb{,-auth}` and `--pt-bg-overlay-strength{,-auth}`. Clear
-  resets both to the black defaults.
+- **Backgrounds and scrim** - Admin -> **Site Settings** -> *Login & register
+  background* / *Dashboard background* each take an uploaded file *or* a pasted
+  `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` or `.svg`.
+  Uploads land in `public/themes/pterodactyl/backgrounds/bg-<area>.<ext>`; a
+  pasted link wins over a stored upload and deletes it. Anything else - a `data:`
+  URI, a relative path, a non-image link - is rejected on save and ignored on
+  render. The two areas are saved through separate endpoints, so a change to one
+  never touches the other.
+  The scrim is **black only** - the colour picker was removed in 1.7.0 because a
+  light scrim over a light photo makes the dark text unreadable. What is left is
+  an intensity (0-100%) per area, stored as `Brine::bg_<area>_overlay_intensity`
+  and shipped to the client as `--pt-bg-overlay-strength{,-auth}`, with the colour
+  triplet pinned to `0 0 0`. Any colour row left over from an older install is
+  cleared the next time that area is saved.
 - **Quick links** - Admin -> **Site Settings** -> *Links*. Each of Home, Discord
   and Status is a URL plus an on/off switch, stored as
   `Brine::link_<slot>_enabled` / `_url`; a disabled link is omitted from

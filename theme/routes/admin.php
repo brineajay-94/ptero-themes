@@ -239,7 +239,9 @@ Route::group(['prefix' => 'nests'], function () {
 Route::group(['prefix' => 'site-settings'], function () {
     Route::get('/', [Admin\SiteSettingsController::class, 'index'])->name('admin.site-settings');
     Route::post('/general', [Admin\SiteSettingsController::class, 'updateGeneral'])->name('admin.site-settings.general');
-    Route::post('/background', [Admin\SiteSettingsController::class, 'updateBackground'])->name('admin.site-settings.background');
+    Route::post('/background/{slot}', [Admin\SiteSettingsController::class, 'updateBackground'])
+        ->where('slot', 'auth|dashboard')
+        ->name('admin.site-settings.background');
     Route::post('/links', [Admin\SiteSettingsController::class, 'updateLinks'])->name('admin.site-settings.links');
     Route::delete('/background/{slot}', [Admin\SiteSettingsController::class, 'clearBackground'])
         ->where('slot', 'auth|dashboard')

@@ -11,72 +11,146 @@
 @endsection
 
 @section('content')
-    {{-- Everything on one page, stacked. The previous version split this into
-         General / Background tabs, but AdminLTE's tab plugin is loaded in
-         footer-scripts, i.e. after this markup, so the tab JS had to run from a
-         separate block and the second pane was effectively unreachable. One
-         column of sections is also the better layout on a phone. --}}
     <style>
-        /* Local page styles. Scoped under .bs-site-settings so nothing here can
-           leak into the rest of the admin area. */
-        .bs-site-settings .bs-ss-preview {
+        /* All page styling is scoped under .bs-ss so nothing leaks into the rest
+           of the admin area. */
+        .bs-ss .bs-ss-tabs { margin-bottom: 18px; }
+        .bs-ss .bs-ss-tabs > li > a { padding: 10px 16px; }
+
+        .bs-ss .bs-ss-stack { margin-bottom: 18px; }
+        .bs-ss .bs-ss-stack:last-of-type { margin-bottom: 0; }
+
+        /* Preview frame. The inner <img> is what gets replaced on upload, and the
+           scrim above it is what the intensity slider drives. */
+        .bs-ss .bs-ss-frame {
             position: relative;
             overflow: hidden;
+            border: 1px solid #d2d6de;
             border-radius: 4px;
             background: #19152e;
         }
-        .bs-site-settings .bs-ss-preview img {
+        .bs-ss .bs-ss-frame img {
             display: block;
             width: 100%;
-            max-height: 260px;
+            max-height: 240px;
             object-fit: cover;
         }
-        .bs-site-settings .bs-ss-preview .bs-ss-scrim {
+        .bs-ss .bs-ss-frame .bs-ss-scrim {
             position: absolute;
             inset: 0;
             pointer-events: none;
         }
-        /* Live preview of the chosen scrim, driven by the range + colour inputs. */
-        .bs-site-settings .bs-ss-swatch {
-            display: inline-block;
-            width: 34px;
-            height: 34px;
-            vertical-align: middle;
-            border: 1px solid #d2d6de;
-            border-radius: 3px;
+        .bs-ss .bs-ss-empty {
+            padding: 26px 14px;
+            text-align: center;
+            color: #8a94a6;
+            font-size: 12px;
         }
-        .bs-site-settings .bs-ss-output {
+
+        /* Icon preview: a fixed chip so a wide or short upload still reads. */
+        .bs-ss .bs-ss-icon-frame {
+            display: grid;
+            place-items: center;
+            width: 96px;
+            height: 96px;
+            padding: 8px;
+            border: 1px solid #d2d6de;
+            border-radius: 4px;
+            background: #f3f4f6;
+        }
+        .bs-ss .bs-ss-icon-frame img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /*
+         * The intensity slider.
+         *
+         * It must NOT carry .form-control: Bootstrap 3 styles that class as a
+         * text input (height, padding, border, background), which is why the
+         * earlier version had to strip padding and border back off with inline
+         * styles and left the control looking broken and hard to grab. This
+         * styles the range input directly instead, which is the only reliable
+         * way to get a usable slider in a Bootstrap 3 form.
+         */
+        .bs-ss .bs-ss-range {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            width: 100%;
+            height: 22px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+        }
+        .bs-ss .bs-ss-range::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 999px;
+            background: #d2d6de;
+        }
+        .bs-ss .bs-ss-range::-moz-range-track {
+            height: 6px;
+            border-radius: 999px;
+            background: #d2d6de;
+        }
+        .bs-ss .bs-ss-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            margin-top: -7px;
+            border: 0;
+            border-radius: 50%;
+            background: #3c8dbc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        }
+        .bs-ss .bs-ss-range::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border: 0;
+            border-radius: 50%;
+            background: #3c8dbc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        }
+        .bs-ss .bs-ss-range:focus {
+            outline: none;
+        }
+        .bs-ss .bs-ss-range:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 3px rgba(60, 141, 188, 0.35);
+        }
+
+        .bs-ss .bs-ss-readout {
             display: inline-block;
-            min-width: 3.4em;
-            font-weight: 600;
+            min-width: 3.2em;
+            font-weight: 700;
             font-variant-numeric: tabular-nums;
         }
-        /* On narrow screens AdminLTE's .col-md-* already stacks; this keeps the
-           section header from wrapping badly and makes the controls full width
-           so the range input stays usable on a phone. */
-        @media (max-width: 767px) {
-            .bs-site-settings .box-header .bs-ss-toggle { margin-top: 6px; }
-            .bs-site-settings .bs-ss-output { min-width: 0; }
+
+        .bs-ss .bs-ss-field { margin-bottom: 14px; }
+        .bs-ss .bs-ss-field:last-child { margin-bottom: 0; }
+
+        .bs-ss .bs-ss-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
-        /* Tabs are plain links into ?tab= (server-rendered), so they need no
-           JS. Just give them breathing room and let long labels wrap. */
-        .bs-site-settings .bs-ss-tabs { margin-bottom: 18px; }
-        .bs-site-settings .bs-ss-tabs > li > a { padding: 10px 16px; }
-        @media (max-width: 480px) {
-            .bs-site-settings .bs-ss-tabs > li > a { padding: 10px 10px; font-size: 13px; }
+        .bs-ss .bs-ss-or {
+            margin: 12px 0;
+            color: #8a94a6;
+            font-size: 12px;
+            text-align: center;
         }
     </style>
 
-    <div class="bs-site-settings">
+    <div class="bs-ss">
         @foreach ($errors->all() as $error)
             <div class="alert alert-danger">{{ $error }}</div>
         @endforeach
 
-        {{-- Server-rendered tabs, deliberately NOT AdminLTE's tab plugin.
-             The plugin is jQuery-driven and needs data-toggle="tab"; the
-             previous attempt at these tabs silently died because the markup ran
-             before jQuery loaded. These are plain links and the controller picks
-             the pane from ?tab=, so they work with no JavaScript at all. --}}
+        {{-- Server-rendered tabs: plain links into ?tab=, so they need no
+             JavaScript and cannot break on load order. --}}
         <ul class="nav nav-tabs bs-ss-tabs">
             <li class="{{ $tab === 'general' ? 'active' : '' }}">
                 <a href="{{ route('admin.site-settings', ['tab' => 'general']) }}">
@@ -91,223 +165,195 @@
         </ul>
 
         @if ($tab === 'general')
-        {{-- ================================================== identity -- --}}
-        <form action="{{ route('admin.site-settings.general') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="box">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-pencil"></i> Name &amp; icon</h3>
-                </div>
-                <div class="box-body">
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div class="form-group">
-                                <label class="control-label" for="siteName">Site name</label>
-                                <input type="text" id="siteName" name="name" class="form-control" maxlength="191" required
-                                       value="{{ old('name', $name) }}" />
-                                <p class="help-block">
-                                    Shown in the browser tab, the sidebar, the topbar, the login card and the footer. Stored as
-                                    the panel&rsquo;s own site name, so everything rebrands at once.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="bs-ss-preview text-center" style="padding: 12px;">
-                                @if ($icon)
-                                    <img src="{{ $icon }}" alt="Current icon"
-                                         style="width: 84px; height: 84px; object-fit: contain;" />
-                                    <p class="text-muted" style="margin: 8px 0 0; font-size: 12px;">
-                                        Favicon + login emblem
-                                    </p>
-                                @else
-                                    <img src="/themes/pterodactyl/images/logo.svg" alt="Default emblem"
-                                         style="width: 84px; height: 84px; object-fit: contain;" />
-                                    <p class="text-muted" style="margin: 8px 0 0; font-size: 12px;">
-                                        Using the default emblem
-                                    </p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="control-label" for="siteIcon">Icon</label>
-                        <input type="file" id="siteIcon" name="icon" accept=".png,.svg,.jpg,.jpeg,.ico,.gif,.webp" />
-                        <p class="help-block">
-                            PNG, SVG, JPG, ICO, GIF or WEBP up to 4096 KB. Square artwork looks best - the same file becomes
-                            the favicon everywhere. The web server must be able to write to
-                            <code>public/themes/pterodactyl/images/</code>.
-                        </p>
-                    </div>
-
-                    @if ($icon)
-                        <div class="checkbox checkbox-danger no-margin-bottom">
-                            <input id="removeIcon" name="remove_icon" type="checkbox" value="1" />
-                            <label for="removeIcon" class="strong">Remove the custom icon and go back to the default emblem</label>
-                        </div>
-                    @endif
-                </div>
-                <div class="box-footer">
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save name &amp; icon</button>
-                </div>
-            </div>
-        </form>
-
-        {{-- ================================================ backgrounds -- --}}
-        <form action="{{ route('admin.site-settings.background') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-
-            @foreach (['auth' => 'Login & Register', 'dashboard' => 'Dashboard'] as $slot => $label)
-                @php
-                    $slotData = $backgrounds[$slot];
-                    $overlay = $slotData['overlay'];
-                @endphp
+            {{-- =============================================== 1. name + icon -- --}}
+            <form action="{{ route('admin.site-settings.general') }}" method="POST" enctype="multipart/form-data" class="bs-ss-stack">
+                @csrf
                 <div class="box">
                     <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-image"></i> {{ $label }} background</h3>
-                        <div class="bs-ss-toggle pull-right">
-                            <span class="label {{ $slotData['enabled'] ? 'label-success' : 'label-default' }}">
-                                {{ $slotData['enabled'] ? 'ON' : 'OFF' }}
-                            </span>
-                        </div>
+                        <h3 class="box-title"><i class="fa fa-pencil"></i> Name &amp; icon</h3>
                     </div>
                     <div class="box-body">
-                        <div class="checkbox no-margin-bottom">
-                            <input id="{{ $slot }}Enabled" name="{{ $slot }}_enabled" type="checkbox" value="1"
-                                   {{ old($slot . '_enabled', $slotData['enabled']) ? 'checked' : '' }} />
-                            <label for="{{ $slot }}Enabled" class="strong">Show the {{ strtolower($label) }} background</label>
-                        </div>
-
-                        <div class="row" style="margin-top: 14px;">
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label class="control-label" for="{{ $slot }}Url">Image link</label>
-                                    <input type="text" id="{{ $slot }}Url" name="{{ $slot }}_url" class="form-control"
-                                           maxlength="2048" placeholder="https://example.com/background.jpg"
-                                           value="{{ old($slot . '_url') }}" />
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <div class="bs-ss-field">
+                                    <label class="control-label bs-ss-label" for="siteName">Site name</label>
+                                    <input type="text" id="siteName" name="name" class="form-control" maxlength="191" required
+                                           value="{{ old('name', $name) }}" />
                                     <p class="help-block">
-                                        A direct http(s) link ending in .png, .jpg, .jpeg, .gif, .webp or .svg. Paste one here
-                                        and it is used instead of an uploaded file.
+                                        Shown in the browser tab, the sidebar, the topbar, the login card and the footer.
+                                        Stored as the panel&rsquo;s own site name, so everything rebrands at once.
                                     </p>
                                 </div>
 
-                                <div class="form-group">
-                                    <label class="control-label" for="{{ $slot }}File">Or upload an image</label>
-                                    <input type="file" id="{{ $slot }}File" name="{{ $slot }}_file"
-                                           accept=".png,.jpg,.jpeg,.gif,.webp,.svg" />
-                                    <p class="help-block">Up to 8192 KB, stored in <code>public/themes/pterodactyl/backgrounds/</code>.</p>
+                                <div class="bs-ss-field">
+                                    <label class="control-label bs-ss-label" for="siteIcon">Choose a file</label>
+                                    <input type="file" id="siteIcon" name="icon"
+                                           accept=".png,.svg,.jpg,.jpeg,.ico,.gif,.webp"
+                                           data-icon-preview="iconPreviewImage" />
+                                    <p class="help-block">
+                                        PNG, SVG, JPG, ICO, GIF or WEBP up to 4096 KB. Square artwork looks best - the same
+                                        file becomes the favicon everywhere.
+                                    </p>
                                 </div>
-                            </div>
 
-                            <div class="col-sm-6">
-                                <label class="control-label">Preview</label>
-                                @if ($slotData['image'])
-                                    <div class="bs-ss-preview">
-                                        <img src="{{ $slotData['image'] }}" alt="{{ $label }} background preview" />
-                                        <span class="bs-ss-scrim"
-                                              style="background: {{ $overlay['colour'] }}; opacity: {{ $overlay['intensity'] / 100 }};"></span>
+                                <p class="bs-ss-or">— or —</p>
+
+                                <div class="bs-ss-field">
+                                    <label class="control-label bs-ss-label" for="iconUrl">Paste a link</label>
+                                    <input type="text" id="iconUrl" name="icon_url" class="form-control" maxlength="2048"
+                                           placeholder="https://example.com/icon.png"
+                                           value="{{ old('icon_url', $icon_url) }}"
+                                           data-icon-link="iconPreviewImage" />
+                                    <p class="help-block">
+                                        A direct <code>https://</code> link to an image. A link here is used instead of an
+                                        uploaded file.
+                                    </p>
+                                </div>
+
+                                @if ($icon)
+                                    <div class="checkbox checkbox-danger no-margin-bottom">
+                                        <input id="removeIcon" name="remove_icon" type="checkbox" value="1" />
+                                        <label for="removeIcon" class="strong">Remove the icon and go back to the default emblem</label>
                                     </div>
-                                @else
-                                    <p class="text-muted" style="font-size: 12px;">
-                                        No image set yet. The preview appears here once you save one.
-                                    </p>
                                 @endif
                             </div>
-                        </div>
 
-                        <hr>
-
-                        {{-- -------------------------------------------------------- overlay -- --}}
-                        <h4 style="margin-top: 4px;">Overlay</h4>
-                        <p class="help-block">
-                            A colour laid over the image so the dark text stays readable. Black at
-                            {{ $slot === 'auth' ? '78' : '62' }}% is the default. Turn the intensity down for a dark photo,
-                            up for a bright one.
-                        </p>
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label class="control-label" for="{{ $slot }}OverlayIntensity">Intensity</label>
-                                    <div class="row">
-                                        <div class="col-xs-9">
-                                            <input type="range" class="form-control" style="padding: 0; border: 0; background: none;"
-                                                   min="0" max="100" step="1"
-                                                   id="{{ $slot }}OverlayIntensity"
-                                                   name="{{ $slot }}_overlay_intensity"
-                                                   value="{{ old($slot . '_overlay_intensity', $overlay['intensity']) }}"
-                                                   data-overlay-preview="{{ $slot }}OverlayScrim"
-                                                   data-overlay-colour-input="{{ $slot }}OverlayColour" />
-                                        </div>
-                                        <div class="col-xs-3">
-                                            <output class="bs-ss-output" for="{{ $slot }}OverlayIntensity"
-                                                    id="{{ $slot }}OverlayOutput">{{ old($slot . '_overlay_intensity', $overlay['intensity']) }}%</output>
-                                        </div>
-                                    </div>
+                            <div class="col-sm-4">
+                                <div class="bs-ss-icon-frame">
+                                    <img id="iconPreviewImage"
+                                         src="{{ $icon ?: '/themes/pterodactyl/images/logo.svg' }}"
+                                         alt="Current icon preview" />
                                 </div>
-
-                                <div class="form-group">
-                                    <label class="control-label" for="{{ $slot }}OverlayColour">Colour</label>
-                                    <div class="row">
-                                        <div class="col-xs-3">
-                                            <input type="color" class="form-control" style="padding: 2px; height: 34px;"
-                                                   id="{{ $slot }}OverlayColourPicker"
-                                                   value="{{ old($slot . '_overlay_colour', $overlay['colour']) }}"
-                                                   data-overlay-target="{{ $slot }}OverlayColour" />
-                                        </div>
-                                        <div class="col-xs-9">
-                                            <input type="text" class="form-control" id="{{ $slot }}OverlayColour"
-                                                   name="{{ $slot }}_overlay_colour" maxlength="32"
-                                                   value="{{ old($slot . '_overlay_colour', $overlay['colour']) }}"
-                                                   placeholder="#000000"
-                                                   data-overlay-picker="{{ $slot }}OverlayColourPicker"
-                                                   data-overlay-preview="{{ $slot }}OverlayScrim"
-                                                   data-overlay-output="{{ $slot }}OverlayOutput" />
-                                        </div>
-                                    </div>
-                                    <p class="help-block">A hex value, e.g. <code>#000000</code> or <code>#1b1436</code>.</p>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-6">
-                                <label class="control-label">How it will look</label>
-                                <div class="bs-ss-preview">
-                                    @if ($slotData['image'])
-                                        <img src="{{ $slotData['image'] }}" alt="" />
+                                <p class="help-block" style="margin-top: 8px;">
+                                    @if ($icon)
+                                        Saved icon - used as the favicon and the login emblem.
                                     @else
-                                        {{-- No image yet: paint a placeholder so the scrim preview still
-                                             demonstrates the setting instead of an empty box. --}}
-                                        <div style="height: 150px; background: linear-gradient(135deg, #5b4bc4, #2b87d3);"></div>
+                                        No custom icon yet - the theme emblem is in use.
                                     @endif
-                                    <span class="bs-ss-scrim" id="{{ $slot }}OverlayScrim"
-                                          style="background: {{ $overlay['colour'] }}; opacity: {{ $overlay['intensity'] / 100 }};"></span>
-                                </div>
+                                </p>
                             </div>
                         </div>
                     </div>
                     <div class="box-footer">
-                        @if ($slotData['image'])
-                            <button type="submit" form="clear-{{ $slot }}" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Remove the {{ strtolower($label) }} background and its overlay?');">
-                                <i class="fa fa-trash"></i> Clear
-                            </button>
-                        @endif
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save {{ strtolower($label) }}</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save name &amp; icon</button>
                     </div>
                 </div>
-            @endforeach
-        </form>
-
-        {{-- DELETE forms live outside the save form: nested <form> elements are
-             invalid HTML and browsers drop the inner one. The buttons above carry
-             form="clear-…" to target these. --}}
-        @foreach (['auth', 'dashboard'] as $slot)
-            <form id="clear-{{ $slot }}" action="{{ route('admin.site-settings.background.clear', ['slot' => $slot]) }}"
-                  method="POST" style="display: none;">
-                @csrf
-                @method('DELETE')
             </form>
-        @endforeach
+
+            {{-- ============================================ 2 + 3. backgrounds -- --}}
+            @foreach (['auth' => 'Login &amp; Register', 'dashboard' => 'Dashboard'] as $slot => $label)
+                @php
+                    $slotData = $backgrounds[$slot];
+                    $overlay = $slotData['overlay'];
+                @endphp
+                <form action="{{ route('admin.site-settings.background', ['slot' => $slot]) }}" method="POST"
+                      enctype="multipart/form-data" class="bs-ss-stack">
+                    @csrf
+                    <div class="box">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><i class="fa fa-image"></i> {!! $label !!} background</h3>
+                            <div class="pull-right">
+                                <span class="label {{ $slotData['enabled'] ? 'label-success' : 'label-default' }}">
+                                    {{ $slotData['enabled'] ? 'ON' : 'OFF' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="checkbox no-margin-bottom">
+                                <input id="{{ $slot }}Enabled" name="{{ $slot }}_enabled" type="checkbox" value="1"
+                                       {{ old($slot . '_enabled', $slotData['enabled']) ? 'checked' : '' }} />
+                                <label for="{{ $slot }}Enabled" class="strong">Show this background</label>
+                            </div>
+
+                            <div class="row" style="margin-top: 14px;">
+                                <div class="col-sm-6">
+                                    <div class="bs-ss-field">
+                                        <label class="control-label bs-ss-label" for="{{ $slot }}File">Choose a file</label>
+                                        <input type="file" id="{{ $slot }}File" name="{{ $slot }}_file"
+                                               accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
+                                               data-bg-preview="{{ $slot }}PreviewImage"
+                                               data-bg-scrim="{{ $slot }}PreviewScrim" />
+                                        <p class="help-block">Up to 8192 KB.</p>
+                                    </div>
+
+                                    <p class="bs-ss-or">— or —</p>
+
+                                    <div class="bs-ss-field">
+                                        <label class="control-label bs-ss-label" for="{{ $slot }}Url">Paste a link</label>
+                                        <input type="text" id="{{ $slot }}Url" name="{{ $slot }}_url" class="form-control"
+                                               maxlength="2048" placeholder="https://example.com/background.jpg"
+                                               value="{{ old($slot . '_url') }}"
+                                               data-bg-link="{{ $slot }}PreviewImage"
+                                               data-bg-scrim="{{ $slot }}PreviewScrim" />
+                                        <p class="help-block">A direct <code>https://</code> link to an image.</p>
+                                    </div>
+
+                                    <div class="bs-ss-field">
+                                        <label class="control-label bs-ss-label" for="{{ $slot }}Intensity">
+                                            Overlay intensity
+                                            <span class="bs-ss-readout" id="{{ $slot }}IntensityOut">{{ old($slot . '_overlay_intensity', $overlay['intensity']) }}%</span>
+                                        </label>
+                                        <input type="range" class="bs-ss-range" min="0" max="100" step="1"
+                                               id="{{ $slot }}Intensity"
+                                               name="{{ $slot }}_overlay_intensity"
+                                               value="{{ old($slot . '_overlay_intensity', $overlay['intensity']) }}"
+                                               data-bg-scrim="{{ $slot }}PreviewScrim" />
+                                        <p class="help-block">
+                                            A black layer over the image, so the dark text stays readable. Lower it for a
+                                            bright photo, raise it for a dark one.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="bs-ss-frame">
+                                        @if ($slotData['image'])
+                                            <img id="{{ $slot }}PreviewImage" src="{{ $slotData['image'] }}"
+                                                 alt="{{ strip_tags(html_entity_decode($label)) }} background preview" />
+                                        @else
+                                            <img id="{{ $slot }}PreviewImage" src="" alt="" style="display: none;" />
+                                            <div class="bs-ss-empty" id="{{ $slot }}PreviewEmpty">
+                                                No image set yet.<br />Choose a file or paste a link, then save.
+                                            </div>
+                                        @endif
+                                        <span class="bs-ss-scrim" id="{{ $slot }}PreviewScrim"
+                                              style="background: #000; opacity: {{ $overlay['intensity'] / 100 }}; {{ $slotData['image'] ? '' : 'display: none;' }}"></span>
+                                    </div>
+
+                                    @if ($slotData['image'])
+                                        <p class="help-block" style="margin-top: 8px;">
+                                            This is the image that is live now. Changes show here before you save.
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box-footer">
+                            @if ($slotData['image'])
+                                <button type="submit" form="clear-{{ $slot }}" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Remove this background?');">
+                                    <i class="fa fa-trash"></i> Clear background
+                                </button>
+                            @endif
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save"></i> Save {!! strtolower($label) !!}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            @endforeach
+
+            {{-- DELETE forms live outside the save forms: nested <form> elements are
+                 invalid HTML and browsers drop the inner one. The buttons above
+                 carry form="clear-…" to target these. --}}
+            @foreach (['auth', 'dashboard'] as $slot)
+                <form id="clear-{{ $slot }}" action="{{ route('admin.site-settings.background.clear', ['slot' => $slot]) }}"
+                      method="POST" style="display: none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endforeach
         @endif
 
         @if ($tab === 'links')
@@ -319,24 +365,23 @@
                     </div>
                     <div class="box-body">
                         <p class="help-block">
-                            These appear as buttons on the <strong>login and register</strong> screens, above the form. Home
-                            and Status also appear in the <strong>dashboard topbar</strong>.
+                            These appear as buttons on the <strong>login and register</strong> screens, above the form, and
+                            as icons in the <strong>dashboard topbar</strong>. Every Home control on the panel - the
+                            topbar button, the breadcrumb and the button row - follows the Home link you set here.
                         </p>
 
                         @foreach ($link_slots as $slot => $meta)
                             @php $link = $links[$slot]; @endphp
-                            <div class="row">
-                                <div class="col-sm-8">
-                                    <div class="checkbox no-margin-bottom">
-                                        <input id="{{ $slot }}LinkEnabled" name="{{ $slot }}_enabled" type="checkbox" value="1"
-                                               {{ old($slot . '_enabled', $link['enabled']) ? 'checked' : '' }} />
-                                        <label for="{{ $slot }}LinkEnabled" class="strong">Show the {{ $meta['label'] }} link</label>
-                                    </div>
+                            <div class="bs-ss-field">
+                                <div class="checkbox no-margin-bottom">
+                                    <input id="{{ $slot }}LinkEnabled" name="{{ $slot }}_enabled" type="checkbox" value="1"
+                                           {{ old($slot . '_enabled', $link['enabled']) ? 'checked' : '' }} />
+                                    <label for="{{ $slot }}LinkEnabled" class="strong">Show the {{ $meta['label'] }} link</label>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="control-label" for="{{ $slot }}LinkUrl">{{ $meta['label'] }} URL</label>
+                            <div class="bs-ss-field">
+                                <label class="control-label bs-ss-label" for="{{ $slot }}LinkUrl">{{ $meta['label'] }} URL</label>
                                 <input type="text" id="{{ $slot }}LinkUrl" name="{{ $slot }}_url" class="form-control"
                                        maxlength="2048" placeholder="https://example.com"
                                        value="{{ old($slot . '_url', $link['url']) }}" />
@@ -345,14 +390,10 @@
                                     @if ($slot === 'home')
                                         Site-relative paths such as <code>/</code> are fine too.
                                     @endif
-                                    Only <code>https://</code> addresses and single-slash paths are accepted - a
-                                    <code>javascript:</code> URL here would be a security problem.
                                 </p>
                             </div>
 
-                            @if ($slot !== 'home')
-                                <hr>
-                            @endif
+                            <hr>
                         @endforeach
                     </div>
                     <div class="box-footer">
@@ -363,63 +404,113 @@
         @endif
     </div>
 
-    {{-- brine-theme: live overlay preview.
+    {{-- brine-theme: live previews.
 
-         This is deliberately vanilla JS inlined at the end of @section('content'),
-         NOT a @section('footer-scripts') block. The layout defines that section
-         with @show, which means "use the child's version if it defines one, else
-         use this default" - so redefining it REPLACES the whole block and deletes
-         jQuery, Bootstrap and AdminLTE's app.min.js. That is what stopped the
-         page scrolling and the mobile sidebar toggle working.
-
-         Vanilla is the right call anyway: it needs no jQuery, so it can run here
-         instead of depending on load order. --}}
+         Deliberately vanilla JS inlined at the end of @section('content'), NOT a
+         @section('footer-scripts') block. The layout defines that section with
+         @show, which means "use the child's version if it defines one, else use
+         this default" - it does not append. Redefining it replaces the block and
+         deletes jQuery, Bootstrap and AdminLTE, which is what stopped the page
+         scrolling and the mobile sidebar toggle working. Vanilla needs no
+         jQuery, so it can run here. --}}
     <script>
-            (function () {
-                var apply = function (intensity, colour, scrimId, outputId) {
-                    var pct = Math.max(0, Math.min(100, parseInt(intensity, 10) || 0));
-                    var scrim = document.getElementById(scrimId);
-                    if (!scrim) return;
-                    // A bad hex in the free-text field must not blank the preview.
-                    var safe = /^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(colour) ? colour : '#000000';
-                    scrim.style.background = safe.indexOf('#') === 0 ? safe : '#' + safe;
-                    scrim.style.opacity = String(pct / 100);
-                    var out = document.getElementById(outputId);
-                    if (out) out.textContent = pct + '%';
-                };
+        (function () {
+            var byId = function (id) {
+                return document.getElementById(id);
+            };
 
-                var bind = function (id, handler) {
-                    var el = document.getElementById(id);
-                    if (el) el.addEventListener('input', handler);
-                };
+            // ---- icon preview: file picker and pasted link both feed it ----
+            var iconImg = byId('iconPreviewImage');
+            var iconFile = byId('siteIcon');
+            var iconLink = byId('iconUrl');
 
-                ['auth', 'dashboard'].forEach(function (slot) {
-                    var range = document.getElementById(slot + 'OverlayIntensity');
-                    var text = document.getElementById(slot + 'OverlayColour');
-                    var picker = document.getElementById(slot + 'OverlayColourPicker');
-                    var scrim = slot + 'OverlayScrim';
-                    var output = slot + 'OverlayOutput';
-
-                    bind(slot + 'OverlayIntensity', function () {
-                        apply(range.value, text ? text.value : '#000000', scrim, output);
+            if (iconImg) {
+                if (iconFile) {
+                    iconFile.addEventListener('change', function () {
+                        var file = iconFile.files && iconFile.files[0];
+                        if (!file) return;
+                        if (iconImg.dataset.objectUrl) URL.revokeObjectURL(iconImg.dataset.objectUrl);
+                        iconImg.dataset.objectUrl = URL.createObjectURL(file);
+                        iconImg.src = iconImg.dataset.objectUrl;
                     });
+                }
+                if (iconLink) {
+                    // Live only while typing: the server is what finally decides
+                    // whether a URL is acceptable, and a rejected one must not be
+                    // left looking saved.
+                    iconLink.addEventListener('input', function () {
+                        var v = iconLink.value.trim();
+                        if (/^https?:\/\/\S+\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(v)) {
+                            iconImg.src = v;
+                        }
+                    });
+                }
+            }
 
-                    if (text) {
-                        bind(slot + 'OverlayColour', function () {
-                            // Keep the native picker in step while typing.
-                            var v = text.value.trim();
-                            if (/^#[0-9a-fA-F]{6}$/.test(v) && picker) picker.value = v.toLowerCase();
-                            apply(range ? range.value : 0, v, scrim, output);
-                        });
-                    }
+            // ---- background preview + overlay intensity ----
+            var applyScrim = function (id, value) {
+                var scrim = byId(id);
+                if (!scrim) return;
+                var pct = Math.max(0, Math.min(100, parseInt(value, 10) || 0));
+                scrim.style.background = '#000';
+                scrim.style.opacity = String(pct / 100);
+                scrim.style.display = '';
+            };
 
-                    if (picker) {
-                        bind(slot + 'OverlayColourPicker', function () {
-                            if (text) text.value = picker.value.toLowerCase();
-                            apply(range ? range.value : 0, picker.value, scrim, output);
-                        });
-                    }
-                });
-            })();
-        </script>
+            var showPreview = function (imgId, scrimId, emptyId, src) {
+                var img = byId(imgId);
+                var empty = emptyId ? byId(emptyId) : null;
+                if (img) {
+                    img.style.display = '';
+                    if (src) img.src = src;
+                }
+                if (empty) empty.style.display = 'none';
+                // The scrim starts hidden when no image is saved yet, so it has
+                // to come back with the preview - otherwise a fresh upload
+                // shows undimmed until the admin happens to move the slider.
+                var scrim = byId(scrimId);
+                if (scrim) scrim.style.display = '';
+            };
+
+            ['auth', 'dashboard'].forEach(function (slot) {
+                var range = byId(slot + 'Intensity');
+                var out = byId(slot + 'IntensityOut');
+                var scrimId = slot + 'PreviewScrim';
+                var imgId = slot + 'PreviewImage';
+                var emptyId = slot + 'PreviewEmpty';
+                var file = byId(slot + 'File');
+                var link = byId(slot + 'Url');
+
+                if (range) {
+                    range.addEventListener('input', function () {
+                        applyScrim(scrimId, range.value);
+                        if (out) out.textContent = range.value + '%';
+                    });
+                }
+
+                if (file) {
+                    file.addEventListener('change', function () {
+                        var f = file.files && file.files[0];
+                        if (!f) return;
+                        // Release the previous pick so a few reloads in a row
+                        // do not hold the blobs in memory.
+                        if (file.dataset.objectUrl) URL.revokeObjectURL(file.dataset.objectUrl);
+                        var url = URL.createObjectURL(f);
+                        file.dataset.objectUrl = url;
+                        showPreview(imgId, scrimId, emptyId, url);
+                        if (link) link.value = '';
+                    });
+                }
+
+                if (link) {
+                    link.addEventListener('input', function () {
+                        var v = link.value.trim();
+                        if (!/^https?:\/\/\S+$/i.test(v)) return;
+                        showPreview(imgId, scrimId, emptyId, v);
+                        if (file) file.value = '';
+                    });
+                }
+            });
+        })();
+    </script>
 @endsection

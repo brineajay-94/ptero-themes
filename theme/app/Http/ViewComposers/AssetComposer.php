@@ -54,8 +54,10 @@ class AssetComposer
                 'enabled' => false,
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
-            // brine-theme: admin-uploaded hosting logo (Admin -> Branding), null until set.
-            'logo' => self::uploadedLogo(),
+            // brine-theme: admin-uploaded hosting logo (Admin -> Site Settings),
+            // null until set. A pasted link wins over an uploaded file, matching
+            // the backgrounds.
+            'logo' => $this->icon(),
             // brine-theme: public registration switch (Admin -> Registration),
             // read by the auth components to show/hide the register link.
             'registration' => [
@@ -83,12 +85,24 @@ class AssetComposer
         ]);
     }
 
-/**
-     * glob() can return false (open_basedir / permission errors), which would
-     * make count() throw a TypeError on PHP 8 - always normalise it here.
+    /**
+     * The site icon: a pasted link if one is set, otherwise the uploaded file,
+     * otherwise null so the components fall back to the theme emblem.
+     *
+     * glob() can return false under open_basedir, so it is normalised before
+     * being counted. The link is re-validated here, exactly as the backgrounds
+     * are, because it is echoed into an <img src>.
      */
-    private static function uploadedLogo(): ?string
+    private function icon(): ?string
     {
+        $url = $this->settings->get('Brine::icon_url');
+        if (is_string($url)) {
+            $url = trim($url);
+            if ($url !== '' && self::isSafeImageUrl($url)) {
+                return $url;
+            }
+        }
+
         $logos = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
 
         return is_array($logos) && count($logos) > 0 ? '/themes/pterodactyl/images/' . basename($logos[0]) : null;
@@ -123,45 +137,32 @@ class AssetComposer
     }
 
     /**
-     * The scrim colour and strength for one background slot.
+     * The scrim strength for one background slot.
      *
-     * The colour is returned as an "R G B" triplet rather than a hex string so
-     * the client can drop it straight into `rgb(var(...) / ...)` alongside the
-     * palette tokens. Anything that is not a hex value - a value predating the
-     * theme, or one written straight into the settings table - falls back to
-     * black rather than reaching the stylesheet.
+     * The scrim is always black: the admin colour picker was removed, and black
+     * is the only scrim that reliably keeps light text legible over an arbitrary
+     * photo. The value is returned as an "R G B" triplet rather than a hex
+     * string so the client can drop it straight into `rgb(var(...) / ...)`
+     * alongside the palette tokens.
      *
      * @return array{rgb: string, strength: string}
      */
     private function overlay(string $slot): array
     {
-        $colour = '#000000';
         $intensity = $slot === 'auth' ? 78 : 62;
 
         try {
-            $stored = $this->settings->get('Brine::bg_' . $slot . '_overlay_colour');
-            if (is_string($stored) && preg_match('/^#?([0-9a-fA-F]{6})$/', trim($stored), $m) === 1) {
-                $colour = '#' . strtolower($m[1]);
-            }
-
-            $storedIntensity = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
-            if (is_numeric($storedIntensity)) {
-                $intensity = max(0, min(100, (int) $storedIntensity));
+            $stored = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
+            if (is_numeric($stored)) {
+                $intensity = max(0, min(100, (int) $stored));
             }
         } catch (\Throwable) {
             // A settings lookup that fails (database down on a page render) must
-            // not take the panel's login screen with it; the defaults are fine.
+            // not take the panel's login screen with it; the default is fine.
         }
 
-        $hex = ltrim($colour, '#');
-
         return [
-            'rgb' => sprintf(
-                '%d %d %d',
-                hexdec(substr($hex, 0, 2)),
-                hexdec(substr($hex, 2, 2)),
-                hexdec(substr($hex, 4, 2))
-            ),
+            'rgb' => '0 0 0',
             'strength' => number_format($intensity / 100, 2, '.', ''),
         ];
     }
@@ -257,6 +258,6 @@ class AssetComposer
 
         $extension = strtolower(pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
 
-        return in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'], true);
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico'], true);
     }
 }

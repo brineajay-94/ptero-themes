@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",

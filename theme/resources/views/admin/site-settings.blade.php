@@ -284,11 +284,18 @@
         @endforeach
     </div>
 
-    {{-- brine-theme: preview the scrim live. This must live in footer-scripts,
-         after jQuery and the AdminLTE bundle - inline JS in @section('content')
-         runs before either is loaded, which is exactly what broke the tabs. --}}
-    @section('footer-scripts')
-        <script>
+    {{-- brine-theme: live overlay preview.
+
+         This is deliberately vanilla JS inlined at the end of @section('content'),
+         NOT a @section('footer-scripts') block. The layout defines that section
+         with @show, which means "use the child's version if it defines one, else
+         use this default" - so redefining it REPLACES the whole block and deletes
+         jQuery, Bootstrap and AdminLTE's app.min.js. That is what stopped the
+         page scrolling and the mobile sidebar toggle working.
+
+         Vanilla is the right call anyway: it needs no jQuery, so it can run here
+         instead of depending on load order. --}}
+    <script>
             (function () {
                 var apply = function (intensity, colour, scrimId, outputId) {
                     var pct = Math.max(0, Math.min(100, parseInt(intensity, 10) || 0));
@@ -336,5 +343,4 @@
                 });
             })();
         </script>
-    @endsection
 @endsection

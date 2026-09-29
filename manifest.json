@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -120,7 +120,7 @@
         {
             "path": "resources/scripts/components/elements/PageContentBlock.tsx",
             "action": "replace",
-            "note": "Adds the shared footer, showing the panel site name"
+            "note": "Adds the shared footer: Powered by the panel's own site name via brandName(), plus a Design copyright brineajay credit line"
         },
         {
             "path": "resources/scripts/components/elements/button/style.module.css",

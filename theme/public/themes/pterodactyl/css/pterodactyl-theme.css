@@ -1376,6 +1376,25 @@
     text-decoration: underline;
 }
 
+/* Design credit, on its own line under the footer rule. Sits outside
+ * .pt-footer so it does not inherit that element's top border and margin. */
+.pt-footer-credit {
+    margin-top: 0.35rem;
+    text-align: center;
+    font-size: 0.68rem;
+    color: rgb(var(--pt-gray-400));
+}
+
+.pt-footer-credit a {
+    color: rgb(var(--pt-gold-300));
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pt-footer-credit a:hover {
+    text-decoration: underline;
+}
+
 /* --------------------------------------------------------------- console -- */
 
 .pt-console-head {

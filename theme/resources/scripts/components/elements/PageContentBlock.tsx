@@ -3,6 +3,7 @@ import ContentContainer from '@/components/elements/ContentContainer';
 import { CSSTransition } from 'react-transition-group';
 import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
+import { brandName } from '@/lib/brand';
 
 export interface PageContentBlockProps {
     title?: string;
@@ -25,8 +26,24 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                     {children}
                 </ContentContainer>
                 <ContentContainer>
+                    {/*
+                     * The company name is the panel's own site name, read through
+                     * brandName() like everywhere else in the theme - it used to
+                     * be a hardcoded "brinecloud", which meant a renamed panel
+                     * still credited the wrong company.
+                     */}
                     <p className={'pt-footer'}>
-                        Powered by <strong>brinecloud</strong> &copy; {new Date().getFullYear()}
+                        Powered by <strong>{brandName()}</strong> &copy; {new Date().getFullYear()}
+                    </p>
+                    <p className={'pt-footer-credit'}>
+                        Design copyright{' '}
+                        <a
+                            href={'https://github.com/brineajay-94/ptero-themes'}
+                            target={'_blank'}
+                            rel={'noopener noreferrer'}
+                        >
+                            brineajay
+                        </a>
                     </p>
                 </ContentContainer>
             </>

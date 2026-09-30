@@ -299,18 +299,26 @@
                             </div>
 
                             <div class="pg-toolbar mt-6">
-                                <input class="pg-search" type="text" placeholder="Search Modrinth for a plugin…" value="essentials" aria-label="Search plugins" />
-                                <button type="button" class="pt-btn">
-                                    <span data-icon="search" data-icon-size="0.9rem"></span>
-                                    <span class="ml-2">Search</span>
-                                </button>
+                                <div class="pg-searchwrap">
+                                    <span class="pg-searchicon" data-icon="search" data-icon-size="0.85rem"></span>
+                                    <input class="pg-search" type="text" placeholder="Search Modrinth…" value="" aria-label="Search plugins" autocomplete="off" />
+                                </div>
+                            </div>
+
+                            <div class="pg-filterbar">
+                                <span class="pg-badge">Minecraft 1.21.4</span>
+                                <form class="pg-versionform">
+                                    <input class="pg-versioninput" type="text" value="1.21.4" aria-label="Minecraft version" size="8" />
+                                    <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Apply</button>
+                                    <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Clear</button>
+                                </form>
                             </div>
 
                             <div class="pg-meta mb-3">
-                                <span><strong>1</strong> result</span>
+                                <span><strong>3.4k</strong> plugins - most downloaded</span>
                             </div>
 
-                            <div class="pg-grid">
+                            <div class="pg-results">
                                 <div class="pg-project">
                                     <div class="pg-project-head">
                                         <span class="pg-project-icon"><span data-icon="puzzle-piece" data-icon-size="1.1rem"></span></span>
@@ -328,8 +336,8 @@
                                         <select class="pg-select" aria-label="Version for EssentialsX">
                                             <option>2.22.0 · 4.6 MB</option>
                                             <option>2.21.0 · 4.5 MB</option>
-                                            <option>2.20.1 · 4.4 MB</option>
                                         </select>
+                                        <span class="pg-badge">1.21.4</span>
                                         <button type="button" class="pt-btn">Install</button>
                                     </div>
                                 </div>
@@ -356,9 +364,40 @@
                                             <option>5.5.4 · 2.1 MB</option>
                                             <option>5.5.3 · 2.1 MB</option>
                                         </select>
+                                        <span class="pg-badge">1.21.4</span>
                                         <button type="button" class="pt-btn">Install</button>
                                     </div>
                                 </div>
+
+                                <div class="pg-project">
+                                    <div class="pg-project-head">
+                                        <span class="pg-project-icon"><span data-icon="puzzle-piece" data-icon-size="1.1rem"></span></span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="pg-project-title block truncate">SomeObscurePlugin</span>
+                                            <span class="pg-project-author">by someone · MIT</span>
+                                        </span>
+                                    </div>
+                                    <p class="pg-desc">No build exists for the selected Minecraft version.</p>
+                                    <div class="pg-notice pg-notice--warn mb-2">
+                                        <span data-icon="exclamation-triangle" data-icon-size="0.9rem"></span>
+                                        <span>No build for 1.21.4. <button type="button" class="pg-linkish">Show all versions</button></span>
+                                    </div>
+                                    <div class="pg-foot">
+                                        <button type="button" class="pt-btn">Show versions</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pg-pagination">
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs" disabled>
+                                    <span data-icon="chevron-left" data-icon-size="0.8rem"></span>
+                                    <span class="ml-2">Previous</span>
+                                </button>
+                                <span class="pg-pageinfo">Page <strong>1</strong> of <strong>170</strong></span>
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">
+                                    <span class="mr-2">Next</span>
+                                    <span data-icon="chevron-right" data-icon-size="0.8rem"></span>
+                                </button>
                             </div>
                         </section>
 

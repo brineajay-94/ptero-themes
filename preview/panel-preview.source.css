@@ -523,7 +523,7 @@
         box-shadow: 0 0 0 3px rgb(var(--pt-navy-300) / 0.22);
     }
 
-    .pg-grid {
+    .pg-results {
         display: grid;
         gap: 0.75rem;
         grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
@@ -625,6 +625,80 @@
         @apply p-6 text-center text-sm;
         border: 1px dashed rgb(var(--pt-gray-600));
         color: rgb(var(--pt-gray-400));
+    }
+
+    /* search box with an inset icon and spinner */
+    .pg-searchwrap {
+        @apply relative flex items-center flex-1 w-full;
+    }
+
+    .pg-searchicon {
+        @apply absolute flex-shrink-0;
+        left: 0.75rem;
+        color: rgb(var(--pt-gray-400));
+        pointer-events: none;
+    }
+
+    .pg-searchwrap > .pg-search {
+        padding-left: 2.4rem;
+        padding-right: 2.6rem;
+    }
+
+    /* version filter bar */
+    .pg-filterbar {
+        @apply flex flex-wrap items-center gap-3 mb-4 text-sm;
+    }
+
+    .pg-filternote {
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-versionform {
+        @apply flex items-center gap-2;
+    }
+
+    .pg-versioninput {
+        @apply px-2 py-1 text-xs;
+        border: 1px solid rgb(var(--pt-gray-500));
+        background-color: rgb(var(--pt-black));
+        color: rgb(var(--pt-gray-100));
+        outline: none;
+    }
+
+    .pg-versioninput:focus {
+        border-color: rgb(var(--pt-navy-300));
+    }
+
+    .pg-badge {
+        @apply px-2 py-0.5 text-xs font-semibold flex-shrink-0;
+        border: 1px solid rgb(var(--pt-navy-600));
+        background-color: rgb(var(--pt-navy-600) / 0.25);
+        color: rgb(var(--pt-gray-100));
+        white-space: nowrap;
+    }
+
+    .pg-linkish {
+        @apply underline;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    /* pager */
+    .pg-pagination {
+        @apply flex items-center justify-center gap-4 mt-6;
+    }
+
+    .pg-pageinfo {
+        @apply text-sm;
+        color: rgb(var(--pt-gray-300));
+    }
+
+    .pg-pageinfo strong {
+        color: rgb(var(--pt-gray-50));
     }
 }
 }

@@ -446,7 +446,6 @@ A plugin installer at **Server -> Plugins**, for jar plugins. It searches the
 Modrinth catalog, installs straight into `plugins/`, lists what is installed and
 removes it. It is theme-only: **no new panel route, no new permission, no
 backend of ours.**
-
 | File | Action |
 | --- | --- |
 | `components/server/plugins/PluginsContainer.tsx` | create - the page |
@@ -476,6 +475,41 @@ version. The probe is one request per server and does not block the nav.
 **Permissions.** `file.read` to open the page, `file.create` to install,
 `file.delete` to remove. A read-only subuser can see what is installed but sees
 no install or remove controls.
+
+**Browse, search and paging.**
+
+- **Browse** opens on the most-downloaded Paper plugins rather than an empty
+  prompt. That is an *empty* Modrinth query with `sort=downloads` - the same
+  request the search box makes, minus the query. An empty query was previously
+  rejected here as noise, which is right for a search box and wrong for a default
+  listing.
+- **Search is live**, debounced 300 ms, so results update as you type instead of
+  on submit. Out-of-order responses are dropped, which a per-keystroke search
+  makes routine: a slow request for `ess` must not overwrite `essentials`.
+- **20 results per page** with Previous/Next and a page counter, from Modrinth's
+  `limit`/`offset`. The page resets on the keystroke rather than after the
+  debounce, so changing the query never briefly shows page 3 of the new results.
+
+**Minecraft version matching.** The page reads `MINECRAFT_VERSION` from the
+server's egg variables - Paper exposes it with `user_viewable`, so it is already
+in the client payload and needs no daemon round trip. That version then does two
+things: it filters the catalog through Modrinth's `versions:` facet, and it
+restricts the version picker to builds whose own `game_versions` array contains
+it, defaulting to the newest compatible one. Install therefore picks a build that
+matches the server rather than the newest build overall.
+
+Two details worth knowing:
+
+- The filter is **re-applied client-side** on the way back from Modrinth. A
+  build's `game_versions` array is the authority on what it supports, and
+  trusting the server-side filter alone has been observed to return a build whose
+  array does not contain the version asked for.
+- The egg default is the literal string `latest`, which is a sentinel rather than
+  a version. That is reported as **unknown** and no filter is applied, with the
+  reason shown and an input to set one by hand. Guessing would silently hide
+  compatible plugins, which is worse than showing all of them. A project with no
+  build for the selected version says so and offers to show every version rather
+  than presenting an empty picker.
 
 **Also worth knowing.** A version that declares `required` dependencies shows a
 warning before install, because installing it without them fails silently at

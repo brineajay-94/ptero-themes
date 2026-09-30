@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faBoxOpen,
     faExclamationTriangle,
     faPuzzlePiece,
     faSearch,
     faTrash,
+    faArrowLeft,
+    faArrowRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
 import { useStoreActions } from '@/state/hooks';
@@ -24,7 +24,9 @@ import {
     listInstalledPlugins,
     ModrinthHit,
     ModrinthVersion,
+    PAGE_SIZE,
     primaryJarFor,
+    readMinecraftVersion,
     removePlugin,
     searchPlugins,
 } from '@/api/server/plugins';
@@ -32,34 +34,57 @@ import style from './style.module.css';
 
 type Tab = 'installed' | 'browse';
 
-/** Versions per project kept in the picker, newest first. */
+/** Debounce for the search box. Long enough to not fire per keystroke, short
+ *  enough to still feel live. */
+const SEARCH_DEBOUNCE = 300;
+
+/** Builds kept in a version picker. */
 const VERSION_LIMIT = 25;
 
 interface ProjectState {
     versions: ModrinthVersion[];
-    /** Version id currently chosen in the picker, or null while still loading. */
     selected: string | null;
     loading: boolean;
     failed: boolean;
+    /** Set when a version filter was applied and matched nothing. */
+    emptyForVersion: boolean;
+    /** Ignore the version filter and load every build instead. */
+    ignoreVersion: boolean;
 }
 
-const emptyProject = (): ProjectState => ({ versions: [], selected: null, loading: false, failed: false });
+const emptyProject = (): ProjectState => ({
+    versions: [],
+    selected: null,
+    loading: false,
+    failed: false,
+    emptyForVersion: false,
+    ignoreVersion: false,
+});
 
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const variables = ServerContext.useStoreState((state) => state.server.data!.variables);
     const addFlash = useStoreActions((actions) => actions.flashes.addFlash);
-    const history = useHistory();
+
+    // The server's own Minecraft version, which is what a compatible build is
+    // picked against. Overridable below, because a server on the egg default of
+    // "latest" reports nothing useful and the user still knows their version.
+    const serverVersion = useMemo(() => readMinecraftVersion(variables), [variables]);
+    const [gameVersion, setGameVersion] = useState(serverVersion);
+    const [versionDraft, setVersionDraft] = useState(serverVersion);
+    useEffect(() => setGameVersion(serverVersion), [serverVersion]);
 
     const [tab, setTab] = useState<Tab>('installed');
     const [query, setQuery] = useState('');
-    const [searching, setSearching] = useState(false);
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [results, setResults] = useState<{ total: number; hits: ModrinthHit[] } | null>(null);
 
     const [installed, setInstalled] = useState<InstalledPlugin[] | null>(null);
     const [installedError, setInstalledError] = useState<string | null>(null);
     const [busy, setBusy] = useState<Record<string, boolean>>({});
-
     const [projects, setProjects] = useState<Record<string, ProjectState>>({});
 
     const refreshInstalled = useCallback(async () => {
@@ -76,60 +101,92 @@ export default () => {
         refreshInstalled();
     }, [refreshInstalled]);
 
+    // Debounce the search box, and drop back to page 1 on the keystroke rather
+    // than after the debounce, so changing the query never briefly shows page 3
+    // of the new results.
+    const onQueryChange = (value: string) => {
+        setQuery(value);
+        setPage(1);
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE);
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    // One fetch for (tab, query, page, version). The `active` flag drops
+    // out-of-order responses, which a per-keystroke search makes routine: a slow
+    // request for "ess" must not overwrite the results for "essentials".
+    useEffect(() => {
+        if (tab !== 'browse') {
+            return;
+        }
+
+        let active = true;
+        const trimmed = debouncedQuery.trim();
+
+        setLoading(true);
+        setSearchError(null);
+
+        searchPlugins(trimmed, {
+            limit: PAGE_SIZE,
+            offset: (page - 1) * PAGE_SIZE,
+            sort: trimmed ? 'relevance' : 'downloads',
+            gameVersion: gameVersion || undefined,
+        })
+            .then((next) => {
+                if (active) {
+                    setResults(next);
+                    setLoading(false);
+                }
+            })
+            .catch((error) => {
+                if (active) {
+                    setResults(null);
+                    setSearchError(error instanceof Error ? error.message : 'Search failed.');
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [tab, debouncedQuery, page, gameVersion]);
+
     const setProject = (id: string, patch: Partial<ProjectState>) =>
         setProjects((current) => ({ ...current, [id]: { ...(current[id] || emptyProject()), ...patch } }));
 
     const loadVersions = useCallback(
-        async (hit: ModrinthHit) => {
-            if (projects[hit.project_id]?.versions.length) {
+        async (hit: ModrinthHit, ignoreVersion = false) => {
+            const state = projects[hit.project_id];
+            if (!ignoreVersion && state?.versions.length) {
                 return;
             }
 
-            setProject(hit.project_id, { loading: true, failed: false });
+            const filter = ignoreVersion ? undefined : gameVersion || undefined;
+
+            setProject(hit.project_id, { loading: true, failed: false, ignoreVersion });
 
             try {
-                const versions = (await getPluginVersions(hit.project_id)).slice(0, VERSION_LIMIT);
+                const versions = (await getPluginVersions(hit.project_id, filter)).slice(0, VERSION_LIMIT);
                 setProject(hit.project_id, {
                     versions,
+                    // Newest first from the API, so index 0 is the pick. It is the
+                    // newest build that also matches the version filter, which is
+                    // the "compatible version" we want by default.
                     selected: versions[0]?.id || null,
                     loading: false,
+                    emptyForVersion: !!filter && versions.length === 0,
                 });
-            } catch (error) {
+            } catch {
                 setProject(hit.project_id, { loading: false, failed: true });
-                addFlash({
-                    type: 'error',
-                    key: 'plugins',
-                    title: error instanceof Error ? error.message : 'Could not load versions',
-                    message: `Could not load versions for ${hit.title}.`,
-                });
             }
         },
-        // projects is read for its cache check; including it would refetch on
-        // every keystroke because setProject rewrites the object.
+        // projects is read for its cache check. Including it would refetch on
+        // every render because setProject rewrites the object.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [uuid]
+        [gameVersion]
     );
-
-    const onSearch = async (event: React.FormEvent) => {
-        event.preventDefault();
-
-        const trimmed = query.trim();
-        if (!trimmed) {
-            return;
-        }
-
-        setSearching(true);
-        setSearchError(null);
-
-        try {
-            setResults(await searchPlugins(trimmed));
-        } catch (error) {
-            setResults(null);
-            setSearchError(error instanceof Error ? error.message : 'Search failed.');
-        } finally {
-            setSearching(false);
-        }
-    };
 
     const onInstall = async (hit: ModrinthHit) => {
         const state = projects[hit.project_id];
@@ -162,12 +219,7 @@ export default () => {
             });
             await refreshInstalled();
         } catch (error) {
-            addFlash({
-                type: 'error',
-                key: 'plugins',
-                title: 'Install failed',
-                message: httpErrorToHuman(error),
-            });
+            addFlash({ type: 'error', key: 'plugins', title: 'Install failed', message: httpErrorToHuman(error) });
         } finally {
             setBusy((current) => ({ ...current, [hit.project_id]: false }));
         }
@@ -186,12 +238,7 @@ export default () => {
             });
             await refreshInstalled();
         } catch (error) {
-            addFlash({
-                type: 'error',
-                key: 'plugins',
-                title: 'Remove failed',
-                message: httpErrorToHuman(error),
-            });
+            addFlash({ type: 'error', key: 'plugins', title: 'Remove failed', message: httpErrorToHuman(error) });
         } finally {
             setBusy((current) => ({ ...current, [plugin.name]: false }));
         }
@@ -202,6 +249,10 @@ export default () => {
         [installed]
     );
 
+    const totalPages = results ? Math.max(1, Math.ceil(results.total / PAGE_SIZE)) : 1;
+    const isBrowsing = tab === 'browse';
+    const trimmedQuery = debouncedQuery.trim();
+
     const renderProject = (hit: ModrinthHit) => {
         const state = projects[hit.project_id] || emptyProject();
         const version = state.versions.find((entry) => entry.id === state.selected);
@@ -211,19 +262,14 @@ export default () => {
 
         // Only an exact filename match counts as installed. Modrinth filenames
         // carry the version, so a newer build of the same plugin will not match
-        // and stays installable - which is the behaviour people expect when they
-        // are trying to upgrade.
+        // and stays installable - which is what someone trying to upgrade wants.
         const alreadyOnDisk = jar ? installedNames.has(jar.filename.toLowerCase()) : false;
 
         return (
             <div key={hit.project_id} className={style.project}>
                 <div className={style.projectHead}>
                     <span className={style.projectIcon}>
-                        {hit.icon_url ? (
-                            <img src={hit.icon_url} alt={''} />
-                        ) : (
-                            <FontAwesomeIcon icon={faPuzzlePiece} />
-                        )}
+                        {hit.icon_url ? <img src={hit.icon_url} alt={''} /> : <FontAwesomeIcon icon={faPuzzlePiece} />}
                     </span>
                     <span className={'min-w-0 flex-1'}>
                         <span className={`${style.projectTitle} block truncate`}>{hit.title}</span>
@@ -244,14 +290,24 @@ export default () => {
                     </span>
                 </div>
 
-                {state.failed && <div className={`${style.notice} ${style['notice--warn']}`}>Versions unavailable.</div>}
+                {state.emptyForVersion && (
+                    <div className={`${style.notice} ${style['notice--warn']} mb-2`}>
+                        <FontAwesomeIcon icon={faExclamationTriangle} />
+                        <span>
+                            No build for {gameVersion}.{' '}
+                            <button type={'button'} className={style.linkish} onClick={() => loadVersions(hit, true)}>
+                                Show all versions
+                            </button>
+                        </span>
+                    </div>
+                )}
 
                 {required.length > 0 && (
                     <div className={`${style.notice} ${style['notice--warn']} mb-2`}>
                         <FontAwesomeIcon icon={faExclamationTriangle} />
                         <span>
-                            Needs {required.length} required{' '}
-                            {required.length === 1 ? 'dependency' : 'dependencies'}. Install{' '}
+                            Needs {required.length} required {required.length === 1 ? 'dependency' : 'dependencies'}.
+                            Install{' '}
                             {required
                                 .map((dep) => (dep.project_id ? `@${dep.project_id}` : 'a library jar'))
                                 .join(', ')}{' '}
@@ -263,22 +319,34 @@ export default () => {
                 <div className={style.projectFoot}>
                     {state.loading ? (
                         <Spinner size={'small'} />
+                    ) : state.failed ? (
+                        <Button type={'button'} onClick={() => loadVersions(hit, state.ignoreVersion)}>
+                            Retry
+                        </Button>
                     ) : state.versions.length ? (
                         <>
                             <select
                                 className={style.select}
                                 value={state.selected || ''}
-                                onChange={(e) => setProject(hit.project_id, { selected: e.currentTarget.value })}
+                                onChange={(event) =>
+                                    setProject(hit.project_id, { selected: event.currentTarget.value })
+                                }
                                 aria-label={`Version for ${hit.title}`}
                             >
                                 {state.versions.map((entry) => (
                                     <option key={entry.id} value={entry.id}>
                                         {entry.version_number}
                                         {entry.version_type !== 'release' ? ` (${entry.version_type})` : ''}
-                                        {jar && entry.id === state.selected ? ` · ${formatBytes(jar.size)}` : ''}
+                                        {entry.id === state.selected && jar ? ` · ${formatBytes(jar.size)}` : ''}
                                     </option>
                                 ))}
                             </select>
+
+                            {gameVersion && !state.ignoreVersion && (
+                                <span className={style.badge} title={`Builds for ${gameVersion}`}>
+                                    {gameVersion}
+                                </span>
+                            )}
 
                             <Can action={'file.create'}>
                                 <Button
@@ -361,19 +429,71 @@ export default () => {
                         )
                     ) : (
                         <>
-                            <form className={style.toolbar} onSubmit={onSearch}>
-                                <input
-                                    className={style.search}
-                                    value={query}
-                                    onChange={(e) => setQuery(e.currentTarget.value)}
-                                    placeholder={'Search Modrinth for a plugin…'}
-                                    aria-label={'Search plugins'}
-                                />
-                                <Button type={'submit'} disabled={searching || !query.trim()}>
-                                    <FontAwesomeIcon icon={faSearch} />
-                                    <span className={'ml-2'}>{searching ? 'Searching…' : 'Search'}</span>
-                                </Button>
-                            </form>
+                            <div className={style.toolbar}>
+                                <div className={style.searchWrap}>
+                                    <FontAwesomeIcon icon={faSearch} className={style.searchIcon} />
+                                    <input
+                                        className={style.search}
+                                        value={query}
+                                        onChange={(event) => onQueryChange(event.currentTarget.value)}
+                                        placeholder={'Search Modrinth…'}
+                                        aria-label={'Search plugins'}
+                                        autoComplete={'off'}
+                                        spellCheck={false}
+                                    />
+                                    {loading && <Spinner size={'small'} />}
+                                </div>
+                            </div>
+
+                            <div className={style.filterBar}>
+                                {gameVersion ? (
+                                    <span className={style.badge} title={'Filtered to this Minecraft version'}>
+                                        Minecraft {gameVersion}
+                                    </span>
+                                ) : (
+                                    <span className={style.filterNote}>
+                                        {serverVersion
+                                            ? 'No Minecraft version set - showing every version.'
+                                            : 'This server reports no Minecraft version - showing every version.'}
+                                    </span>
+                                )}
+
+                                <form
+                                    className={style.versionForm}
+                                    onSubmit={(event) => {
+                                        event.preventDefault();
+                                        setPage(1);
+                                        setGameVersion(versionDraft.trim());
+                                        setProjects({});
+                                    }}
+                                >
+                                    <input
+                                        className={style.versionInput}
+                                        value={versionDraft}
+                                        onChange={(event) => setVersionDraft(event.currentTarget.value)}
+                                        placeholder={'1.21.4'}
+                                        aria-label={'Minecraft version'}
+                                        size={8}
+                                    />
+                                    <Button type={'submit'} size={Button.Sizes.Small}>
+                                        Apply
+                                    </Button>
+                                    {gameVersion && (
+                                        <Button
+                                            type={'button'}
+                                            size={Button.Sizes.Small}
+                                            onClick={() => {
+                                                setVersionDraft('');
+                                                setGameVersion('');
+                                                setProjects({});
+                                                setPage(1);
+                                            }}
+                                        >
+                                            Clear
+                                        </Button>
+                                    )}
+                                </form>
+                            </div>
 
                             {searchError && (
                                 <div className={`${style.notice} ${style['notice--warn']}`}>
@@ -382,15 +502,12 @@ export default () => {
                                 </div>
                             )}
 
-                            {!results && !searchError && (
+                            {results && results.hits.length === 0 && !loading && (
                                 <div className={style.empty}>
-                                    Search the Modrinth plugin catalog. Downloads go straight from Modrinth to
-                                    this server.
+                                    {trimmedQuery
+                                        ? `Nothing matched “${trimmedQuery}”.`
+                                        : 'No plugins found.'}
                                 </div>
-                            )}
-
-                            {results && results.hits.length === 0 && (
-                                <div className={style.empty}>No plugins matched “{query.trim()}”.</div>
                             )}
 
                             {results && results.hits.length > 0 && (
@@ -398,10 +515,40 @@ export default () => {
                                     <div className={`${style.meta} mb-3`}>
                                         <span>
                                             <strong>{formatCount(results.total)}</strong>{' '}
-                                            {results.total === 1 ? 'result' : 'results'}
+                                            {results.total === 1 ? 'plugin' : 'plugins'}
+                                            {trimmedQuery ? ` for “${trimmedQuery}”` : ' - most downloaded'}
                                         </span>
                                     </div>
+
                                     <div className={style.results}>{results.hits.map(renderProject)}</div>
+
+                                    {totalPages > 1 && (
+                                        <div className={style.pagination}>
+                                            <Button
+                                                type={'button'}
+                                                size={Button.Sizes.Small}
+                                                disabled={page <= 1 || loading}
+                                                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                                            >
+                                                <FontAwesomeIcon icon={faArrowLeft} />
+                                                <span className={'ml-2'}>Previous</span>
+                                            </Button>
+
+                                            <span className={style.pageInfo}>
+                                                Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+                                            </span>
+
+                                            <Button
+                                                type={'button'}
+                                                size={Button.Sizes.Small}
+                                                disabled={page >= totalPages || loading}
+                                                onClick={() => setPage((value) => value + 1)}
+                                            >
+                                                <span className={'mr-2'}>Next</span>
+                                                <FontAwesomeIcon icon={faArrowRight} />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </>

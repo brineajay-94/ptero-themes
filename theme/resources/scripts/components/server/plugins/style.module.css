@@ -85,6 +85,91 @@
     }
 }
 
+/* The search box grew an icon and a spinner, so it is a positioned wrapper with
+ * the input inset rather than a bare input. */
+.searchWrap {
+    @apply relative flex items-center flex-1 w-full;
+}
+
+.searchIcon {
+    @apply absolute flex-shrink-0;
+    left: 0.75rem;
+    color: rgb(var(--pt-gray-400));
+    pointer-events: none;
+}
+
+.searchWrap > .search {
+    padding-left: 2.4rem;
+    padding-right: 2.6rem;
+}
+
+.searchWrap > svg:last-child,
+.searchWrap > span:last-child {
+    @apply absolute;
+    right: 0.75rem;
+}
+
+/* Version filter bar: the detected version, or a note explaining why nothing is
+ * filtered, plus the override input. */
+.filterBar {
+    @apply flex flex-wrap items-center gap-3 mb-4 text-sm;
+}
+
+.filterNote {
+    color: rgb(var(--pt-gray-400));
+}
+
+.versionForm {
+    @apply flex items-center gap-2;
+}
+
+.versionInput {
+    @apply px-2 py-1 text-xs;
+
+    border: 1px solid rgb(var(--pt-gray-500));
+    background-color: rgb(var(--pt-black));
+    color: rgb(var(--pt-gray-100));
+    outline: none;
+}
+
+.versionInput:focus {
+    border-color: rgb(var(--pt-navy-300));
+}
+
+.badge {
+    @apply px-2 py-0.5 text-xs font-semibold flex-shrink-0;
+
+    border: 1px solid rgb(var(--pt-navy-600));
+    background-color: rgb(var(--pt-navy-600) / 0.25);
+    color: rgb(var(--pt-gray-100));
+    white-space: nowrap;
+}
+
+.linkish {
+    @apply underline;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+}
+
+/* 20 results per page is a lot of cards, so the pager is always visible rather
+ * than only when a page boundary is near. */
+.pagination {
+    @apply flex items-center justify-center gap-4 mt-6;
+}
+
+.pageInfo {
+    @apply text-sm;
+    color: rgb(var(--pt-gray-300));
+}
+
+.pageInfo strong {
+    color: rgb(var(--pt-gray-50));
+}
+
 .search {
     @apply flex-1 px-3 py-2 text-sm w-full;
 

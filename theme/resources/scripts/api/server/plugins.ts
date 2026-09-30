@@ -103,32 +103,106 @@ const modrinthGet = async <T>(path: string, params?: Record<string, string>): Pr
     return (await response.json()) as T;
 };
 
+export interface SearchOptions {
+    /** Results per page. Modrinth caps this at 100. */
+    limit?: number;
+    offset?: number;
+    /**
+     * `relevance` while searching, `downloads` for the Browse tab's popular
+     * list. An empty query with `downloads` is what makes Browse show something
+     * useful instead of an empty prompt.
+     */
+    sort?: 'relevance' | 'downloads' | 'follows' | 'newest' | 'updated';
+    /** Minecraft version to restrict to, e.g. `1.21.4`. Empty means no filter. */
+    gameVersion?: string;
+}
+
+/** Results per page. */
+export const PAGE_SIZE = 20;
+
 /**
- * Search the plugin catalog. An empty query is rejected rather than sent: a
- * blank Modrinth search returns an arbitrary slice of the whole catalog, which
- * reads as noise rather than as results.
+ * Search the plugin catalog.
+ *
+ * An empty query is allowed on purpose: combined with `sort=downloads` it is how
+ * the Browse tab gets the most-downloaded Paper plugins. It used to be rejected
+ * here as noise, which is right for a search box and wrong for a default
+ * listing - those are two different requests.
  */
-export const searchPlugins = async (query: string, limit = 24) => {
+export const searchPlugins = async (query: string, options: SearchOptions = {}) => {
+    const { limit = PAGE_SIZE, offset = 0, sort, gameVersion } = options;
     const trimmed = query.trim();
 
-    if (!trimmed) {
-        return { total: 0, hits: [] as ModrinthHit[] };
+    const facets: unknown[][] = [
+        ['project_type:plugin'],
+        ['categories:paper'],
+    ];
+    if (gameVersion) {
+        facets.push([`versions:${gameVersion}`]);
     }
 
-    const result = await modrinthGet<{ total_hits: number; hits: ModrinthHit[] }>('/search', {
-        query: trimmed,
+    const params: Record<string, string> = {
         limit: String(limit),
-        facets: JSON.stringify([['project_type:plugin'], ['categories:paper']]),
-    });
+        offset: String(offset),
+        facets: JSON.stringify(facets),
+    };
+    if (trimmed) {
+        params.query = trimmed;
+    }
+    if (sort) {
+        params.sort = sort;
+    }
+
+    const result = await modrinthGet<{ total_hits: number; hits: ModrinthHit[] }>('/search', params);
 
     return { total: result.total_hits, hits: result.hits };
 };
 
-/** Every build of a project that targets a loader we support, newest first. */
-export const getPluginVersions = (projectId: string) =>
-    modrinthGet<ModrinthVersion[]>(`/project/${projectId}/version`, {
-        loaders: JSON.stringify(SUPPORTED_LOADERS),
-    });
+/**
+ * Builds of a project, newest first, restricted to a Minecraft version when one
+ * is known.
+ *
+ * Modrinth's server-side `game_versions` filter is re-applied on the way back
+ * in: a build's own `game_versions` array is the authority on what it actually
+ * supports, and trusting the filter alone risks returning a build whose array
+ * does not contain the version that was asked for.
+ */
+export const getPluginVersions = async (projectId: string, gameVersion?: string) => {
+    const params: Record<string, string> = { loaders: JSON.stringify(SUPPORTED_LOADERS) };
+    if (gameVersion) {
+        params.game_versions = JSON.stringify([gameVersion]);
+    }
+
+    const versions = await modrinthGet<ModrinthVersion[]>(`/project/${projectId}/version`, params);
+
+    if (!gameVersion) {
+        return versions;
+    }
+
+    return versions.filter((version) => (version.game_versions || []).includes(gameVersion));
+};
+
+/**
+ * The Minecraft version this server runs, read from its egg variables.
+ *
+ * Paper eggs expose MINECRAFT_VERSION with `user_viewable`, so it arrives in the
+ * client payload - no daemon round trip. `serverValue` wins over `defaultValue`,
+ * and the egg's default is the literal string `latest`, which is a sentinel
+ * rather than a version. That is reported as unknown and no version filter is
+ * applied: guessing would silently hide compatible plugins, which is worse than
+ * showing everything.
+ */
+export const readMinecraftVersion = (
+    variables: { envVariable: string; serverValue: string | null; defaultValue: string | null }[] = []
+): string => {
+    const variable = variables.find((entry) => entry.envVariable === 'MINECRAFT_VERSION');
+    const value = (variable?.serverValue || variable?.defaultValue || '').trim();
+
+    if (!value || value.toLowerCase() === 'latest') {
+        return '';
+    }
+
+    return value;
+};
 
 /**
  * The jar to actually install.

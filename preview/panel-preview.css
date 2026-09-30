@@ -1637,7 +1637,7 @@ video {
         box-shadow: 0 0 0 3px rgb(var(--pt-navy-300) / 0.22);
     }
 
-    .pg-grid {
+    .pg-results {
         display: grid;
         gap: 0.75rem;
         grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
@@ -1739,5 +1739,79 @@ video {
         padding:1.5rem;text-align:center;font-size:0.875rem;
         border: 1px dashed rgb(var(--pt-gray-600));
         color: rgb(var(--pt-gray-400));
+    }
+
+    /* search box with an inset icon and spinner */
+    .pg-searchwrap {
+        position:relative;display:flex;align-items:center;flex:1 1 0%;width:100%;
+    }
+
+    .pg-searchicon {
+        position:absolute;flex-shrink:0;
+        left: 0.75rem;
+        color: rgb(var(--pt-gray-400));
+        pointer-events: none;
+    }
+
+    .pg-searchwrap > .pg-search {
+        padding-left: 2.4rem;
+        padding-right: 2.6rem;
+    }
+
+    /* version filter bar */
+    .pg-filterbar {
+        display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;margin-bottom:1rem;font-size:0.875rem;
+    }
+
+    .pg-filternote {
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-versionform {
+        display:flex;align-items:center;gap:0.5rem;
+    }
+
+    .pg-versioninput {
+        padding-left:0.5rem;padding-right:0.5rem;padding-top:0.25rem;padding-bottom:0.25rem;font-size:0.75rem;
+        border: 1px solid rgb(var(--pt-gray-500));
+        background-color: rgb(var(--pt-black));
+        color: rgb(var(--pt-gray-100));
+        outline: none;
+    }
+
+    .pg-versioninput:focus {
+        border-color: rgb(var(--pt-navy-300));
+    }
+
+    .pg-badge {
+        padding-left:0.5rem;padding-right:0.5rem;padding-top:0.125rem;padding-bottom:0.125rem;font-size:0.75rem;font-weight:600;flex-shrink:0;
+        border: 1px solid rgb(var(--pt-navy-600));
+        background-color: rgb(var(--pt-navy-600) / 0.25);
+        color: rgb(var(--pt-gray-100));
+        white-space: nowrap;
+    }
+
+    .pg-linkish {
+        text-decoration-line:underline;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    /* pager */
+    .pg-pagination {
+        display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:1.5rem;
+    }
+
+    .pg-pageinfo {
+        font-size:0.875rem;
+        color: rgb(var(--pt-gray-300));
+    }
+
+    .pg-pageinfo strong {
+        color: rgb(var(--pt-gray-50));
     }
 }

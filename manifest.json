@@ -240,7 +240,7 @@
         {
             "path": "routes/admin.php",
             "action": "replace",
-            "note": "Stock routes + /admin/site-settings + /admin/registration; /admin/branding now redirects to Site Settings"
+            "note": "Stock routes + /admin/site-settings + /admin/registration + GET/POST /admin/servers/view/{server}/software"
         },
         {
             "path": "resources/views/layouts/admin.blade.php",
@@ -266,6 +266,26 @@
             "path": "resources/scripts/components/server/jars/style.module.css",
             "action": "create",
             "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces"
+        },
+        {
+            "path": "app/Services/ServerSoftwareService.php",
+            "action": "create",
+            "note": "The software (egg) switch, which this panel has had removed entirely - updateBuild takes only allocations and limits, BuildModificationService handles no egg_id or image, and the admin build view never mentions an egg, so this is written from scratch. Two schema differences from stock Pterodactyl matter: the column is eggs.startup not eggs.start, and there is no eggs.docker_image - this is a Blueprint panel with a docker_images map of {label: image}, so resolveImage keeps the server on the Java version it already has. Rebuilds server_variables from the target egg, carrying values across wherever env_variable exists on both. Refuses while the server is live, reading the power state from the daemon because servers.status never records running"
+        },
+        {
+            "path": "app/Http/Controllers/Admin/Servers/ServerSoftwareController.php",
+            "action": "create",
+            "note": "Admin -> Servers -> View -> Software. Root-admin only, but by the panel own gate rather than a check of ours: the routes live in routes/admin.php, which the panel loads inside AdminAuthenticate, and that throws unless root_admin is set. Lists the panel own eggs grouped by nest - no hardcoded list, so imported eggs such as Spigot, Velocity or Fabric appear once an admin adds them"
+        },
+        {
+            "path": "resources/views/admin/servers/view/software.blade.php",
+            "action": "create",
+            "note": "The Software page. Same-family targets (Paper/Spigot/Purpur) and cross-family ones (anything that needs a reinstall) are in separate columns so it is obvious which is which before submitting. Works without JavaScript - the wipe confirmation is enforced server-side - and the script only adds a live summary and the enable/disable"
+        },
+        {
+            "path": "resources/views/admin/servers/partials/navigation.blade.php",
+            "action": "create",
+            "note": "The server-view tab bar, with a Software tab added between Startup and Database. A copy of the panel partial plus that one entry, because the tab bar is shared by every server sub-page and the theme already replaces other shared panel files"
         }
     ],
     "build": {

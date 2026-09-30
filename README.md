@@ -540,6 +540,87 @@ server start. Modrinth versions can carry more than one file (signatures and
 metadata alongside the jar) and `file_type` is not populated consistently, so the
 installer selects on `primary` and re-checks the extension is `.jar`.
 
+## Software switching (admin)
+
+**Admin -> Servers -> View -> Software** changes which software a server runs.
+This is the only part of the theme in the admin area, and it is there because
+that is the only safe place for it.
+
+**Why admin-only.** Stock Pterodactyl restricts egg changes to root admins, and
+for good reason: the files on disk belong to the *old* software. Paper's
+`plugins/` and world format mean nothing to Fabric, so switching normally forces
+a reinstall that wipes the server. A user-facing switcher would be a privilege
+escalation with a data-destruction button attached. The theme is otherwise a user
+panel only.
+
+It is not gated by a check of our own. The routes live in `routes/admin.php`,
+which the panel loads inside `['auth.session', 2FA, AdminAuthenticate]`, and
+`AdminAuthenticate` throws unless `root_admin` is set.
+
+**This panel has no egg switching at all**, so it is written from scratch rather
+than re-enabled: `updateBuild` accepts only allocations and limits,
+`BuildModificationService` handles no `egg_id` or `image`, and the admin build
+view never mentions an egg.
+
+| File | Action |
+| --- | --- |
+| `app/Services/ServerSoftwareService.php` | create - the switch |
+| `app/Http/Controllers/Admin/Servers/ServerSoftwareController.php` | create - the page |
+| `resources/views/admin/servers/view/software.blade.php` | create - the view |
+| `resources/views/admin/servers/partials/navigation.blade.php` | create - adds the Software tab |
+
+**What the switch does**, none of which the panel's own service does any more:
+
+- sets `servers.egg_id` and `servers.image`
+- sets `servers.startup` from the target egg, **but only when the current startup
+  is still the old egg's default** - a customised command is the admin's own and
+  is left alone
+- rebuilds `server_variables` from the target egg, carrying each value across
+  wherever the same `env_variable` exists on both eggs, so `SERVER_JARFILE` and
+  the Minecraft version survive
+- syncs the daemon, and reinstalls when the change crosses families
+
+**Two schema differences from stock Pterodactyl**, both of which would fail
+silently:
+
+- the column is `eggs.startup`, not `eggs.start`
+- there is no `eggs.docker_image`. This is a Blueprint panel and the column is
+  `eggs.docker_images`, a JSON map of `{label: image}` offering several Java
+  versions per egg. The switch picks the entry matching the Java the server is
+  already on, so a Paper -> Spigot change does not silently reset Java 21 to
+  whatever is listed first.
+
+**Safety rules.**
+
+| Case | Behaviour |
+| --- | --- |
+| Same family (Paper/Spigot/Purpur/Bukkit, or Forge/Fabric/Quilt/NeoForge, or proxy to proxy) | no reinstall, files kept |
+| Cross family, or anything involving a non-Minecraft egg | reinstall, and only with the confirmation ticked |
+| Server running | refused |
+| Daemon unreachable | refused - it cannot confirm the server is stopped |
+| Server installing, or skipping egg scripts | refused |
+
+The page splits same-family and cross-family targets into two columns so it is
+obvious which is which before submitting, and it works with JavaScript disabled:
+the confirmation is enforced server-side, and the script only adds a live summary
+and the enable/disable.
+
+The running check reads the power state from the **daemon**, not the database -
+`servers.status` records `installing` and `suspended` but never `running`, so a
+database check would happily switch a live server.
+
+**Eggs are whatever the panel has.** The picker reads the panel's own egg table
+grouped by nest, with no hardcoded list, so imported eggs appear automatically.
+Stock Pterodactyl does not ship Spigot, Velocity, Fabric or Purpur: to get those,
+import them once through **Admin -> Nests -> Import egg** and they will show up
+here.
+
+**One trap worth knowing.** `Server::with('variables')` hydrates the aliased
+`server_value` as `NULL` while the lazy path returns it, so an eager-loaded read
+makes every per-server override look unset. The generated SQL is identical either
+way. The panel reads lazily and is unaffected; anything that eager-loads that
+relation will see the wrong thing.
+
 ## Customising
 
 - **Icon / logo** - Admin -> **Site Settings** -> *Name & icon* takes an uploaded

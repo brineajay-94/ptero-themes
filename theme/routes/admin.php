@@ -115,6 +115,7 @@ Route::group(['prefix' => 'servers'], function () {
         Route::get('/view/{server:id}/startup', [Admin\Servers\ServerViewController::class, 'startup'])->name('admin.servers.view.startup');
         Route::get('/view/{server:id}/database', [Admin\Servers\ServerViewController::class, 'database'])->name('admin.servers.view.database');
         Route::get('/view/{server:id}/mounts', [Admin\Servers\ServerViewController::class, 'mounts'])->name('admin.servers.view.mounts');
+        Route::get('/view/{server:id}/software', [Admin\Servers\ServerSoftwareController::class, 'index'])->name('admin.servers.view.software');
     });
 
     Route::get('/view/{server:id}/manage', [Admin\Servers\ServerViewController::class, 'manage'])->name('admin.servers.view.manage');
@@ -122,6 +123,8 @@ Route::group(['prefix' => 'servers'], function () {
 
     Route::post('/new', [Admin\Servers\CreateServerController::class, 'store']);
     Route::post('/view/{server:id}/build', [Admin\ServersController::class, 'updateBuild']);
+    Route::post('/view/{server:id}/software', [Admin\Servers\ServerSoftwareController::class, 'update'])
+        ->name('admin.servers.view.software.update');
     Route::post('/view/{server:id}/startup', [Admin\ServersController::class, 'saveStartup']);
     Route::post('/view/{server:id}/database', [Admin\ServersController::class, 'newDatabase']);
     Route::post('/view/{server:id}/mounts', [Admin\ServersController::class, 'addMount'])->name('admin.servers.view.mounts.store');

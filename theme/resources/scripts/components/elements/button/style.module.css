@@ -35,7 +35,7 @@
     &:focus {
         outline: none;
         box-shadow:
-            0 0 0 3px rgb(var(--pt-navy-600) / 0.5),
+            0 0 0 3px rgb(var(--pt-navy-300) / 0.5),
             0 0 0 5px rgb(var(--pt-gray-700));
     }
 
@@ -49,7 +49,7 @@
 
         &:focus {
             box-shadow:
-                0 0 0 2px rgb(var(--pt-navy-600) / 0.5),
+                0 0 0 2px rgb(var(--pt-navy-300) / 0.5),
                 0 0 0 4px rgb(var(--pt-gray-700));
         }
     }

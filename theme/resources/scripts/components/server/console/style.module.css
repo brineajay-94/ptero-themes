@@ -5,14 +5,17 @@
 
     background-color: rgb(var(--pt-gray-700));
     border: 1px solid rgb(var(--pt-gray-500) / 0.45);
-    border-bottom: 3px solid rgb(var(--pt-gold-600));
+    /* Accent rules take 400, not 600. 600 is the muted fill step the stock
+     * `bg-primary-600` tiles use, so painting a border with it makes the rule
+     * disappear. */
+    border-bottom: 3px solid rgb(var(--pt-gold-400));
     box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
     overflow: hidden;
     transition: border-color 150ms ease, transform 150ms ease;
 }
 
 .stat_block:hover {
-    border-color: rgb(var(--pt-gold-600) / 0.75);
+    border-color: rgb(var(--pt-gold-400) / 0.75);
     transform: translateY(-1px);
 }
 
@@ -35,7 +38,7 @@
 .terminal {
     @apply flex flex-col w-full;
 
-    border: 1px solid rgb(var(--pt-navy-700));
+    border: 1px solid rgb(var(--pt-navy-600));
     border-radius: 0;
     background-color: rgb(var(--pt-black));
     box-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
@@ -53,7 +56,7 @@
     & .terminal_bar {
         @apply flex items-center gap-2 px-3 py-2;
         background-color: rgb(var(--pt-navy-700));
-        border-bottom: 2px solid rgb(var(--pt-gold-600));
+        border-bottom: 2px solid rgb(var(--pt-gold-400));
     }
 
     & .terminal_dot {
@@ -93,7 +96,7 @@
             }
 
             &::-webkit-scrollbar-thumb {
-                background-color: rgb(var(--pt-gold-700) / 0.7);
+                background-color: rgb(var(--pt-gold-500) / 0.7);
                 border-radius: 0;
             }
         }
@@ -111,7 +114,7 @@
 
         background-color: rgb(var(--pt-black));
         color: rgb(var(--pt-white));
-        border-bottom-color: rgb(var(--pt-navy-700));
+        border-bottom-color: rgb(var(--pt-navy-600));
 
         &::placeholder {
             color: rgb(255 255 255 / 0.45);
@@ -119,7 +122,7 @@
 
         &:focus,
         &:active {
-            border-bottom-color: rgb(var(--pt-gold-600));
+            border-bottom-color: rgb(var(--pt-gold-300));
         }
     }
 }
@@ -129,7 +132,7 @@
 
     background-color: rgb(var(--pt-gray-700));
     border: 1px solid rgb(var(--pt-gray-500) / 0.45);
-    border-bottom: 4px solid rgb(var(--pt-gold-600));
+    border-bottom: 4px solid rgb(var(--pt-gold-400));
     box-shadow: 0 8px 22px rgb(0 0 0 / 0.16);
     overflow: hidden;
 }

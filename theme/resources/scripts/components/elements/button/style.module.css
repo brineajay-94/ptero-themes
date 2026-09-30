@@ -81,31 +81,48 @@
 }
 
 .primary {
-    background-color: rgb(var(--pt-navy-600));
-    color: rgb(var(--pt-navy-50));
-    border-color: rgb(var(--pt-navy-600));
+    /*
+     * Filled from step 300, not 600.
+     *
+     * 600 is where the stock panel puts fills - `bg-primary-600` is what
+     * server/console/StatBlock paints its icon tile with - so 600 has to stay a
+     * muted dark tone, or every one of those tiles becomes a near-white slab. The
+     * light accent that a button wants lives at 300 instead, and text utilities
+     * reach for that range anyway.
+     *
+     * The label is near-black, not --pt-navy-50: a light fill cannot carry a
+     * pale label. That is the modern dark-UI convention, and it is the same
+     * pairing amber needs for its gold - where the old white-on-gold label
+     * measured 2.16:1 and is now 7.58:1.
+     */
+    background-color: rgb(var(--pt-navy-300));
+    color: rgb(var(--pt-navy-900));
+    border-color: rgb(var(--pt-navy-300));
 
     &:hover,
     &:active {
-        background-color: rgb(var(--pt-navy-500));
+        /* Brighter, which is the correct hover direction on a dark surface. */
+        background-color: rgb(var(--pt-navy-200));
     }
 
     &.secondary {
         &:hover,
         &:active {
-            background-color: rgb(var(--pt-navy-600));
+            background-color: rgb(var(--pt-navy-300));
         }
     }
 
     &:focus {
         box-shadow:
-            0 0 0 3px rgb(var(--pt-navy-400) / 0.75),
+            0 0 0 3px rgb(var(--pt-navy-300) / 0.55),
             0 0 0 5px rgb(var(--pt-gray-700));
     }
 
     &:disabled {
-        background-color: rgb(var(--pt-navy-500) / 0.75);
-        color: rgb(var(--pt-navy-200) / 0.75);
+        /* Dimmed, but still the same dark label on a light fill as the enabled
+         * state - a pale label here would read as a different component. */
+        background-color: rgb(var(--pt-navy-400) / 0.45);
+        color: rgb(var(--pt-navy-900) / 0.45);
     }
 }
 

@@ -37,37 +37,49 @@ const CSS_VARS = MAJOR > 3 || (MAJOR === 3 && MINOR >= 1);
 // what keeps the baked-in Tailwind 2/3.0 builds the same colour as the
 // stylesheet. red/green/yellow are stock Tailwind values and are listed so the
 // two paths cannot drift apart.
+//
+// These MUST be edited whenever the default (black) palette changes. Nothing
+// enforces the link, and a stale copy is invisible in dev: from 3.1 upwards the
+// variables are used and these literals are dead, so a panel on a modern engine
+// looks correct while every panel on 3.0.x silently renders the old colours. A
+// violet default left here is exactly that failure - the palette moved to black
+// and the fallback did not, so stock utilities stayed purple on old panels.
+//
+// This mirrors the *default* palette only. Below 3.1 the values are baked, so
+// `data-pt-theme='amber'` cannot re-skin stock utilities on those engines - the
+// theme's own classes still respond, because they read the variables directly.
+// Amber is fully interchangeable on 3.1+.
 const PALETTE = {
-    'gray-50': [237, 234, 248],
-    'gray-100': [200, 195, 222],
-    'gray-200': [166, 160, 194],
-    'gray-300': [147, 141, 175],
-    'gray-400': [134, 128, 162],
-    'gray-500': [72, 65, 118],
-    'gray-600': [57, 51, 95],
-    'gray-700': [43, 37, 76],
-    'gray-800': [25, 21, 46],
-    'gray-900': [18, 15, 30],
-    'navy-50': [239, 245, 251],
-    'navy-100': [208, 227, 244],
-    'navy-200': [166, 204, 236],
-    'navy-300': [124, 181, 226],
-    'navy-400': [85, 157, 216],
-    'navy-500': [55, 140, 211],
-    'navy-600': [43, 135, 211],
-    'navy-700': [30, 111, 184],
-    'navy-800': [35, 30, 64],
-    'navy-900': [25, 21, 46],
-    'gold-50': [239, 245, 251],
-    'gold-100': [208, 227, 244],
-    'gold-200': [166, 204, 236],
-    'gold-300': [124, 181, 226],
-    'gold-400': [85, 157, 216],
-    'gold-500': [55, 140, 211],
-    'gold-600': [43, 135, 211],
-    'gold-700': [30, 111, 184],
-    'gold-800': [35, 30, 64],
-    'gold-900': [25, 21, 46],
+    'gray-50': [245, 245, 247],
+    'gray-100': [209, 209, 214],
+    'gray-200': [176, 176, 183],
+    'gray-300': [148, 148, 156],
+    'gray-400': [122, 122, 130],
+    'gray-500': [38, 38, 42],
+    'gray-600': [28, 28, 32],
+    'gray-700': [20, 20, 23],
+    'gray-800': [11, 11, 13],
+    'gray-900': [6, 6, 8],
+    'navy-50': [248, 250, 252],
+    'navy-100': [233, 237, 241],
+    'navy-200': [216, 220, 224],
+    'navy-300': [200, 204, 208],
+    'navy-400': [174, 178, 182],
+    'navy-500': [140, 144, 148],
+    'navy-600': [78, 82, 86],
+    'navy-700': [44, 47, 50],
+    'navy-800': [26, 26, 30],
+    'navy-900': [13, 13, 15],
+    'gold-50': [248, 250, 252],
+    'gold-100': [233, 237, 241],
+    'gold-200': [216, 220, 224],
+    'gold-300': [200, 204, 208],
+    'gold-400': [174, 178, 182],
+    'gold-500': [140, 144, 148],
+    'gold-600': [78, 82, 86],
+    'gold-700': [44, 47, 50],
+    'gold-800': [26, 26, 30],
+    'gold-900': [13, 13, 15],
     'red-50': [254, 242, 242],
     'red-100': [254, 226, 226],
     'red-200': [254, 202, 202],
@@ -98,7 +110,7 @@ const PALETTE = {
     'yellow-700': [161, 98, 7],
     'yellow-800': [133, 77, 14],
     'yellow-900': [113, 63, 18],
-    black: [10, 8, 18],
+    black: [6, 6, 8],
     white: [255, 255, 255],
 };
 

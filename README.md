@@ -2,7 +2,7 @@
 
   A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
   control-panel layout and a monochrome black palette — `#0b0b0d` page,
-  `#141417` surfaces, blue `#2b87d3` accent, the system UI font stack, a fixed
+  `#141417` surfaces, neutral `#c8ccd0` accent, the system UI font stack, a fixed
   sidebar shell and frosted glass surfaces over a cool aurora.
 
 What it changes on top of the stock panel:
@@ -336,15 +336,27 @@ working because Tailwind re-parses the `rgb()` wrapper itself.
 
 The config exposes two new ramps read from the CSS variables:
 
-| Ramp | Source | Used for |
-| --- | --- | --- |
-| `navy` | `--pt-navy-*` (600 = `43 135 211` = `#2b87d3`) | primary surfaces, sidebar, topbar, primary buttons |
-| `gold` | `--pt-gold-*` (600 = `43 135 211` = `#2b87d3`) | accent alias: links, rules, focus, active states |
+  | Ramp | Source | Used for |
+  | --- | --- | --- |
+  | `navy` | `--pt-navy-*` (300 = `200 204 208` = `#c8ccd0`) | the light accent: links, icons, hairlines, filled buttons |
+  | `gold` | `--pt-gold-*` (tracks `navy` step for step) | accent alias: rules, focus, active states |
 
-`blue` and `primary` are **aliased to the navy ramp** and `cyan` is **aliased
-to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
-`border-cyan-500` and navigation underline rebrands with no component edits.
-`red` / `green` / `yellow` keep their stock semantics for status and errors.
+  Both ramps are **neutral**. The step a value lands on is chosen by what the
+  stock panel does with it, not by convention: `text-blue-*` / `text-primary-*`
+  only ever reach for steps 50-500, while `bg-primary-600` is a *fill* step
+  (it is what `server/console/StatBlock` paints its icon tile with). So the light
+  accent sits at 300/400 and 600 is a muted dark fill — painting 600 light turns
+  every one of those stock tiles into a near-white slab.
+
+  A light fill cannot carry a pale label, so filled buttons take a near-black one
+  (the modern dark-UI convention). That also repairs `amber`, whose gold accent
+  is light: its button label measured **2.16:1** as white-on-gold and **7.58:1**
+  with a near-black label.
+
+  `blue` and `primary` are **aliased to the navy ramp** and `cyan` is **aliased
+  to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
+  `border-cyan-500` and navigation underline rebrands with no component edits.
+  `red` / `green` / `yellow` keep their stock semantics for status and errors.
 
 ### Neutral ramp
 
@@ -474,7 +486,7 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
-  | `black` | the default: monochrome, frosted glass | `#0b0b0d` / `#141417` / `#2b87d3` |
+    | `black` | the default: monochrome, frosted glass | `#0b0b0d` / `#141417` / `#c8ccd0` |
   | `amber` | flat black + amber, rounded | `#0c0c0c` / `#1c1c1c` / `#d9a441` |
 
   There is **no `default` slug**. The black palette is the `:root` block in
@@ -546,8 +558,18 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   `tailwind.config.js` emits every colour utility as `rgb(var(--pt-*))`, so the
   stock panel's own `bg-neutral-800` / `text-neutral-300` / `border-cyan-500`
   re-skin themselves with no component edits. The compiled bundle carries no
-  baked-in brand hex to disagree (verified: 196 `var(--pt-` references, zero
-  `#2b87d3`).
+  baked-in brand hex to disagree (verified: 288 `var(--pt-` references, and no
+  literal in any declaration carries a hue).
+
+  One trap on Tailwind **below 3.1**: those engines cannot compute an alpha
+  channel for a colour they cannot parse, so the config bakes `PALETTE` in as
+  literal hex instead. That copy mirrors the **default** palette only, and nothing
+  enforces the link - a stale one is invisible in dev, because from 3.1 up the
+  variables win and the literals are dead. A violet `PALETTE` left behind after
+  the palette moved to black is exactly that failure: dev looks right while every
+  panel on 3.0.x renders the old colours. Below 3.1 the values are baked, so
+  `data-pt-theme='amber'` cannot re-skin *stock* utilities there either; the
+  theme's own classes still respond, because they read the variables directly.
 
   Three details worth knowing before editing a palette:
   - **Source order decides, not specificity.** `:root` and `[data-pt-theme='x']`

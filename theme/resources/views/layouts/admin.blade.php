@@ -7,14 +7,38 @@
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta name="_token" content="{{ csrf_token() }}">
 
-        {{-- brine-theme: the admin-uploaded logo doubles as the favicon; stock /favicons are gone. --}}
+        {{-- brine-theme: the admin-uploaded logo doubles as the favicon; stock /favicons are gone.
+             Kept in step with templates/wrapper.blade.php: mtime cache-buster, newest
+             match wins, MIME type from the extension. See the comment there for why. --}}
         @php
-    $brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
-    $brandLogo = is_array($brandLogo) ? $brandLogo : [];
-@endphp
-        @if(count($brandLogo))
-            <link rel="icon" type="image/png" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
-            <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
+            $brandLogos = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
+            $brandLogo = null;
+            if (is_array($brandLogos)) {
+                foreach ($brandLogos as $candidate) {
+                    if (!is_file($candidate)) {
+                        continue;
+                    }
+                    $candidateTime = (int) @filemtime($candidate);
+                    if ($brandLogo === null || $candidateTime > $brandLogo[1]) {
+                        $brandLogo = [basename($candidate), $candidateTime];
+                    }
+                }
+            }
+            $brandLogoTypes = [
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'svg' => 'image/svg+xml',
+                'ico' => 'image/x-icon',
+            ];
+            $brandLogoExt = $brandLogo ? strtolower(pathinfo($brandLogo[0], PATHINFO_EXTENSION)) : '';
+            $brandLogoType = $brandLogoTypes[$brandLogoExt] ?? 'image/png';
+        @endphp
+        @if($brandLogo)
+            <link rel="icon" type="{{ $brandLogoType }}" href="/themes/pterodactyl/images/{{ $brandLogo[0] }}?v={{ $brandLogo[1] }}">
+            <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ $brandLogo[0] }}?v={{ $brandLogo[1] }}">
         @else
             <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
         @endif

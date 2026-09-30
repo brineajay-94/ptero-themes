@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.10.0",
+    "version": "1.10.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -30,7 +30,7 @@
         {
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
-            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame. The stylesheet is cache-busted on its own mtime: config(app.version) is the panel version, so it never changes on a theme update and browsers kept the previous stylesheet for the max-age the server sends"
+            "note": "Stock head (title, csrf, robots) + the theme favicon only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame. The stylesheet is cache-busted on its own mtime: config(app.version) is the panel version, so it never changes on a theme update and browsers kept the previous stylesheet for the max-age the server sends. The favicon picks the newest custom-logo.* and appends its mtime, and the icon MIME type comes from the extension rather than being hardcoded to image/png"
         },
         {
             "path": "resources/scripts/lib/theme.ts",
@@ -220,7 +220,7 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises. A file that PHP discarded is reported as an error with the reason from $_FILES rather than being silently treated as \"no file chosen\" and flashing a green success"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises, and a file PHP discarded is reported with the reason from the upload error code instead of being treated as \"no file chosen\". Uploads are stored under a fixed stem with a per-upload extension, so replacing one deletes EVERY match (deleteStem) rather than the first glob hit, and each read picks the newest file rather than whatever order the filesystem returned - otherwise one failed delete left a stale file that won the next glob and came back on screen. The post-upload check tests the exact filename just written"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
@@ -245,7 +245,7 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen"
+            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon used to leave the previous image on screen"
         },
         {
             "path": "routes/auth.php",
@@ -260,7 +260,7 @@
         {
             "path": "resources/views/layouts/admin.blade.php",
             "action": "replace",
-            "note": "Stock admin layout + Site Settings and Registration menu items, favicon from the uploaded icon"
+            "note": "Stock admin layout + Site Settings and Registration menu items. Favicon handling is kept identical to templates/wrapper.blade.php: newest match wins, mtime cache-buster, MIME type from the extension"
         },
         {
             "path": "resources/scripts/api/server/jars.ts",

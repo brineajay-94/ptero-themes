@@ -139,9 +139,61 @@ class AssetComposer
             }
         }
 
-        $logos = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
+        return $this->uploadedImage('images', 'custom-logo');
+    }
 
-        return is_array($logos) && count($logos) > 0 ? '/themes/pterodactyl/images/' . basename($logos[0]) : null;
+    /**
+     * Resolve one uploaded image to a URL, with a cache-buster.
+     *
+     * Two things were wrong with the plain `glob(...)[0]` this replaces.
+     *
+     * The URL had no cache-buster, so it was byte-identical every time an admin
+     * swapped the image: `/themes/pterodactyl/images/custom-logo.png` before and
+     * after. Browsers cache favicons and logos hard, so replacing the file on
+     * disk changed nothing on screen and the *previous* image came back. The
+     * file's mtime rides along as `?v=`, which changes exactly when the content
+     * does - the same trick the theme stylesheet uses.
+     *
+     * And `glob()[0]` is whatever the filesystem happened to return, not the
+     * file the admin uploaded. If a second `custom-logo.*` ever existed - a
+     * delete that silently failed, an extension change - the older one could win
+     * the glob and be served forever. Newest-first, with the mtime as the
+     * tie-break, so a stale leftover cannot take over.
+     *
+     * @return string|null null when nothing matching is on disk
+     */
+    private function uploadedImage(string $subdirectory, string $stem): ?string
+    {
+        $directory = public_path('themes/pterodactyl/' . $subdirectory);
+        $found = glob($directory . '/' . $stem . '.*');
+
+        if (!is_array($found) || $found === []) {
+            return null;
+        }
+
+        $newest = null;
+        $newestTime = -1;
+        foreach ($found as $path) {
+            if (!is_file($path)) {
+                continue;
+            }
+            $time = (int) @filemtime($path);
+            if ($newest === null || $time > $newestTime) {
+                $newest = $path;
+                $newestTime = $time;
+            }
+        }
+
+        if ($newest === null) {
+            return null;
+        }
+
+        return sprintf(
+            '/themes/pterodactyl/%s/%s?v=%d',
+            $subdirectory,
+            basename($newest),
+            $newestTime
+        );
     }
 
     /**
@@ -167,9 +219,10 @@ class AssetComposer
             return trim($url);
         }
 
-        $files = glob(public_path('themes/pterodactyl/backgrounds/bg-' . $slot . '.*'));
-
-        return is_array($files) && count($files) > 0 ? '/themes/pterodactyl/backgrounds/' . basename($files[0]) : null;
+        // Same cache-buster and same newest-wins resolution as the icon, for the
+        // same reason: without it, swapping a background left the previous one
+        // on screen.
+        return $this->uploadedImage('backgrounds', 'bg-' . $slot);
     }
 
     /**

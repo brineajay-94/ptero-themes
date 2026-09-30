@@ -474,7 +474,7 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             }
 
             $this->settings->set('Brine::icon_url', $iconUrl);
-            $this->deleteFile($this->iconFile());
+            $this->deleteStem($this->imageDirectory(), 'custom-logo');
 
             $this->alert->success('Site name and icon link saved.')->flash();
 
@@ -505,11 +505,18 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             return redirect()->route('admin.site-settings');
         }
 
-        $this->deleteFile($this->iconFile());
+        // Every existing upload goes, not just the newest one. The icon is stored
+        // under a fixed stem with a per-upload extension, so an extension change
+        // (custom-logo.png -> custom-logo.jpg) otherwise left the old file behind
+        // to win the next glob - which is how "remove then upload a new image"
+        // ended up showing the image from two steps ago.
+        $this->deleteStem($directory, 'custom-logo');
         $this->settings->forget('Brine::icon_url');
 
+        $filename = 'custom-logo.' . $this->safeExtension($upload, self::ICON_TYPES);
+
         try {
-            $upload->move($directory, 'custom-logo.' . $this->safeExtension($upload, self::ICON_TYPES));
+            $upload->move($directory, $filename);
         } catch (\Throwable $e) {
             Log::error('brine-theme: site icon upload failed: ' . $e->getMessage());
             $this->alert->danger('Saving the icon failed: ' . $e->getMessage())->flash();
@@ -517,12 +524,18 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             return redirect()->route('admin.site-settings');
         }
 
-        if ($this->iconUrl() === null) {
+        // Check the file that was just written, by name. Asking iconUrl() whether
+        // it can resolve *something* was too weak: it would be satisfied by a
+        // leftover file and report success for an upload that never landed.
+        if (!is_file($directory . '/' . $filename)) {
             $this->alert->danger('The icon did not land in <code>public/themes/pterodactyl/images/</code> - check permissions on <code>public/themes</code>.')->flash();
 
             return redirect()->route('admin.site-settings');
         }
 
+        // Fail loudly rather than leaving an ambiguous state where the new file
+        // is on disk but something else is still being served.
+        clearstatcache();
         $this->alert->success('Site settings saved - the icon is now the favicon and the login emblem.')->flash();
 
         return redirect()->route('admin.site-settings');
@@ -614,7 +627,7 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             abort(404);
         }
 
-        $this->deleteFile($this->backgroundFile($slot));
+        $this->deleteStem($this->backgroundDirectory(), 'bg-' . $slot);
         $this->settings->forget('Brine::bg_' . $slot . '_url');
         $this->settings->set('Brine::bg_' . $slot . '_enabled', '0');
         // The overlay only matters while an image is showing, so reset it to the
@@ -648,8 +661,9 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
             $this->settings->set('Brine::bg_' . $slot . '_url', $url);
             // An uploaded copy would otherwise linger behind the URL and come
-            // back if the URL field is ever cleared.
-            $this->deleteFile($this->backgroundFile($slot));
+            // back if the URL field is ever cleared. All of them, not just the
+            // newest - see deleteStem().
+            $this->deleteStem($this->backgroundDirectory(), 'bg-' . $slot);
 
             return null;
         }
@@ -668,19 +682,24 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         }
 
         $this->settings->forget('Brine::bg_' . $slot . '_url');
-        $this->deleteFile($this->backgroundFile($slot));
+        $this->deleteStem($directory, 'bg-' . $slot);
+
+        $filename = 'bg-' . $slot . '.' . $this->safeExtension($file, self::BACKGROUND_TYPES);
 
         try {
-            $file->move($directory, 'bg-' . $slot . '.' . $this->safeExtension($file, self::BACKGROUND_TYPES));
+            $file->move($directory, $filename);
         } catch (\Throwable $e) {
             Log::error('brine-theme: ' . $slot . ' background upload failed: ' . $e->getMessage());
 
             return sprintf('Saving the %s background failed: %s', $slot, $e->getMessage());
         }
 
-        if ($this->backgroundImage($slot) === null) {
+        // Verify the file that was just written, by name - see updateGeneral().
+        if (!is_file($directory . '/' . $filename)) {
             return sprintf('The %s background did not land in <code>public/themes/pterodactyl/backgrounds/</code> - check permissions on <code>public/themes</code>.', $slot);
         }
+
+        clearstatcache();
 
         return null;
     }
@@ -698,7 +717,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     {
         return $this->firstFile($this->imageDirectory(), 'custom-logo.*');
     }
-
     /**
      * The icon to actually use: a pasted link if one is set, otherwise the
      * uploaded file, otherwise null (the theme emblem).
@@ -715,10 +733,11 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         return $file === null ? null : '/themes/pterodactyl/images/' . $file;
     }
 
-    /** Drop both the pasted link and the uploaded file. */
+    /** Drop both the pasted link and every uploaded file. */
     private function clearIcon(): void
     {
-        $this->deleteFile($this->iconFile());
+        // All of them, not just the newest - see deleteStem().
+        $this->deleteStem($this->imageDirectory(), 'custom-logo');
         $this->settings->forget('Brine::icon_url');
     }
 
@@ -794,6 +813,10 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
     /**
      * glob() can return false under open_basedir, so normalise before counting.
+     *
+     * Newest match wins rather than glob order. A leftover from an earlier
+     * upload - a delete that silently failed, an extension change - must never
+     * be able to take the slot back from the file the admin just uploaded.
      */
     private function firstFile(string $directory, string $pattern): ?string
     {
@@ -802,18 +825,51 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             return null;
         }
 
-        return basename($found[0]);
+        $newest = null;
+        $newestTime = -1;
+        foreach ($found as $path) {
+            if (!is_file($path)) {
+                continue;
+            }
+            $time = (int) @filemtime($path);
+            if ($newest === null || $time > $newestTime) {
+                $newest = $path;
+                $newestTime = $time;
+            }
+        }
+
+        return $newest === null ? null : basename($newest);
     }
 
-    private function deleteFile(?string $name): void
+    /**
+     * Every file matching a stem, not just one of them.
+     *
+     * The icon is stored under a fixed stem with a per-upload extension, so
+     * "delete the old one" has to mean "delete all of them". Deleting only the
+     * first glob match - which is what this replaced - meant that if two files
+     * ever coexisted, removing the icon left one behind and it came straight
+     * back on the next render. That is exactly the reported symptom: remove the
+     * icon, upload a different one, and the previous image is the one that
+     * appears.
+     *
+     * @return int how many files were removed
+     */
+    private function deleteStem(string $directory, string $stem): int
     {
-        if ($name === null) {
-            return;
+        $removed = 0;
+        $found = glob($directory . '/' . $stem . '.*');
+
+        if (!is_array($found)) {
+            return 0;
         }
 
-        foreach ([$this->imageDirectory(), $this->backgroundDirectory()] as $directory) {
-            @unlink($directory . '/' . $name);
+        foreach ($found as $path) {
+            if (is_file($path) && @unlink($path)) {
+                $removed++;
+            }
         }
+
+        return $removed;
     }
 
     /**

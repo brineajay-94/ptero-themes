@@ -885,6 +885,26 @@ relation will see the wrong thing.
     field label stays **Username or Email** rather than the reference's "Email
     address", because the login endpoint accepts either and a narrower label
     would be wrong for anyone signing in with their username.
+- **Uploaded images always replace, never come back.** The icon is stored under a
+  fixed stem with a per-upload extension (`images/custom-logo.<ext>`,
+  `backgrounds/bg-<slot>.<ext>`), which has two consequences that are easy to get
+  wrong and were both wrong here:
+  - The served URL had **no cache-buster**, so it was byte-identical before and
+    after a replacement. Browsers cache favicons and logos hard, so the file on
+    disk changed and the screen did not - the *previous* image stayed. Every
+    uploaded image now carries its mtime as `?v=`, which is the same trick the
+    stylesheet uses.
+  - "Delete the old one" has to mean **delete all of them**. Removing only the
+    first `glob()` match meant that if two files ever coexisted, clearing the
+    icon left one behind and it returned on the next render. Replacing an upload
+    now clears every match, and every read picks the **newest** file rather than
+    whatever order the filesystem returned, so a stale leftover can never take
+    the slot back.
+  - The post-upload check tests the exact filename just written. Asking "can I
+    resolve *something*?" was satisfied by a leftover and reported success for
+    an upload that never landed.
+  - The favicon's `type` is derived from the extension instead of being hardcoded
+    to `image/png`, which lied for every format except PNG.
 - **File actions menu** - the theme ships its own `components/elements/DropdownMenu.tsx` because the three-dot button on a file row did nothing at all, for two reasons that compounded:
   - The stock panel rendered the panel `position: absolute` inside a plain
     wrapper and nudged it with `left = viewportX - width`. That arithmetic is

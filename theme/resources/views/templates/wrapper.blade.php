@@ -25,15 +25,45 @@
             <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
             <meta name="csrf-token" content="{{ csrf_token() }}">
             <meta name="robots" content="noindex">
-            {{-- brine-theme: the admin-uploaded logo (Admin -> Branding) is the favicon;
-                 stock /favicons are no longer referenced. --}}
+            {{-- brine-theme: the admin-uploaded logo (Admin -> Site Settings) is the
+                 favicon; stock /favicons are no longer referenced.
+
+                 The mtime rides along as ?v= because a favicon URL that does not
+                 change when the file does is a favicon URL the browser will not
+                 refetch - the admin replaces the image, the disk copy changes,
+                 and the previous icon stays on screen. Newest match wins rather
+                 than glob order, so a stale leftover cannot take the slot. The
+                 MIME type comes from the extension instead of being hardcoded to
+                 image/png, which lied for every format except PNG. --}}
             @php
-    $brandLogo = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
-    $brandLogo = is_array($brandLogo) ? $brandLogo : [];
-@endphp
-            @if(count($brandLogo))
-                <link rel="icon" type="image/png" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
-                <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ basename($brandLogo[0]) }}">
+                $brandLogos = glob(public_path('themes/pterodactyl/images/custom-logo.*'));
+                $brandLogo = null;
+                if (is_array($brandLogos)) {
+                    foreach ($brandLogos as $candidate) {
+                        if (!is_file($candidate)) {
+                            continue;
+                        }
+                        $candidateTime = (int) @filemtime($candidate);
+                        if ($brandLogo === null || $candidateTime > $brandLogo[1]) {
+                            $brandLogo = [basename($candidate), $candidateTime];
+                        }
+                    }
+                }
+                $brandLogoTypes = [
+                    'png' => 'image/png',
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'gif' => 'image/gif',
+                    'webp' => 'image/webp',
+                    'svg' => 'image/svg+xml',
+                    'ico' => 'image/x-icon',
+                ];
+                $brandLogoExt = $brandLogo ? strtolower(pathinfo($brandLogo[0], PATHINFO_EXTENSION)) : '';
+                $brandLogoType = $brandLogoTypes[$brandLogoExt] ?? 'image/png';
+            @endphp
+            @if($brandLogo)
+                <link rel="icon" type="{{ $brandLogoType }}" href="/themes/pterodactyl/images/{{ $brandLogo[0] }}?v={{ $brandLogo[1] }}">
+                <link rel="apple-touch-icon" href="/themes/pterodactyl/images/{{ $brandLogo[0] }}?v={{ $brandLogo[1] }}">
             @else
                 <link rel="icon" type="image/svg+xml" href="/themes/pterodactyl/images/logo.svg">
             @endif

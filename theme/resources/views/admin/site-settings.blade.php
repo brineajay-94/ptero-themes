@@ -35,6 +35,17 @@
             max-height: 240px;
             object-fit: cover;
         }
+        /* The illustration preview must show the WHOLE image, not a crop of it:
+           the admin is judging a floating object, and `cover` would trim the
+           floating cubes off the edges and make it look like the server had
+           cropped it. The frame is already dark (#19152e), which is the point -
+           it matches the hero the artwork is destined for. */
+        .bs-ss .bs-ss-frame--contain img {
+            max-height: 260px;
+            object-fit: contain;
+            padding: 10px;
+            box-sizing: border-box;
+        }
         .bs-ss .bs-ss-frame .bs-ss-scrim {
             position: absolute;
             inset: 0;
@@ -414,6 +425,133 @@
                     @method('DELETE')
                 </form>
             @endforeach
+
+{{-- ====================================== hero illustration --------}}
+            {{--
+                A separate slot from the background above, not a variant of it.
+                The background is a full-bleed photo behind the whole hero; the
+                illustration is a discrete object that floats in the upper half of
+                it, in front of that photo. They composite, and an admin may want
+                either, both or neither.
+
+                The preview is shown on the same dark colour the hero actually is,
+                not on white. That is deliberate: the whole reason this block
+                exists is that illustration artwork arrives on a white page, and
+                the admin needs to see that the server is going to strip it.
+            --}}
+            <form action="{{ route('admin.site-settings.illustration') }}" method="POST"
+                  enctype="multipart/form-data" class="bs-ss-stack">
+                @csrf
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-picture-o"></i> Hero illustration</h3>
+                        <div class="pull-right">
+                            <span class="label {{ $illustration['enabled'] && $illustration['image'] ? 'label-success' : 'label-default' }}">
+                                {{ $illustration['enabled'] && $illustration['image'] ? 'ON' : 'OFF' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="checkbox no-margin-bottom">
+                            <input id="illustrationEnabled" name="illustration_enabled" type="checkbox" value="1"
+                                   {{ old('illustration_enabled', $illustration['enabled']) ? 'checked' : '' }} />
+                            <label for="illustrationEnabled" class="strong">Show the illustration on the auth screens</label>
+                        </div>
+
+                        <div class="row" style="margin-top: 14px;">
+                            <div class="col-sm-6">
+                                <div class="bs-ss-field">
+                                    <label class="control-label bs-ss-label" for="illustrationFile">Choose a file</label>
+                                    <input type="file" id="illustrationFile" name="illustration"
+                                           accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
+                                           data-ill-preview="illustrationPreviewImage" />
+                                    <p class="help-block">
+                                        Up to {{ $upload_ceiling_kb }} KB, as set by this server&rsquo;s PHP.
+                                        PNG, JPG, GIF, WEBP or SVG.
+                                    </p>
+                                </div>
+
+                                <p class="bs-ss-or">— or —</p>
+
+                                <div class="bs-ss-field">
+                                    <label class="control-label bs-ss-label" for="illustrationUrl">Paste a link</label>
+                                    <input type="text" id="illustrationUrl" name="illustration_url" class="form-control"
+                                           maxlength="2048" placeholder="https://example.com/illustration.png"
+                                           value="{{ old('illustration_url', $illustration['url']) }}"
+                                           data-ill-preview="illustrationPreviewImage" />
+                                    <p class="help-block">
+                                        A direct <code>https://</code> link. Used instead of an uploaded file, and
+                                        <strong>not</strong> processed &mdash; whatever that URL serves is shown as-is,
+                                        so it needs its own transparent background.
+                                    </p>
+                                </div>
+
+                                @if ($gd_available)
+                                    <div class="callout callout-info" style="margin: 0;">
+                                        <p style="margin: 0;">
+                                            <strong>The white background is removed for you.</strong> Illustration artwork
+                                            is drawn on white and the login page is near-black, so an upload left as it
+                                            arrives would sit there as a white rectangle. On save the server keys the
+                                            white to transparency, keeps the genuinely light pixels that belong to the
+                                            drawing &mdash; the slab top, clouds, glowing panels &mdash; and crops to
+                                            what is left. A <code>https://</code> link cannot be processed this way.
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="callout callout-warning" style="margin: 0;">
+                                        <p style="margin: 0;">
+                                            <strong>This server has no GD extension,</strong> so uploads cannot be
+                                            processed. They will be stored as-is and will show their original
+                                            background &mdash; which on a dark login page usually means a white
+                                            rectangle. Ask your host to enable <code>php-gd</code>, or upload an image
+                                            that already has a transparent background.
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="bs-ss-frame bs-ss-frame--contain">
+                                    @if ($illustration['image'])
+                                        <img id="illustrationPreviewImage" src="{{ $illustration['image'] }}"
+                                             alt="Illustration preview" />
+                                    @else
+                                        <img id="illustrationPreviewImage" src="" alt="" style="display: none;" />
+                                        <div class="bs-ss-empty" id="illustrationPreviewEmpty">
+                                            No illustration set yet.<br />Choose a file or paste a link, then save.
+                                        </div>
+                                    @endif
+                                </div>
+                                <p class="help-block" style="margin-top: 8px;">
+                                    Previewed on the same dark colour the login page uses. The live page crops the
+                                    illustration to the left half of the auth screen, above the headline.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        {{-- Keyed on has_file/url rather than on `image`, which is
+                             null while the switch is off. Otherwise switching the
+                             illustration off would also hide the only control that
+                             can delete it. --}}
+                        @if ($illustration['has_file'] || $illustration['url'])
+                            <button type="submit" form="clear-illustration" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Remove the illustration?');">
+                                <i class="fa fa-trash"></i> Clear illustration
+                            </button>
+                        @endif
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-save"></i> Save illustration
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <form id="clear-illustration" action="{{ route('admin.site-settings.illustration.clear') }}"
+                  method="POST" style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
         @endif
 
         @if ($tab === 'theme')
@@ -440,7 +578,9 @@
                                     <span class="bs-ss-theme-swatch {{ $meta['dark'] ? 'is-dark' : 'is-light' }}">
                                         @foreach ($meta['swatch'] as $i => $hex)
                                             <i style="background: {{ $hex }}"></i>
-                                        @endforeach
+            @endforeach
+
+            
                                     </span>
                                     <span class="bs-ss-theme-body">
                                         <span class="bs-ss-theme-name">
@@ -644,6 +784,50 @@
                     });
                 }
             });
+
+            // ---- hero illustration preview ----
+            // Separate from the background loop because it has no scrim: the
+            // illustration is composited by the browser over the background, not
+            // dimmed by one. The preview frame is already the dark hero colour,
+            // so what the admin sees here is the contrast the artwork will
+            // actually have once its white background has been keyed out.
+            (function () {
+                var img = byId('illustrationPreviewImage');
+                var empty = byId('illustrationPreviewEmpty');
+                var file = byId('illustrationFile');
+                var link = byId('illustrationUrl');
+                if (!img) return;
+
+                var show = function (src) {
+                    if (!src) return;
+                    if (img.dataset.objectUrl) URL.revokeObjectURL(img.dataset.objectUrl);
+                    if (src.indexOf('blob:') === 0) img.dataset.objectUrl = src;
+                    img.src = src;
+                    img.style.display = '';
+                    if (empty) empty.style.display = 'none';
+                };
+
+                if (file) {
+                    file.addEventListener('change', function () {
+                        var f = file.files && file.files[0];
+                        if (!f) return;
+                        show(URL.createObjectURL(f));
+                        // An upload and a pasted link are mutually exclusive on
+                        // the server, so clear the other field rather than let
+                        // the admin fill both in and wonder which one won.
+                        if (link) link.value = '';
+                    });
+                }
+
+                if (link) {
+                    link.addEventListener('input', function () {
+                        var v = link.value.trim();
+                        if (!/^https?:\/\/\S+\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(v)) return;
+                        show(v);
+                        if (file) file.value = '';
+                    });
+                }
+            })();
         })();
     </script>
 @endsection

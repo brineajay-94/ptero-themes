@@ -1,12 +1,17 @@
 {
     "name": "brine-theme",
-    "version": "1.11.1",
+    "version": "1.12.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
     },
     "files": [
+        {
+            "path": "app/Support/IllustrationProcessor.php",
+            "action": "create",
+            "note": "Keys the white background out of an uploaded hero illustration and crops it. Illustration artwork is drawn on white and the auth hero is #141417, so an unprocessed upload renders as a white rectangle, and CSS cannot fix it: `screen` leaves white as white, `multiply` keys the background out but takes the dark parts of the artwork with it. Two passes, because one is not enough - a border flood fill cannot reach background that is *enclosed* by the artwork, and the glow ring in the reference illustration is a closed ellipse, so the white inside it survives as a white lens; a second pass clears remaining near-white regions above a minimum area while keeping small ones, so a white specular highlight on a rack stays. Then the cut edge is feathered and the result cropped. Pure GD, no Imagick"
+        },
         {
             "path": "resources/scripts/components/elements/DropdownMenu.tsx",
             "action": "replace",
@@ -45,7 +50,7 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon (pasted link wins over the uploaded file), registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
+            "note": "brandName()/logoUrl()/illustrationUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon, hero illustration, the registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration. The illustration is a separate setting from the auth background: the background is a full-bleed photo behind the whole hero, the illustration floats in the upper half of it on top, so they composite"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
@@ -95,7 +100,7 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image, the two-tone marketing line and the illustration, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. The illustration is wrapped in a div that hides itself on a load error, because the file is optional and a panel that updates before the asset lands should show an empty hero rather than a broken-image icon - and because the glow behind the artwork is a child of that wrapper, so hiding only the img would leave the glow behind"
+            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image, the two-tone marketing line and the optional illustration, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. The illustration is read from AssetComposer rather than hardcoded, so it is per-panel, and its wrapper hides itself on a load error - the wrapper, not the img, because the glow behind the artwork is a child of it"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
@@ -220,12 +225,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises, and a file PHP discarded is reported with the reason from the upload error code instead of being treated as \"no file chosen\". Uploads are stored under a fixed stem with a per-upload extension, so replacing one deletes EVERY match (deleteStem) rather than the first glob hit, and each read picks the newest file rather than whatever order the filesystem returned - otherwise one failed delete left a stale file that won the next glob and came back on screen. The post-upload check tests the exact filename just written"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the hero illustration for the auth screens, the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises, and a file PHP discarded is reported with the reason from the upload error code instead of being treated as \"no file chosen\". Uploads stored under a fixed stem with a per-upload extension replace EVERY match (deleteStem) rather than the first glob hit, and each read picks the newest file rather than whatever order the filesystem returned - otherwise one failed delete left a stale file that won the next glob and came back on screen. The illustration is re-encoded to a transparent PNG by IllustrationProcessor before it is stored, under a fixed name so the browser URL keeps matching what was uploaded rather than the format it arrived in"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). Upload help text shows the server-derived ceiling rather than the theme cap, so it cannot promise a size PHP will drop. Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
+            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block each with upload/link, on-off switch, intensity slider, live preview and its own Save, then a Hero illustration block), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). The illustration block previews on the hero colour rather than white, and says so, because the whole point of the block is that the server strips the white. Upload help text shows the server-derived ceiling rather than the theme cap, so it cannot promise a size PHP will drop. Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",
@@ -245,7 +250,7 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon used to leave the previous image on screen"
+            "note": "Exposes SiteConfiguration.logo / .illustration / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon or the illustration used to leave the previous image on screen"
         },
         {
             "path": "routes/auth.php",
@@ -255,7 +260,7 @@
         {
             "path": "routes/admin.php",
             "action": "replace",
-            "note": "Stock routes + /admin/site-settings + /admin/registration + GET/POST /admin/servers/view/{server}/software"
+            "note": "Stock routes + /admin/site-settings (+ /illustration save and clear) + /admin/registration + GET/POST /admin/servers/view/{server}/software"
         },
         {
             "path": "resources/views/layouts/admin.blade.php",

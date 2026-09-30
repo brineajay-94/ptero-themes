@@ -452,7 +452,8 @@ render, so they match the panel.
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
 | `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` |
 | `routes/auth.php` | replace - stock routes + `GET/POST /auth/register`, no recaptcha middleware |
-| `routes/admin.php` | replace - stock routes + `/admin/site-settings` + `/admin/registration` |
+| `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` |
+| `app/Support/IllustrationProcessor.php` | create - keys an uploaded illustration's white background to transparency (see *Hero illustration*) |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration menu items, icon favicon |
 | `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
@@ -922,6 +923,40 @@ relation will see the wrong thing.
     an upload that never landed.
   - The favicon's `type` is derived from the extension instead of being hardcoded
     to `image/png`, which lied for every format except PNG.
+- **Hero illustration** - Admin -> **Site Settings** -> *Hero illustration* puts a
+  discrete object in the upper half of the auth hero, **in front of** the
+  Login & register background rather than instead of it. They are separate
+  settings on purpose, so an admin can have either, both or neither.
+  - **The white background is removed on save.** Illustration artwork is drawn on
+    white and the hero is `#141417`, so an upload left as it arrives renders as a
+    white rectangle pasted on a dark page. CSS cannot rescue it - `screen` leaves
+    white as white, and `multiply` keys the background out but takes the dark
+    server racks with it. `app/Support/IllustrationProcessor.php` does it in pure
+    GD (no Imagick needed), in two passes, because one is not enough:
+    - A **flood fill from the border**, not a brightness threshold. The artwork
+      has genuinely light pixels that must survive - the pale slab top, the
+      clouds, the glowing panels - and any global "make bright pixels
+      transparent" eats them. Only background *connected to the edge* is
+      background.
+    - A **second pass for large enclosed regions.** The blue glow ring is a
+      closed ellipse, so the white inside it is cut off from the page edge and
+      the flood can never reach it - it survives as a white lens floating on the
+      hero. Regions above a minimum area are cleared; smaller ones are kept, so a
+      white specular highlight on a rack survives while the ring's interior does
+      not.
+    - Then the cut edge is **feathered** (a correct alpha file can still leave
+      white speckle against a dark background) and the result **cropped** to what
+      is left, so the layout is not reserving space for a transparent margin.
+  - The stored file is always a **PNG** under a fixed name
+    (`images/auth-illustration.png`), whatever format it arrived in, because the
+    output has to carry an alpha channel and the browser URL should keep matching
+  what the admin uploaded. It carries an `?v=` mtime buster, so replacing it
+  actually shows the new one.
+  - A pasted `https://` link is accepted and used **verbatim** - the server cannot
+    process something it did not receive - so a linked illustration needs its own
+  transparent background. The admin page says so.
+  - If the server has no GD extension the block warns that uploads cannot be
+  processed and will show their original background, rather than failing silently.
 - **Elevation, hairlines and motion are shared scale tokens, not per-component
   values.** `--pt-shadow-sm/md/lg`, `--pt-hairline` and `--pt-dur-fast/base/slow`
   replaced fifteen hand-written `box-shadow`s, four border greys and two unit

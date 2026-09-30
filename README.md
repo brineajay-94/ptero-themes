@@ -453,14 +453,13 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   triplet pinned to `0 0 0`. Any colour row left over from an older install is
   cleared the next time that area is saved.
 - **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
-  whole user panel. Four palettes ship:
+  whole user panel. Three palettes ship, all dark:
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
   | `default` | the shipped violet | `#19152e` / `#2b254c` / `#2b87d3` |
   | `blue` | ocean blue, deeper page | `#0d1e38` / `#172a45` / `#1d63cd` |
   | `black` | monochrome on true black | `#0b0b0d` / `#141417` / `#2b87d3` |
-  | `light` | full inversion | `#f4f6fb` / `#ffffff` / `#2563eb` |
 
   Switching one is instant on the next click, with **no rebuild, no asset
   flush and no cache clear** - the palettes are `[data-pt-theme='<slug>']`
@@ -476,32 +475,26 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   - **Source order decides, not specificity.** `:root` and `[data-pt-theme='x']`
     are both (0,1,0), so the variant blocks must stay *below* `:root` in the
     stylesheet. Moving them above silently reverts every panel to the default.
-  - **The light palette inverts the scrim to white.** A black wash under dark
-    text is a readability bug, so `AssetComposer` returns `255 255 255` for the
-    light variant and the stylesheet ships matching white `--pt-bg-overlay-rgb`
-    defaults. `--pt-black` and `--pt-white` are left alone on every palette -
-    they are only consumed by the console, and a terminal stays dark on all of
-    them.
+  - **The scrim is black on every palette**, and `--pt-black` / `--pt-white` are
+    left alone on all of them - those two are only consumed by the console, and
+    a terminal stays dark whichever palette is active.
+
+  There is deliberately no light palette. The panel paints `text-neutral-500`
+  23 times and `bg-neutral-500` 9 times, so that single step has to work as both
+  legible copy and a visible fill. Inverting the ramp is possible, but it forces
+  `gray-500` to be solved against the **darkest** surface it can land on
+  (`gray-900`) instead of the card - a card-only check passes values that are
+  unreadable on raised chrome - and the frost recipe has to invert with it
+  (white tints are what make glass visible; on a light page they vanish). That
+  is a second theme, not a variant, so it is not offered here.
 
   The slug is validated against a whitelist in `AssetComposer` and again in the
   controller, so a hand-edited settings row cannot inject markup into the
-  `<html>` attribute. Adding a fifth palette means adding a CSS block and one
-  row in `SiteSettingsController::THEMES`; nothing else changes.
-
-  Two things about the light palette worth knowing:
-  - **`gray-500` decides it.** The panel paints `text-neutral-500` 23 times -
-    more than any other shade - and `bg-neutral-500` 9 times, so that one step
-    has to be legible copy *and* a visible fill. It is solved against the
-    **darkest** surface it can land on (`gray-900`) rather than the card, since
-    a card-only check passes values that are unreadable on raised chrome. It
-    measures 4.62:1 on raised, 5.46:1 on the card, and all 19 text/surface pairs
-    clear 4.5:1.
-  - **Auth inputs invert cleanly; dashboard inputs stay dark.** The theme
-    restyles `.pt-auth` inputs itself, so the login and register forms go light
-    with everything else. The stock `Input.tsx` uses `bg-neutral-100`, which
-    under the inverted ramp is a dark field - so dashboard/server inputs read as
-    dark-inset on white. That is a deliberate-looking result, not a bug, but it
-    is the one place the light palette does not look like a plain inversion.
+  `<html>` attribute. Adding a palette means adding a CSS block and one row in
+  `SiteSettingsController::THEMES`; nothing else changes. Dropping a row is the
+  whole removal - the admin cards, the validation rule and
+  `AssetComposer::THEME_VARIANTS` all read from it, and a stale stored slug
+  falls back to `default`.
 - **Quick links** - Admin -> **Site Settings** -> *Links*. Each of Home, Discord
   and Status is a URL plus an on/off switch, stored as
   `Brine::link_<slot>_enabled` / `_url`; a disabled link is omitted from
@@ -559,8 +552,7 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   and it is unchanged from 1.7.1) and the panel uses that class as small muted
   label text in a few places. It was left alone deliberately: the palettes exist
   to re-skin the panel, not to restyle the shipped default, and changing
-  `gray-500` would move every existing install's surfaces. The light palette
-  does not have this problem - it was solved against the contrast floor.
+  `gray-500` would move every existing install's surfaces.
 - Because `tailwind.config.js` is replaced, upgrading the panel may overwrite
   it (and the other `replace` entries). Uninstall, upgrade, then reinstall.
 - The file editor and the activity/backup/admin sub-pages keep the stock

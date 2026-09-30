@@ -192,10 +192,6 @@
         .bs-ss .bs-ss-theme-tick { flex: 0 0 auto; color: #3c8dbc; opacity: 0; }
         .bs-ss .bs-ss-theme.is-selected .bs-ss-theme-tick { opacity: 1; }
 
-        /* The swatch is a colour sample, so it needs a visible edge on the light
-           card as well as the dark one. */
-        .bs-ss .bs-ss-theme-swatch.is-light { border-color: rgba(15, 23, 42, 0.24); }
-
         @media (max-width: 600px) {
             .bs-ss .bs-ss-theme { flex-wrap: wrap; }
             .bs-ss .bs-ss-theme-swatch { width: 100%; height: 34px; }

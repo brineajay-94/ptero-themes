@@ -8,7 +8,6 @@
         'default' => '#19152e',
         'blue' => '#0d1e38',
         'black' => '#0b0b0d',
-        'light' => '#f4f6fb',
     ];
     $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['default'];
 @endphp

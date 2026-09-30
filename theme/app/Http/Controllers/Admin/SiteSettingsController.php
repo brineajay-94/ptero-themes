@@ -67,7 +67,9 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     ];
 
     /**
-     * Palettes offered in the Theme tab.
+     * Palettes offered in the Theme tab. All dark - see the "theme variants"
+     * note in pterodactyl-theme.css for why a light palette is not a variant
+     * but a second theme.
      *
      * `swatch` is only ever drawn as inline styles on the admin's preview
      * cards; the panel itself is never re-skinned from here. The real switch is
@@ -78,6 +80,10 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
      * Keep the slugs in step with AssetComposer::THEME_VARIANTS, which is the
      * whitelist that stops a hand-edited settings row reaching the HTML
      * attribute.
+     *
+     * Dropping a slug here is the whole removal: the validation rule and the
+     * admin cards both read this array, and themeVariant() below falls back to
+     * 'default' for a stale stored value.
      */
     public const THEMES = [
         'default' => [
@@ -97,12 +103,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'blurb' => 'Monochrome surfaces on true black. The accent stays blue so links still read as links.',
             'dark' => true,
             'swatch' => ['#0b0b0d', '#141417', '#1c1c20', '#2b87d3', '#5a5a64'],
-        ],
-        'light' => [
-            'label' => 'Light',
-            'blurb' => 'Full inversion: white cards on a near-white page, near-opaque glass, dark console kept.',
-            'dark' => false,
-            'swatch' => ['#f4f6fb', '#ffffff', '#d5d9e4', '#2563eb', '#6366f1'],
         ],
     ];
 

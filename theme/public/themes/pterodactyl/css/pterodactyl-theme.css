@@ -198,14 +198,20 @@
  *                   (500-900). The panel uses `text-neutral-500` 23x and
  *                   `bg-neutral-500` 9x, so 500 has to sit between the two.
  *   violet / cyan - the aurora and frost gradient ingredients.
- *   glass-*       - the frost recipe. These are white tints, so a light
- *                   variant has to darken them or the glass disappears.
- *   bg-overlay    - the scrim over an admin-supplied photo. Black under light
- *                   text is unreadable, so the light variant uses white.
+ *   glass-*       - the frost recipe.
+ *   bg-overlay    - the scrim over an admin-supplied photo.
+ *
+ * All three variants are dark. That is a deliberate constraint rather than an
+ * omission: the panel paints `text-neutral-500` 23 times and `bg-neutral-500`
+ * 9 times, so a single ramp has to work as both legible copy and a visible
+ * fill. Inverting it for a light palette is possible but forces 500 to be
+ * solved against the raised chrome (gray-900) rather than the card, and the
+ * frost recipe inverts with it, so a light variant is a second theme rather
+ * than a variant. The console keeps its own dark tokens either way.
  *
  * Deliberately NOT overridden: `--pt-black` and `--pt-white`. Both are only
  * consumed by the console (Console.tsx, console/style.module.css), and a
- * terminal is dark on every platform - a light theme keeps a dark console.
+ * terminal is dark on every platform.
  */
 
 /* ---------------------------------------------------------------- blue -- */
@@ -308,101 +314,6 @@
     );
 
     --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
-}
-
-/* --------------------------------------------------------------- light -- */
-/* A real inversion, not a tint over the dark palette. Three things had to give
- * for it to hold together:
- *   1. The gray ramp inverts end to end. 50 becomes the *strongest* text and
- *      900 the lightest chrome, because in the default 50 is the brightest text
- *      and 900 the darkest. Ordering is preserved; the hue flips with it.
- *   2. 500 does double duty and is the step that decides the palette. The panel
- *      paints `text-neutral-500` 23 times - more than any other shade - and
- *      `bg-neutral-500` 9 times, so it has to be legible copy *and* a visible
- *      fill. It is solved against the darkest surface it can land on
- *      (gray-900, at 4.62:1) rather than against the card, because a
- *      card-only check would pass a value that is unreadable on raised chrome.
- *   3. The frost recipe is inverted. The default's white tints are what make
- *      glass visible on a dark page; on a light page they vanish, so the tints
- *      go near-opaque white and the borders/shadow take over the definition. */
-[data-pt-theme='light'] {
-    --pt-navy-50: 239 246 255;
-    --pt-navy-100: 191 219 254;
-    --pt-navy-200: 147 197 253;
-    --pt-navy-300: 96 165 250;
-    --pt-navy-400: 59 130 246;
-    --pt-navy-500: 45 108 233;
-    --pt-navy-600: 37 99 235; /* #2563eb */
-    --pt-navy-700: 30 79 199; /* #1e4fc7 hover */
-    --pt-navy-800: 30 58 138; /* active nav row */
-    --pt-navy-900: 23 43 99; /* page */
-
-    --pt-gold-50: 239 246 255;
-    --pt-gold-100: 191 219 254;
-    --pt-gold-200: 147 197 253;
-    --pt-gold-300: 96 165 250;
-    --pt-gold-400: 59 130 246;
-    --pt-gold-500: 45 108 233;
-    --pt-gold-600: 37 99 235;
-    --pt-gold-700: 30 79 199;
-    --pt-gold-800: 30 58 138;
-    --pt-gold-900: 23 43 99;
-
-    /* Text end: dark, getting lighter as the step rises. Solved numerically
-     * rather than picked by eye - the panel uses text-neutral-500 23x, 300 26x,
-     * 400 19x and 100 17x, and the darkest surface any of them lands on is
-     * gray-900 (#e9ecf3), not the card. So gray-500 is the binding step: it
-     * measures 4.62:1 on raised, the worst case, and 5.46:1 on the card. */
-    --pt-gray-50: 23 26 38; /* strongest text #171a26, 17.3:1 on card */
-    --pt-gray-100: 45 50 68;
-    --pt-gray-200: 68 75 95;
-    --pt-gray-300: 78 86 108;
-    --pt-gray-400: 88 96 119;
-    --pt-gray-500: 97 105 129; /* also a bg (9x) - 5.46:1 vs card, so a real block */
-    /* Surface end: light. */
-    --pt-gray-600: 206 211 224; /* borders / hover */
-    --pt-gray-700: 255 255 255; /* card, sidebar, header */
-    --pt-gray-800: 244 246 251; /* page */
-    --pt-gray-900: 233 236 243; /* raised chrome */
-
-    --pt-violet-500: 99 102 241; /* #6366f1 */
-    --pt-violet-400: 165 180 252;
-    --pt-cyan-500: 14 165 233; /* #0ea5e9 */
-
-    /* Frost, inverted: near-opaque white panels, hairline grey borders and a
-     * soft shadow instead of a dark drop shadow. */
-    --pt-glass-blur: 16px;
-    --pt-glass-saturate: 140%;
-    --pt-glass-tint: 255 255 255 / 0.78;
-    --pt-glass-tint-strong: 255 255 255 / 0.92;
-    --pt-glass-border: 15 23 42 / 0.1;
-    --pt-glass-border-hover: 15 23 42 / 0.2;
-    --pt-glass-highlight: 255 255 255 / 0.85;
-    --pt-glass-shadow: 0 12px 28px -16px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.06);
-
-    /* The aurora stays, but at a fraction of the strength: at dark-theme
-     * alpha a saturated wash over white reads as a stain. */
-    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.1), transparent 62%),
-        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.09), transparent 64%),
-        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.06), transparent 62%),
-        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.08), transparent 64%);
-    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-700) / 0.12), rgb(var(--pt-violet-500) / 0.08));
-    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-700) / 0.1), rgb(var(--pt-cyan-500) / 0.07));
-    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.12), transparent 68());
-    --pt-topbar-rule: linear-gradient(
-        90deg,
-        rgb(var(--pt-violet-400) / 0.7),
-        rgb(var(--pt-navy-400) / 0.6) 45%,
-        transparent
-    );
-
-    /* A black scrim under dark text is a readability bug, so the light theme
-     * washes the photo with white instead. Strengths are lower than the dark
-     * themes' because white on white costs more contrast. */
-    --pt-bg-overlay-rgb: 255 255 255;
-    --pt-bg-overlay-strength: 0.72;
-    --pt-bg-overlay-rgb-auth: 255 255 255;
-    --pt-bg-overlay-strength-auth: 0.82;
 }
 
 /* ------------------------------------------------------ square corners -- */

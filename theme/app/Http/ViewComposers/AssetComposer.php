@@ -20,15 +20,7 @@ class AssetComposer
      * in pterodactyl-theme.css - a slug with no block simply renders as the
      * default, which is why the whitelist here doubles as a safety net.
      */
-    private const THEME_VARIANTS = ['default', 'blue', 'black', 'light'];
-
-    /**
-     * The scrim colour has to follow the palette. A black wash keeps dark text
-     * legible on the dark themes, but over the light theme's dark text it is
-     * the exact opposite of a scrim, so the light variant washes with white.
-     * This mirrors the --pt-bg-overlay-rgb defaults in the stylesheet.
-     */
-    private const LIGHT_VARIANT = 'light';
+    private const THEME_VARIANTS = ['default', 'blue', 'black'];
 
     /**
      * AssetComposer constructor.
@@ -178,23 +170,17 @@ class AssetComposer
     /**
      * The scrim strength for one background slot.
      *
-     * The scrim is black on the dark themes and white on the light one - see
-     * the LIGHT_VARIANT note on the constant above. The value is returned as an
-     * "R G B" triplet rather than a hex string so the client can drop it
-     * straight into `rgb(var(...) / ...)` alongside the palette tokens.
+     * The scrim is black on every palette - all of them are dark, so a black
+     * wash is what keeps text legible over an admin-supplied photo. This
+     * mirrors the --pt-bg-overlay-rgb defaults in the stylesheet. The value is
+     * returned as an "R G B" triplet rather than a hex string so the client can
+     * drop it straight into `rgb(var(...) / ...)` alongside the palette tokens.
      *
      * @return array{rgb: string, strength: string}
      */
     private function overlay(string $slot): array
     {
         $intensity = $slot === 'auth' ? 78 : 62;
-        $light = $this->themeVariant() === self::LIGHT_VARIANT;
-
-        // White over a photo costs more contrast than black does, so the light
-        // theme washes harder. Matches the --pt-bg-overlay-* light defaults.
-        if ($light) {
-            $intensity = $slot === 'auth' ? 82 : 72;
-        }
 
         try {
             $stored = $this->settings->get('Brine::bg_' . $slot . '_overlay_intensity');
@@ -207,7 +193,7 @@ class AssetComposer
         }
 
         return [
-            'rgb' => $light ? '255 255 255' : '0 0 0',
+            'rgb' => '0 0 0',
             'strength' => number_format($intensity / 100, 2, '.', ''),
         ];
     }

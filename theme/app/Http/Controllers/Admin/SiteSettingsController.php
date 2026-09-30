@@ -77,24 +77,25 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
      * wrapper puts the slug on <html>, so adding a palette means adding a CSS
      * block and one row here - nothing else.
      *
+     * 'black' is the shipped default and is also a real slug: those tokens live
+     * on `:root`, so the block for them would be a byte-for-byte duplicate of
+     * the default and a variant selector matching the default. The admin still
+     * gets an explicit card for it, because 'black' is a name an admin can
+     * choose, and because themeVariant() falls back to it for a stale stored
+     * value - including one left over from the old 'default' slug.
+     *
      * Keep the slugs in step with AssetComposer::THEME_VARIANTS, which is the
      * whitelist that stops a hand-edited settings row reaching the HTML
      * attribute.
      *
      * Dropping a slug here is the whole removal: the validation rule and the
      * admin cards both read this array, and themeVariant() below falls back to
-     * 'default' for a stale stored value.
+     * 'black' for a stale stored value.
      */
     public const THEMES = [
-        'default' => [
-            'label' => 'Default (violet)',
-            'blurb' => 'The shipped look: deep violet page, indigo surfaces, blue accent, frosted glass.',
-            'dark' => true,
-            'swatch' => ['#19152e', '#2b254c', '#39335f', '#2b87d3', '#7c5cf6'],
-        ],
         'black' => [
-            'label' => 'Black',
-            'blurb' => 'Monochrome surfaces on true black. The accent stays blue so links still read as links.',
+            'label' => 'Black (default)',
+            'blurb' => 'The shipped look: monochrome surfaces on true black, frosted glass. The accent stays blue so links still read as links.',
             'dark' => true,
             'swatch' => ['#0b0b0d', '#141417', '#1c1c20', '#2b87d3', '#5a5a64'],
         ],
@@ -158,13 +159,17 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     }
 
     /**
-     * The saved palette slug, or 'default'.
+     * The saved palette slug, or 'black'.
+     *
+     * Kept in step with AssetComposer::themeVariant(), which resolves the same
+     * setting for the panel. Both must fall back to the same slug or the Theme
+     * tab would show no card selected while the panel rendered another palette.
      */
     private function themeVariant(): string
     {
         $variant = $this->settings->get('Brine::theme_variant');
 
-        return is_string($variant) && array_key_exists($variant, self::THEMES) ? $variant : 'default';
+        return is_string($variant) && array_key_exists($variant, self::THEMES) ? $variant : 'black';
     }
 
     /**
@@ -182,11 +187,14 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
         $variant = (string) $validated['theme'];
 
-        // 'default' clears the row rather than storing it, so an install that is
-        // later reset to the shipped look behaves exactly like a fresh one.
-        if ($variant === 'default') {
+        // 'black' is the shipped default, so it clears the row rather than
+        // storing it - an install later reset to the default then behaves exactly
+        // like a fresh one. It also clears any stale slug left by an older
+        // version (notably the retired 'default'), since a row that is present
+        // but unrecognised would otherwise sit in the database indefinitely.
+        if ($variant === 'black') {
             $this->settings->forget('Brine::theme_variant');
-            $this->alert->success('Theme reset to the default violet palette.')->flash();
+            $this->alert->success('Theme reset to the default black palette.')->flash();
         } else {
             $this->settings->set('Brine::theme_variant', $variant);
             $this->alert->success('Theme saved: ' . self::THEMES[$variant]['label'] . '.')->flash();

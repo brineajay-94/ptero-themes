@@ -1,9 +1,9 @@
 # brine-theme
 
-A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
-control-panel layout and a dark violet/indigo palette — `#19152e` page,
-`#2b254c` surfaces, blue `#2b87d3` accent, the system UI font stack, a fixed
-sidebar shell and frosted glass surfaces over a violet/cyan aurora.
+  A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
+  control-panel layout and a monochrome black palette — `#0b0b0d` page,
+  `#141417` surfaces, blue `#2b87d3` accent, the system UI font stack, a fixed
+  sidebar shell and frosted glass surfaces over a cool aurora.
 
 What it changes on top of the stock panel:
 
@@ -348,12 +348,12 @@ to the gold ramp**, so every stock `text-blue-*`, `bg-primary-600`,
 
 ### Neutral ramp
 
-The `neutral` / `gray` ramp is the dark violet/indigo ramp: `700` is the
-card/sidebar/header surface (`#2b254c`), `800` the page (`#19152e`), `900`
-raised chrome (`#120f1e`), `black` the terminal (`#0a0812`), and the upper
-steps are the violet-tinted text greys (`#edeaf8` down to `#8680a2`). The
-stock panel builds every surface from `neutral-700/800/900`, so the whole
-panel lands on the palette without per-page overrides. Corners are square
+  The `neutral` / `gray` ramp is the monochrome black ramp: `700` is the
+  card/sidebar/header surface (`#141417`), `800` the page (`#0b0b0d`), `900`
+  raised chrome (`#060608`), `black` the terminal (true black), and the upper
+  steps are the neutral text greys (`#f5f5f7` down to `#7a7a82`). The
+  stock panel builds every surface from `neutral-700/800/900`, so the whole
+  panel lands on the palette without per-page overrides. Corners are square
 everywhere: a global radius reset also neutralises the stock panel's rounding.
 
 ### Fonts
@@ -470,13 +470,20 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   own background), so a configured photo covers it completely and nothing has to
   test whether a photo exists.
 - **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
-  whole user panel. Three palettes ship, all dark:
+  whole user panel. Two palettes ship, both dark:
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
-  | `default` | the shipped violet, frosted glass | `#19152e` / `#2b254c` / `#2b87d3` |
-  | `black` | true monochrome, frosted glass | `#0b0b0d` / `#141417` / `#2b87d3` |
+  | `black` | the default: monochrome, frosted glass | `#0b0b0d` / `#141417` / `#2b87d3` |
   | `amber` | flat black + amber, rounded | `#0c0c0c` / `#1c1c1c` / `#d9a441` |
+
+  There is **no `default` slug**. The black palette is the `:root` block in
+  `pterodactyl-theme.css`, so a panel with nothing stored renders it directly
+  and no variant selector is needed for it. `black` is still a real, selectable
+  slug - it is a name an admin can pick, and both `themeVariant()` methods fall
+  back to it for a stale stored value, including one left by the retired
+  `default` slug. Saving `black` clears the settings row rather than writing it,
+  so resetting to the default behaves exactly like a fresh install.
 
   ### The `amber` palette - flat, monochrome gold, rounded
 

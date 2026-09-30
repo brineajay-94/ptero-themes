@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 {{-- brine-theme: the palette selected in Admin -> Site Settings -> Theme. It is
      rendered onto <html> server-side on purpose - a variant applied later from
-     JavaScript would show the default for a frame on every navigation. --}}
+     JavaScript would show the default for a frame on every navigation.
+
+     There is no 'default' slug: the monochrome black palette is the `:root`
+     block in the stylesheet, so 'black' is both a real slug and the fallback for
+     a panel with nothing stored (and for one still holding the retired
+     'default'). --}}
 @php
-    $ptThemeVariant = !empty($siteConfiguration['theme']['variant']) ? $siteConfiguration['theme']['variant'] : 'default';
+    $ptThemeVariant = !empty($siteConfiguration['theme']['variant']) ? $siteConfiguration['theme']['variant'] : 'black';
     $ptThemeColors = [
-        'default' => '#19152e',
         'black' => '#0b0b0d',
         'amber' => '#0c0c0c',
     ];
-    $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['default'];
+    $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['black'];
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-pt-theme="{{ $ptThemeVariant }}">
     <head>

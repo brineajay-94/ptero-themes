@@ -444,7 +444,7 @@
                                     <span class="bs-ss-theme-body">
                                         <span class="bs-ss-theme-name">
                                             {{ $meta['label'] }}
-                                            @if ($slug === 'default')
+                                            @if ($slug === 'black')
                                                 <span class="label label-default bs-ss-theme-tag">shipped</span>
                                             @endif
                                         </span>

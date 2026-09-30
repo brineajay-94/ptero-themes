@@ -20,7 +20,7 @@ class AssetComposer
      * in pterodactyl-theme.css - a slug with no block simply renders as the
      * default, which is why the whitelist here doubles as a safety net.
      */
-    private const THEME_VARIANTS = ['default', 'black', 'amber'];
+    private const THEME_VARIANTS = ['black', 'amber'];
 
     /**
      * AssetComposer constructor.
@@ -102,18 +102,23 @@ class AssetComposer
     }
 
     /**
-     * The selected palette slug, or 'default'.
+     * The selected palette slug, or 'black' (the shipped default).
      *
      * Validated against a whitelist here rather than trusted, because the value
      * ends up in an HTML attribute on <html> and a hand-edited settings row
      * could otherwise inject markup. The whitelist is the same list the admin
      * form posts against.
+     *
+     * There is no 'default' slug: the monochrome black palette lives on `:root`
+     * in the stylesheet, so it is what a panel with nothing stored renders.
+     * 'black' is therefore a real slug that must match those tokens, and it is
+     * the fallback for a stale stored value.
      */
     private function themeVariant(): string
     {
         $variant = $this->settings->get('Brine::theme_variant');
 
-        return is_string($variant) && in_array($variant, self::THEME_VARIANTS, true) ? $variant : 'default';
+        return is_string($variant) && in_array($variant, self::THEME_VARIANTS, true) ? $variant : 'black';
     }
 
     /**

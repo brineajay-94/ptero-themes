@@ -1,7 +1,7 @@
 {
     "name": "brine-theme",
     "version": "1.8.0",
-    "description": "Dark violet/indigo theme for the Pterodactyl Panel user area - #19152e page, #2b254c surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
+    "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #2b87d3 accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
@@ -30,7 +30,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and [data-pt-theme] blocks for the black / amber palettes (amber is flat: no gradients, no glow, no frosted blur, and rounded) - shell/auth/dashboard/console/file-manager styles"
+            "note": "Violet/indigo tokens (#19152e page, #2b254c surface, #2b87d3 accent, system fonts), a fixed violet/cyan aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",

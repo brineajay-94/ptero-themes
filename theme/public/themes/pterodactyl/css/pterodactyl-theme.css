@@ -1,5 +1,5 @@
 /*
- * brine-theme - dark violet/indigo Pterodactyl Panel child theme (user panel only)
+ * brine-theme - dark monochrome Pterodactyl Panel child theme (user panel only)
  * Target: pterodactyl/panel v1.15.x
  *
  * Loaded from resources/views/templates/wrapper.blade.php - the normal user
@@ -11,7 +11,7 @@
  * tailwind.config.js emits every colour utility as
  *     rgb(var(--pt-*))
  * so the whole palette resolves at runtime from the custom properties below.
- * Flipping `data-theme` on <html> therefore re-skins the entire React panel
+ * Flipping `data-pt-theme` on <html> therefore re-skins the entire React panel
  * with no rebuild and no flash of the wrong colours. Tailwind still expands
  * `/50` opacity modifiers because it re-parses the rgb() wrapper itself.
  *
@@ -19,16 +19,24 @@
  * -----
  *   navy  #2b87d3   primary / links / primary buttons / focus rings
  *   gold  #2b87d3   accent alias (the reference uses blue for every accent)
- *   page  #19152e   dark violet/indigo background
+ *   page  #0b0b0d   near-black background
+ *
+ * The surfaces are monochrome, but the primary ramp is deliberately left blue:
+ * without it, links, the primary button and the focus ring all stop reading as
+ * interactive. Only the *surface* end of that ramp - navy-800/900, which paints
+ * the sidebar, topbar, brand block and sidebar footer - is neutralised. That
+ * distinction matters: when those two steps were left at the old palette's
+ * violet, the whole left-hand chrome stayed purple while the rest of the panel
+ * went black.
  *
  * `blue` and `primary` in the Tailwind config resolve to the navy ramp and
  * `cyan` resolves to the gold ramp, so every stock brand-coloured utility
  * re-brands without component edits. red/green/yellow keep their semantics.
  *
  * The neutral/gray ramp carries every surface: the stock panel builds surfaces
- * out of neutral-700/800/900, so the violet/indigo values below re-skin those
- * pairings with no component edits. Corners are square everywhere - the radius
- * reset below also kills the stock panel's rounding.
+ * out of neutral-700/800/900, so the values below re-skin those pairings with no
+ * component edits. Corners are square everywhere - the radius reset below also
+ * kills the stock panel's rounding.
  *
  * Fonts are the system UI stack (no webfonts):
  * ../fonts - no CDN, no flash of unstyled text.
@@ -42,11 +50,12 @@
 
 /* ---------------------------------------------------------------- tokens -- */
 /*
- * Dark violet/indigo palette (evolved from the aternos-panel.html reference).
- * Dark only - the light palette and the light/dark toggle have been removed.
+ * The default palette is monochrome black (the `amber` variant is the only
+ * alternative; there is no separate "default" slug any more - `:root` *is* the
+ * default, so a panel with nothing stored renders these tokens).
  *
- *   page #19152e · surface #2b254c · raised #120f1e · border #39335f
- *   text #edeaf8 · muted #938daf · accent #2b87d3 · glow #7c5cf6
+ *   page #0b0b0d · surface #141417 · raised #060608 · border #1c1c20
+ *   text #f5f5f7 · muted #94949c · accent #2b87d3 · glow #5c6070
  *   success #22c55e · danger #ef4444 · warning #f59e0b
  */
 :root {
@@ -62,8 +71,8 @@
     --pt-navy-500: 55 140 211;
     --pt-navy-600: 43 135 211; /* #2b87d3 */
     --pt-navy-700: 30 111 184; /* #1e6fb8 hover */
-    --pt-navy-800: 35 30 64; /* active nav row #231e40 */
-    --pt-navy-900: 25 21 46; /* page #19152e */
+    --pt-navy-800: 26 26 30; /* active nav row, top depth wash */
+    --pt-navy-900: 13 13 15; /* sidebar, topbar, brand */
 
     /* Accent alias: the reference uses blue for every accent, so the gold ramp
      * tracks navy with lighter steps for text and icons on dark surfaces. */
@@ -75,28 +84,32 @@
     --pt-gold-500: 55 140 211;
     --pt-gold-600: 43 135 211; /* #2b87d3 */
     --pt-gold-700: 30 111 184;
-    --pt-gold-800: 35 30 64;
-    --pt-gold-900: 25 21 46;
+    --pt-gold-800: 26 26 30;
+    --pt-gold-900: 13 13 15;
 
-    /* Surfaces and text (dark only, no mirror). */
-    --pt-gray-50: 237 234 248; /* brightest text #edeaf8 */
-    --pt-gray-100: 200 195 222; /* nav item text #c8c3de */
-    --pt-gray-200: 166 160 194; /* meta text #a6a0c2 */
-    --pt-gray-300: 147 141 175; /* muted text #938daf */
-    --pt-gray-400: 134 128 162; /* nav labels #8680a2 */
-    --pt-gray-500: 72 65 118; /* hover surface #484176 */
-    --pt-gray-600: 57 51 95; /* borders / hover #39335f */
-    --pt-gray-700: 43 37 76; /* card, sidebar, header #2b254c */
-    --pt-gray-800: 25 21 46; /* page #19152e */
-    --pt-gray-900: 18 15 30; /* raised chrome #120f1e */
+    /* Surfaces and text (dark only, no mirror). 50 is the brightest text, 900 the
+     * darkest chrome. */
+    --pt-gray-50: 245 245 247;
+    --pt-gray-100: 209 209 214;
+    --pt-gray-200: 176 176 183;
+    --pt-gray-300: 148 148 156;
+    --pt-gray-400: 122 122 130;
+    --pt-gray-500: 38 38 42; /* hover surface */
+    --pt-gray-600: 28 28 32; /* borders / hover */
+    --pt-gray-700: 20 20 23; /* card, sidebar, header */
+    --pt-gray-800: 11 11 13; /* page */
+    --pt-gray-900: 6 6 8; /* raised chrome */
 
-    --pt-black: 10 8 18; /* console #0a0812 */
+    --pt-black: 0 0 0; /* console, true black */
     --pt-white: 255 255 255;
 
-    /* Decorative violet glow for the auth page background. */
-    --pt-violet-500: 124 92 246; /* #7c5cf6 */
-    --pt-violet-400: 167 139 250; /* #a78bfa */
-    --pt-cyan-500: 34 211 238; /* #22d3ee */
+    /* Cool grey glow field for the aurora and the auth page backdrop. Pure greys
+     * cannot carry much colour, so this stays restrained - but it is not off: at
+     * a lower alpha a black panel with no photo had nothing on screen but a flat
+     * slab, and the frosted surfaces had nothing to refract. */
+    --pt-violet-500: 92 96 112;
+    --pt-violet-400: 132 138 158;
+    --pt-cyan-500: 120 124 134;
 
     /* Discord's brand blurple, so the Discord quick link is recognisable at a
      * glance without pulling the brand icon set into the panel. */
@@ -120,7 +133,9 @@
     --pt-glass-radius: 14px;
     --pt-glass-radius-sm: 10px;
     --pt-glass-radius-lg: 20px;
-    --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.28);
+    /* Deeper than a mid-tone palette needs: on true black there is no luminance
+     * left for a shadow to borrow, so the elevation has to come from opacity. */
+    --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
 
     /* Frosted gradients live here rather than inline. Two reasons: the fallbacks
      * for reduced-transparency / forced-colors then reuse the exact stops
@@ -129,10 +144,10 @@
      * query (it reports "Unbalanced parenthesis" on CSS that is perfectly
      * valid - postcss and every browser accept it). Naming the gradients keeps
      * the stylesheet parseable by the version this panel ships. */
-    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.3), transparent 62%),
-        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.26), transparent 64%),
-        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.1), transparent 62%),
-        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.14), transparent 64%);
+    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.2), transparent 62%),
+        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.16), transparent 64%),
+        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.07), transparent 62%),
+        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.1), transparent 64%);
 
     /* Page depth, painted on the container itself rather than on a pseudo
      * element. This is what stops a panel with no background photo from
@@ -150,15 +165,15 @@
         repeating-linear-gradient(0deg, rgb(255 255 255 / 0.013) 0 1px, transparent 1px 4rem),
         repeating-linear-gradient(90deg, rgb(255 255 255 / 0.013) 0 1px, transparent 1px 4rem);
 
-    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-700) / 0.5), rgb(var(--pt-violet-500) / 0.16));
+    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-700) / 0.34), rgb(var(--pt-violet-500) / 0.1));
     --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-navy-700)), rgb(var(--pt-violet-500)));
-    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-700) / 0.5), rgb(var(--pt-cyan-500) / 0.09));
+    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-700) / 0.4), rgb(var(--pt-cyan-500) / 0.06));
     --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-navy-700)), rgb(var(--pt-cyan-500) / 0.25));
-    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.28), transparent 68%);
+    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.14), transparent 68%);
     --pt-topbar-rule: linear-gradient(
         90deg,
-        rgb(var(--pt-violet-400) / 0.85),
-        rgb(var(--pt-navy-400) / 0.9) 45%,
+        rgb(var(--pt-violet-400) / 0.4),
+        rgb(var(--pt-navy-400) / 0.5) 45%,
         transparent
     );
 
@@ -198,9 +213,10 @@
 
 /* ==================================================== theme variants ==
  *
- * The palette above is the default. These blocks re-point the same custom
- * properties for the alternatives chosen in Admin -> Site Settings -> Theme,
- * which the wrapper puts on <html> as `data-pt-theme`.
+ * The palette above IS the default - `:root` carries the monochrome black
+ * tokens, and the wrapper only writes a `data-pt-theme` attribute when the
+ * admin has picked something other than it. The block below is therefore the
+ * one alternative (Admin -> Site Settings -> Theme), not a set of siblings.
  *
  * Why this works with no rebuild and no second stylesheet: the whole React
  * panel resolves its colours through these variables. tailwind.config.js
@@ -215,18 +231,17 @@
  * `[data-pt-theme='x']` have identical specificity (0,1,0), so source order is
  * the only thing that decides. Keep these below `:root` or the default wins.
  *
- * What each variant overrides, and why only these:
- *   navy / gold   - the primary and accent ramps. `gold` is an alias of
- *                   `navy` in the default and is kept an alias here, because
- *                   the panel reaches for `cyan-500` when it means "accent".
+ * What the variant overrides, and why only these:
+ *   navy / gold   - the primary and accent ramps. `gold` is an alias of `navy`
+ *                   in the default and is kept an alias here, because the panel
+ *                   reaches for `cyan-500` when it means "accent".
  *   gray          - one ramp serving both text (50-400) and surfaces
  *                   (500-900). The panel uses `text-neutral-500` 23x and
  *                   `bg-neutral-500` 9x, so 500 has to sit between the two.
  *   violet / cyan - the aurora and frost gradient ingredients.
  *   glass-*       - the frost recipe.
- *   bg-overlay    - the scrim over an admin-supplied photo.
  *
- * All three variants are dark. That is a deliberate constraint rather than an
+ * Both palettes are dark. That is a deliberate constraint rather than an
  * omission: the panel paints `text-neutral-500` 23 times and `bg-neutral-500`
  * 9 times, so a single ramp has to work as both legible copy and a visible
  * fill. Inverting it for a light palette is possible but forces 500 to be
@@ -238,61 +253,6 @@
  * consumed by the console (Console.tsx, console/style.module.css), and a
  * terminal is dark on every platform.
  */
-
-/* --------------------------------------------------------------- black -- */
-/* Monochrome. The surfaces lose all hue, but the primary ramp is deliberately
- * left blue: without it, links, the primary button and the focus ring all stop
- * reading as interactive.
- *
- * The two steps that are overridden here are NOT part of that accent. navy-800
- * and navy-900 are the *surface* end of the ramp - the sidebar, the topbar, the
- * brand block and the sidebar footer all paint from them - and in the default
- * they are purple (#231e40 / #19152e). Leaving them alone is what made the
- * whole left-hand chrome stay violet while the rest of the panel went black.
- * navy-50..700 stay blue because those are the interactive steps. */
-[data-pt-theme='black'] {
-    --pt-navy-800: 26 26 30; /* active nav row, top depth wash */
-    --pt-navy-900: 13 13 15; /* sidebar, topbar, brand */
-
-    --pt-gray-50: 245 245 247;
-    --pt-gray-100: 209 209 214;
-    --pt-gray-200: 176 176 183;
-    --pt-gray-300: 148 148 156;
-    --pt-gray-400: 122 122 130;
-    --pt-gray-500: 38 38 42; /* hover surface */
-    --pt-gray-600: 28 28 32; /* borders / hover */
-    --pt-gray-700: 20 20 23; /* card, sidebar, header */
-    --pt-gray-800: 11 11 13; /* page */
-    --pt-gray-900: 6 6 8; /* raised chrome */
-
-    --pt-black: 0 0 0; /* console, now true black */
-
-    --pt-violet-500: 92 96 112;
-    --pt-violet-400: 132 138 158;
-    --pt-cyan-500: 120 124 134;
-
-    /* The aurora is kept faint here - pure greys cannot carry much colour - but
-     * it is no longer switched off. At the old 0.1 a black panel with no photo
-     * had nothing left on screen but a flat slab; these values put a cool bloom
-     * back behind the glass so the surfaces still have something to refract. */
-    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.2), transparent 62%),
-        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.16), transparent 64%),
-        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.07), transparent 62%),
-        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.1), transparent 64%);
-    /* As with blue, the `*-solid` gradients are omitted: they are composed from
-     * navy-700 and the glow ramps, both re-pointed above. */
-    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-700) / 0.34), rgb(var(--pt-violet-500) / 0.1));
-    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-700) / 0.4), rgb(var(--pt-cyan-500) / 0.06));
-    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.14), transparent 68%);
-    --pt-topbar-rule: linear-gradient(
-        90deg,
-        rgb(var(--pt-violet-400) / 0.4),
-        rgb(var(--pt-navy-400) / 0.5) 45%,
-        transparent
-    );
-
-    --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
-}
 
 /* --------------------------------------------------------------- amber -- */
 /* Flat black + amber, taken from a game-hosting login screen: a near-black

@@ -122,8 +122,13 @@
             "action": "replace",
             "note": "Adds the shared footer: Powered by the panel's own site name via brandName(), plus a Design copyright brineajay credit line"
         },
-        {
-            "path": "resources/scripts/components/elements/Spinner.tsx",
+          {
+              "path": "resources/scripts/components/elements/Modal.tsx",
+              "action": "replace",
+              "note": "Dialog surface painted by the .pt-modal class instead of a twin.macro bg-neutral-800. A colour inside a twin.macro css prop is inlined at build time, and below Tailwind 3.1 this config bakes literal hex, which pinned every dialog to the default violet on the black/amber palettes. Same props, exports and portal as stock"
+          },
+          {
+              "path": "resources/scripts/components/elements/Spinner.tsx",
             "action": "replace",
             "note": "Replaces the stock loading ring: caps every size at 22px (stock large was 64px with m-20 of dead margin) and re-asserts border-radius 50% with !important, which the theme's universal `* { border-radius: 0 !important; }` square-corner reset otherwise flattened into a box. Ring colour follows --pt-gold-500"
         },

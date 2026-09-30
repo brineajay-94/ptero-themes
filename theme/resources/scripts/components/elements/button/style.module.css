@@ -1,14 +1,57 @@
+/*
+ * brine-theme button module.
+ *
+ * Colours are written as `rgb(var(--pt-*))` rather than `@apply bg-blue-600`
+ * and friends. That is not a style preference: `@apply` resolves through
+ * Tailwind, and this file's tailwind.config.js deliberately emits literal hex
+ * below Tailwind 3.1 (so that `/50` opacity modifiers keep working on engines
+ * that cannot parse `rgb(var(--x) / <alpha-value>)`). A colour that goes
+ * through Tailwind is therefore frozen into the bundle at build time and
+ * cannot follow the active palette - which is why the stock buttons stayed
+ * default-blue on the black and amber palettes.
+ *
+ * Spelling the colours as custom properties bypasses Tailwind entirely, so the
+ * buttons follow the palette on every Tailwind version, exactly like the rest
+ * of the theme. The `blue`/`primary` alias in the config points at the navy
+ * ramp, so `bg-blue-600` maps to `--pt-navy-600`; `gray-*` to `--pt-gray-*`;
+ * and the semantic red/green/yellow scales to their own tokens.
+ *
+ * Spacing, typography and layout still use `@apply` - those are not colours and
+ * have no reason to move out of Tailwind.
+ */
+
 .button {
     @apply px-4 py-2 inline-flex items-center justify-center;
     @apply text-sm font-bold uppercase tracking-wider transition-all duration-100;
-    @apply focus:ring-[3px] focus:ring-offset-2 focus:ring-offset-gray-700 focus:ring-opacity-50;
 
     /* Sharp, compact, letter-spaced controls. */
     border-radius: 0;
 
+    /*
+     * Tailwind's ring is a box-shadow pair: the coloured ring, then the offset
+     * ring that punches a gap between it and the button. Written out here so the
+     * ring colour can come from a token. 3px ring + 2px offset = 5px outer edge.
+     */
+    &:focus {
+        outline: none;
+        box-shadow:
+            0 0 0 3px rgb(var(--pt-navy-600) / 0.5),
+            0 0 0 5px rgb(var(--pt-gray-700));
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+
     /* Sizing Controls */
     &.small {
-        @apply px-4 py-0 h-8 font-normal text-sm focus:ring-2;
+        @apply px-4 py-0 h-8 font-normal text-sm;
+
+        &:focus {
+            box-shadow:
+                0 0 0 2px rgb(var(--pt-navy-600) / 0.5),
+                0 0 0 4px rgb(var(--pt-gray-700));
+        }
     }
 
     &.large {
@@ -16,10 +59,11 @@
     }
 
     &.secondary {
-        @apply text-gray-50 bg-transparent;
+        color: rgb(var(--pt-gray-50));
+        background-color: transparent;
 
         &:disabled {
-            background: transparent !important;
+            background-color: transparent !important;
         }
     }
 
@@ -37,40 +81,87 @@
 }
 
 .primary {
-    @apply bg-blue-600 text-blue-50;
-    @apply hover:bg-blue-500 active:bg-blue-500 focus:ring-blue-400 focus:ring-opacity-75;
+    background-color: rgb(var(--pt-navy-600));
+    color: rgb(var(--pt-navy-50));
+    border-color: rgb(var(--pt-navy-600));
+
+    &:hover,
+    &:active {
+        background-color: rgb(var(--pt-navy-500));
+    }
 
     &.secondary {
-        @apply hover:bg-blue-600 active:bg-blue-600;
+        &:hover,
+        &:active {
+            background-color: rgb(var(--pt-navy-600));
+        }
+    }
+
+    &:focus {
+        box-shadow:
+            0 0 0 3px rgb(var(--pt-navy-400) / 0.75),
+            0 0 0 5px rgb(var(--pt-gray-700));
     }
 
     &:disabled {
-        @apply bg-blue-500/75 text-blue-200/75;
+        background-color: rgb(var(--pt-navy-500) / 0.75);
+        color: rgb(var(--pt-navy-200) / 0.75);
     }
 }
 
 .text {
-    @apply bg-gray-500 text-gray-50;
-    @apply hover:bg-gray-400 active:bg-gray-400 focus:ring-gray-300 focus:ring-opacity-50;
+    background-color: rgb(var(--pt-gray-500));
+    color: rgb(var(--pt-gray-50));
+
+    &:hover,
+    &:active {
+        background-color: rgb(var(--pt-gray-400));
+    }
 
     &.secondary {
-        @apply hover:bg-gray-500 active:bg-gray-500;
+        &:hover,
+        &:active {
+            background-color: rgb(var(--pt-gray-500));
+        }
+    }
+
+    &:focus {
+        box-shadow:
+            0 0 0 3px rgb(var(--pt-gray-300) / 0.5),
+            0 0 0 5px rgb(var(--pt-gray-700));
     }
 
     &:disabled {
-        @apply bg-gray-500/75 text-gray-200/75;
+        background-color: rgb(var(--pt-gray-500) / 0.75);
+        color: rgb(var(--pt-gray-200) / 0.75);
     }
 }
 
 .danger {
-    @apply bg-red-600 text-gray-50;
-    @apply hover:bg-red-500 active:bg-red-500 focus:ring-red-400 focus:ring-opacity-75;
+    background-color: rgb(var(--pt-red-600));
+    color: rgb(var(--pt-red-50));
+    border-color: rgb(var(--pt-red-600));
+
+    &:hover,
+    &:active {
+        background-color: rgb(var(--pt-red-500));
+    }
 
     &.secondary {
-        @apply hover:bg-red-600 active:bg-red-600;
+        &:hover,
+        &:active {
+            background-color: rgb(var(--pt-red-600));
+        }
+    }
+
+    &:focus {
+        box-shadow:
+            0 0 0 3px rgb(var(--pt-red-400) / 0.75),
+            0 0 0 5px rgb(var(--pt-gray-700));
     }
 
     &:disabled {
-        @apply bg-red-600/75 text-red-50/75;
+        background-color: rgb(var(--pt-red-500) / 0.75);
+        color: rgb(var(--pt-red-100) / 0.75);
     }
 }

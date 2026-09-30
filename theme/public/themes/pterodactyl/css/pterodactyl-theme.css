@@ -2002,6 +2002,69 @@
     box-shadow: 0 12px 26px -10px rgb(0 0 0 / 0.75), 0 0 0 1px var(--pt-glass-border);
 }
 
+/* --------------------------------------------------------------- modals -- */
+/* The dialog surface for every modal in the panel (file rename / chmod /
+ * upload, database and backup creation, server search, and all the
+ * ConfirmationModal prompts such as "Forcibly Stop Process").
+ *
+ * This is a class rather than a Tailwind utility on purpose. The stock markup
+ * asks twin.macro for `bg-neutral-800` inside a `css` prop, and twin.macro
+ * inlines a colour resolved in JS rather than emitting a utility class. On
+ * Tailwind 3.1+ that inlined value is `rgb(var(--pt-*))` and would still follow
+ * the palette, but below 3.1 this stylesheet's config deliberately bakes literal
+ * hex (so `/50` opacity modifiers survive on old engines) - which pinned every
+ * dialog to the default violet on the black and amber palettes. Painting the
+ * surface from the tokens here, like every other themed surface, makes it follow
+ * the active palette on every Tailwind version. See
+ * resources/scripts/components/elements/Modal.tsx.
+ *
+ * Padding and scrolling are kept from the stock class list
+ * (`p-3 sm:p-4 md:p-6 overflow-y-scroll transition-all duration-150`) so the
+ * dialog's metrics and behaviour are unchanged; only the paint moves. */
+.pt-modal {
+    padding: 0.75rem;
+    background-color: rgb(var(--pt-gray-700));
+    border: 1px solid var(--pt-glass-border);
+    color: rgb(var(--pt-gray-100));
+    overflow-y: scroll;
+    /* A modal floats above everything, so it needs a real drop shadow to read as
+     * elevated. This is a neutral shadow, not a glow - the flat palettes
+     * suppress coloured blooms, not elevation. */
+    box-shadow:
+        0 18px 40px -12px rgb(0 0 0 / 0.7),
+        0 4px 12px rgb(0 0 0 / 0.4);
+    transition: all 150ms ease;
+}
+
+@media (min-width: 640px) {
+    .pt-modal {
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .pt-modal {
+        padding: 1.5rem;
+    }
+}
+
+/* The confirmation prompts put their heading and body text in bare elements, so
+ * they are styled here rather than in a component. */
+.pt-modal h2 {
+    color: rgb(var(--pt-gray-50));
+}
+
+.pt-modal .pt-auth,
+.pt-modal p {
+    color: rgb(var(--pt-gray-300));
+}
+
+/* The flat palettes suppress the inner highlight that makes a frosted card read
+ * as glass, so give the dialog its top edge back as a plain hairline. */
+[data-pt-theme='amber'] .pt-modal {
+    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.8), 0 4px 12px rgb(0 0 0 / 0.5);
+}
+
 /* ------------------------------------------------- hero / console (tinted) -- */
 
 .pt-hero,

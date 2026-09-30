@@ -98,12 +98,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'dark' => true,
             'swatch' => ['#0b0b0d', '#141417', '#1c1c20', '#2b87d3', '#5a5a64'],
         ],
-        'navy' => [
-            'label' => 'Navy & gold (flat)',
-            'blurb' => 'Flat navy surfaces with a gold accent. No gradients, no glow, no frosted blur - borders and solid fills do all the work.',
-            'dark' => true,
-            'swatch' => ['#0f1726', '#172131', '#152b4d', '#c8a44e', '#5286c9'],
-        ],
         'amber' => [
             'label' => 'Black & amber (flat)',
             'blurb' => 'Near-black surfaces with a single warm gold for buttons, links and headings. Flat and rounded - no gradients, no glow.',

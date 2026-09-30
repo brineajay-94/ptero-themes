@@ -7,7 +7,6 @@
     $ptThemeColors = [
         'default' => '#19152e',
         'black' => '#0b0b0d',
-        'navy' => '#0f1726',
         'amber' => '#0c0c0c',
     ];
     $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['default'];

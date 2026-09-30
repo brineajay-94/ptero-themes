@@ -467,80 +467,66 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   own background), so a configured photo covers it completely and nothing has to
   test whether a photo exists.
 - **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
-  whole user panel. Four palettes ship, all dark:
+  whole user panel. Three palettes ship, all dark:
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
   | `default` | the shipped violet, frosted glass | `#19152e` / `#2b254c` / `#2b87d3` |
   | `black` | true monochrome, frosted glass | `#0b0b0d` / `#141417` / `#2b87d3` |
-  | `navy` | flat navy + gold, square | `#0f1726` / `#152b4d` / `#c8a44e` |
   | `amber` | flat black + amber, rounded | `#0c0c0c` / `#1c1c1c` / `#d9a441` |
 
-  ### The two flat palettes - `navy` and `amber`
+  ### The `amber` palette - flat, monochrome gold, rounded
 
-  `navy` and `amber` are the odd ones out: `default` and `black` are the same
-  design in different colours, and these two change the *material*. Both have
-  **no gradients, no glow and no frosted blur** - borders and solid fills do all
-  the work. `navy` is adapted from a school-management panel (the "Niraula
-  EduMedia" look); `amber` is adapted from a game-hosting login screen (a
-  near-black landing page with one warm gold doing all the work).
+  `amber` is the odd one out. `default` and `black` are the same design in
+  different colours, frosted glass included; `amber` changes the *material*.
+  It comes from a game-hosting login screen - a near-black landing page with a
+  single warm gold doing all the work: gold heading, gold links, one solid gold
+  Log in button, and nothing else coloured at all. There are **no gradients, no
+  glow and no frosted blur**; borders and solid fills do the work.
 
-  Each takes two halves, and both are needed:
+  It takes two halves, and both are needed:
 
-  - **The token block** near the top of the stylesheet re-points the ramps. The
-    gold ramp stops being an alias of navy (it is one everywhere else) and
-    becomes a real gold scale, so the brand rule, the `cyan` alias and the
-    active-nav marker all turn gold. That lines up with this file's existing
-    `blue`/`primary` -> navy and `cyan` -> gold aliases, so `tailwind.config.js`
-    needs no change. Every decorative token goes to `none`: `--pt-aurora`,
-    `--pt-page-depth`, `--pt-frost-*`, `--pt-topbar-rule`. The glass recipe is
-    flattened - blur `0px`, saturate `100%`, tint and top highlight `0`,
-    hairline borders, a `0 1px 2px` shadow.
-  - **The flat-mode rule block** further down finishes the job, shared by both
-    via `:is([data-pt-theme='navy'], [data-pt-theme='amber'])`. Tokens alone
-    cannot do it: the glass layer bakes its translucency in as literal alphas
-    (`rgb(var(--pt-navy-900) / 0.62)` and a dozen others), and four coloured
-    `box-shadow` blooms are written inline. Those rules are (0,2,0) against the
-    glass layer's (0,1,0) - `:is()` takes the specificity of its most specific
-    argument, so the attribute still counts - and they therefore win without
-    depending on source order.
+  - **The token block** near the top of the stylesheet re-points the ramps.
+    There is no second hue here - the reference is monochrome-gold - so the
+    *blue* ramp is pointed at the same `#d9a441` as the `cyan` ramp, and
+    `bg-primary-600` and `text-blue-*` come out amber too, which is what the
+    reference shows. The gold ramp stops being an alias of navy (it is one
+    everywhere else) and becomes a real gold scale, so the brand rule, the
+    `cyan` alias and the active-nav marker all turn gold. That lines up with
+    this file's existing `blue`/`primary` -> navy and `cyan` -> gold aliases, so
+    `tailwind.config.js` needs no change. Every decorative token goes to `none`:
+    `--pt-aurora`, `--pt-page-depth`, `--pt-frost-*`, `--pt-topbar-rule`. The
+    glass recipe is flattened - blur `0px`, saturate `100%`, tint and top
+    highlight `0`, hairline borders, a `0 1px 2px` shadow.
+  - **The flat-mode rule block** further down finishes the job, at
+    `[data-pt-theme='amber'] .pt-*` - (0,2,0) against the glass layer's (0,1,0),
+    so it wins on specificity alone and does not depend on source order. Tokens
+    alone cannot do it: the glass layer bakes its translucency in as literal
+    alphas (`rgb(var(--pt-navy-900) / 0.62)` and a dozen others), and four
+    coloured `box-shadow` blooms are written inline.
 
-  **If you edit either palette, edit both halves.** Changing a token without
+  **If you edit this palette, edit both halves.** Changing a token without
   touching the rule block leaves a 62%-transparent sidebar and a glowing Start
   button; changing a rule without the token leaves violet aurora behind.
 
   The auth **focus ring** is deliberately left in place. It looks like one of the
   blooms and is not - removing it would cost keyboard users their only focus cue.
 
-  How the two differ:
+  `navy-800/900` are the one part of the blue ramp that stays neutral black:
+  those are surfaces, not accents, so they must not pick up the hue.
 
-  | | `navy` | `amber` |
-  | --- | --- | --- |
-  | Base | blue-black surfaces | neutral near-black |
-  | Second hue | navy (surfaces + a lighter link blue) | none - the blue ramp is re-pointed at the same gold |
-  | Corners | square (`0px`) | rounded (12px card, 8px fields, pill submit button) |
-  | Active nav row | gold tint + 3px gold bar | gold tint + 3px gold bar |
+  **Corners are rounded here**, where the other two palettes are square - 12px
+  card, 8px fields, pill submit button. The glass radius tokens cover the
+  surfaces this file styles itself, but the panel's form controls are Tailwind
+  components it never touches, so a short extra block ("amber rounding") puts
+  the rounding back on them. That block needs `!important`, because the
+  `* { border-radius: 0 !important }` reset is itself `!important` at (0,0,0).
 
-  `amber` is monochrome by design: in the reference the button, the links and
-  the logo are all the same amber, so `bg-primary-600` and `text-blue-*` come
-  out gold too. Its `navy-800/900` are the exception - those are surfaces, not
-  accents, so they stay neutral. Its rounding needs its own short block as well,
-  because the panel's Tailwind form controls are components this file never
-  touches and would stay square under the `* { border-radius: 0 !important }`
-  reset.
+  Card-on-page separation is deliberately low (1.20:1). The reference is in the
+  same place - 1.11:1 for a white card on `#0e0e0e` - and the 1px border does
+  the separating. The amber is not a tint: `#d9a441` measures 8.60:1 on the page,
+  7.16:1 on a card and 7.58:1 on the sidebar.
 
-  Values that depart from their references on purpose:
-  - `navy`'s `navy-600` is `#588ed2`, not the reference's `#1a3c6d`. It is the
-    `blue`/`primary` alias, so it paints link text on a near-black page *and*
-    inside cards; the reference navy is 2.63:1 on the page, this is 5.31:1 on the
-    page and 4.79:1 on a card. (The shipped default's own accent manages only
-    3.74:1 on its card.)
-  - `navy` keeps square corners. The reference rounds to 4-6px, but rounding only
-    the glass surfaces would leave cards rounded and stock buttons square.
-    `amber` does round, and carries the extra block that makes that consistent.
-  - Card-on-page separation is deliberately low in both (1.11:1 and 1.20:1).
-    Both references are in the same place - 1.12:1 for the school panel, where a
-    white card sits on `#f0f1f3` - and the 1px border does the separating.
 
 
   Switching one is instant on the next click, with **no rebuild, no asset

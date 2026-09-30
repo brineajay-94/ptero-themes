@@ -1,4 +1,7 @@
 <?php
+
+namespace Pterodactyl\Support;
+
 /**
  * Key a white background out of an uploaded illustration.
  *
@@ -25,11 +28,18 @@
  * ring of white speckle against a dark background, and the result is cropped to
  * what is left so the layout does not reserve space for a transparent margin.
  *
+ * The namespace is declared above the class on purpose and has to stay there.
+ * This file shipped once with no `namespace` statement at all, so the class
+ * landed in the global namespace and every call to
+ * `Pterodactyl\Support\IllustrationProcessor` was a 500. `php -l` passes on a
+ * file that declares a class in the wrong namespace, which is why there is a
+ * check for that now - see check-namespaces.php in the project scripts.
+ *
  * @param string $sourcePath  path to the uploaded file
  * @param string $targetPath  where to write the processed PNG
  * @param int    $threshold   0-255, how close to white counts as background
  *
- * @return array{written:bool, message:string, width?:int, height?:int, cleared?:int}
+ * @return array{written:bool, message:string, width?:int, height?:int, cleared?:int, sourceWidth?:int, sourceHeight?:int, cropX?:int, cropY?:int}
  */
 final class IllustrationProcessor
 {

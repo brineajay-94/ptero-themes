@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -12,6 +12,7 @@ import {
     faKey,
     faLock,
     faNetworkWired,
+    faPuzzlePiece,
     faSignOutAlt,
     faSlidersH,
     faTerminal,
@@ -26,10 +27,18 @@ import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
 import routes from '@/routers/routes';
 import { brandName, logoUrl } from '@/lib/brand';
+import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
+import { hasPluginsDirectory } from '@/api/server/plugins';
 
 export interface SidebarProps {
     mode: 'dashboard' | 'server';
     serverId?: number | string | null;
+    /**
+     * Only set in server mode. Used to decide whether the server can take jar
+     * plugins at all - see hasPluginsDirectory for why this is a filesystem
+     * probe rather than a check on the egg.
+     */
+    serverUuid?: string;
     matchUrl?: string;
     onNavigate?: () => void;
     onLogout?: () => void;
@@ -46,6 +55,7 @@ const SERVER_ICONS: Record<string, IconDefinition> = {
     Startup: faSlidersH,
     Settings: faCog,
     Activity: faHistory,
+    Plugins: faPuzzlePiece,
 };
 
 const ACCOUNT_ICONS: Record<string, IconDefinition> = {
@@ -89,10 +99,34 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
     </>
 );
 
-export default ({ mode, serverId, matchUrl, onNavigate, onLogout }: SidebarProps) => {
+export default ({ mode, serverId, serverUuid, matchUrl, onNavigate, onLogout }: SidebarProps) => {
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
+
+    // Whether to offer Plugins at all. The panel does not expose the egg name to
+    // the client, so the only honest signal is whether the server actually has a
+    // plugins/ directory. Probed once per server; the nav renders immediately and
+    // the item appears when the answer lands, so nothing blocks on it.
+    const [pluginServer, setPluginServer] = useState(false);
+
+    useEffect(() => {
+        if (mode !== 'server' || !serverUuid) {
+            setPluginServer(false);
+            return;
+        }
+
+        let active = true;
+        hasPluginsDirectory(serverUuid).then((value) => {
+            if (active) {
+                setPluginServer(value);
+            }
+        });
+
+        return () => {
+            active = false;
+        };
+    }, [mode, serverUuid]);
 
     const serverTo = (value: string) => {
         const base = (matchUrl || '').replace(/\/*$/, '');
@@ -148,6 +182,19 @@ export default ({ mode, serverId, matchUrl, onNavigate, onLogout }: SidebarProps
                                     </Item>
                                 )
                             )}
+                        {THEME_SERVER_ROUTES.filter(
+                            (route) => !route.requiresPluginsDirectory || pluginServer
+                        ).map((route) => (
+                            <Can key={route.path} action={route.permission} matchAny>
+                                <Item
+                                    to={serverTo(route.path)}
+                                    icon={SERVER_ICONS[route.name] || faPuzzlePiece}
+                                    onClick={onNavigate}
+                                >
+                                    {route.name}
+                                </Item>
+                            </Can>
+                        ))}
                         {rootAdmin && serverId !== undefined && serverId !== null && (
                             <a
                                 href={`/admin/servers/view/${serverId}`}

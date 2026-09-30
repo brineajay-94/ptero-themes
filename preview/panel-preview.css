@@ -1548,3 +1548,196 @@ video {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ---------------------------------------------------------- plugins page --
+     * Mirrors components/server/plugins/style.module.css as plain CSS. The real
+     * module is a CSS module compiled by the panel's webpack and never reaches a
+     * static page, so the preview carries its own copy - the same approach the
+     * terminal and file-row rules above take. Written without @apply so it passes
+     * through Tailwind verbatim and survives a rebuild on any engine version.
+     *
+     * Accent steps match their meaning: 400 for hairlines and rules, 300 for text
+     * and for fills that carry a dark label, 600 as a muted fill, 700+ surfaces.
+     */
+
+    .pg-notice {
+        display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem;margin-bottom:1rem;font-size:0.875rem;
+        border: 1px solid rgb(var(--pt-navy-600));
+        border-left: 3px solid rgb(var(--pt-gold-400));
+        background-color: rgb(var(--pt-navy-600) / 0.18);
+        color: rgb(var(--pt-gray-200));
+    }
+
+    .pg-notice--warn {
+        border-color: rgb(var(--pt-yellow-700));
+        border-left-color: rgb(var(--pt-yellow-500));
+        background-color: rgb(var(--pt-yellow-500) / 0.12);
+        color: rgb(var(--pt-gray-100));
+    }
+
+    .pg-tabs {
+        display:flex;align-items:stretch;margin-bottom:1rem;border-bottom-width:1px;border-bottom-style:solid;
+        border-color: rgb(var(--pt-gray-600));
+    }
+
+    .pg-tab {
+        position:relative;padding-left:1rem;padding-right:1rem;padding-top:0.5rem;padding-bottom:0.5rem;font-size:0.875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.025em;
+        background: none;
+        border: 0;
+        color: rgb(var(--pt-gray-400));
+        cursor: pointer;
+    }
+
+    .pg-tab--active {
+        color: rgb(var(--pt-gray-50));
+    }
+
+    .pg-tab--active::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 2px;
+        background-color: rgb(var(--pt-gold-400));
+    }
+
+    .pg-count {
+        margin-left:0.5rem;padding-left:0.375rem;padding-right:0.375rem;font-size:0.75rem;font-weight:700;
+        background-color: rgb(var(--pt-navy-600));
+        color: rgb(var(--pt-gray-100));
+    }
+
+    .pg-toolbar {
+        display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;
+    }
+
+    /* Explicit media query, not `@apply ... sm:flex-row` - see the note in the
+     * shipped plugins/style.module.css. */
+    @media (min-width: 640px) {
+        .pg-toolbar {
+            flex-direction: row;
+        }
+    }
+
+    .pg-search {
+        flex:1 1 0%;padding-left:0.75rem;padding-right:0.75rem;padding-top:0.5rem;padding-bottom:0.5rem;font-size:0.875rem;width:100%;
+        border: 1px solid rgb(var(--pt-gray-500));
+        background-color: rgb(var(--pt-black));
+        color: rgb(var(--pt-gray-100));
+        outline: none;
+    }
+
+    .pg-search::placeholder {
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-search:focus {
+        border-color: rgb(var(--pt-navy-300));
+        box-shadow: 0 0 0 3px rgb(var(--pt-navy-300) / 0.22);
+    }
+
+    .pg-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    }
+
+    .pg-project {
+        display:flex;flex-direction:column;padding:0.75rem;
+        border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+        background-color: rgb(var(--pt-gray-700));
+        box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+    }
+
+    .pg-project:hover {
+        border-color: rgb(var(--pt-gold-400) / 0.75);
+    }
+
+    .pg-project-head {
+        display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:0.5rem;
+    }
+
+    .pg-project-icon {
+        display:grid;place-items:center;flex-shrink:0;
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 1px solid var(--pt-glass-border);
+        background-color: rgb(var(--pt-navy-500) / 0.16);
+        color: rgb(var(--pt-gray-100));
+        font-size: 1.1rem;
+    }
+
+    .pg-project-title {
+        font-weight:600;font-size:1rem;line-height:1.25;
+        color: rgb(var(--pt-gray-50));
+    }
+
+    .pg-project-author {
+        font-size:0.75rem;
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-desc {
+        font-size:0.875rem;margin-bottom:0.75rem;flex:1 1 0%;
+        color: rgb(var(--pt-gray-300));
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .pg-foot {
+        display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;
+    }
+
+    .pg-select {
+        flex:1 1 0%;padding-left:0.5rem;padding-right:0.5rem;padding-top:0.375rem;padding-bottom:0.375rem;font-size:0.75rem;min-width:0;
+        border: 1px solid rgb(var(--pt-gray-500));
+        background-color: rgb(var(--pt-black));
+        color: rgb(var(--pt-gray-100));
+        outline: none;
+    }
+
+    .pg-select:focus {
+        border-color: rgb(var(--pt-navy-300));
+    }
+
+    .pg-meta {
+        display:flex;align-items:center;gap:0.75rem;font-size:0.75rem;
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-meta strong {
+        color: rgb(var(--pt-gray-200));
+        font-weight: 600;
+    }
+
+    .pg-row {
+        display:flex;align-items:center;gap:0.75rem;padding-left:0.75rem;padding-right:0.75rem;padding-top:0.5rem;padding-bottom:0.5rem;margin-bottom:0.5rem;
+        border: 1px solid rgb(var(--pt-gray-500) / 0.35);
+        border-left: 3px solid rgb(var(--pt-navy-600));
+        background-color: rgb(var(--pt-gray-700));
+    }
+
+    .pg-row:hover {
+        border-color: rgb(var(--pt-gold-400) / 0.75);
+        border-left-color: rgb(var(--pt-gold-400));
+    }
+
+    .pg-row-name {
+        flex:1 1 0%;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.875rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+        color: rgb(var(--pt-gray-100));
+    }
+
+    .pg-row-meta {
+        font-size:0.75rem;flex-shrink:0;
+        color: rgb(var(--pt-gray-400));
+    }
+
+    .pg-empty {
+        padding:1.5rem;text-align:center;font-size:0.875rem;
+        border: 1px dashed rgb(var(--pt-gray-600));
+        color: rgb(var(--pt-gray-400));
+    }
+}

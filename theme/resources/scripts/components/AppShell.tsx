@@ -5,11 +5,18 @@ import NavigationBar from '@/components/NavigationBar';
 import routes from '@/routers/routes';
 import http from '@/api/http';
 import { backgroundStyle, brandName } from '@/lib/brand';
+import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
 
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
     serverName?: string;
     serverId?: number | string | null;
+    /**
+     * Passed down so the sidebar can decide whether to offer the Plugins item.
+     * It is a prop rather than a ServerContext read because AppShell also renders
+     * in dashboard mode, where there is no server context to read from.
+     */
+    serverUuid?: string;
     children?: React.ReactNode;
 }
 
@@ -21,7 +28,7 @@ const normalize = (value: string) => (value === '' || value === '/' ? '/' : valu
  */
 const basePath = (path: string) => normalize(path.replace(/\/:[^(]+(?:\([^)]*\))?/, ''));
 
-const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
+const AppShell = ({ mode, serverName, serverId, serverUuid, children }: AppShellProps) => {
     const location = useLocation();
     const match = useRouteMatch<{ id: string }>();
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -42,7 +49,16 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
         )
         .pop();
 
-    const title = mode === 'server' ? matched?.name || 'Server' : isAccount ? matched?.name || 'Account' : 'Dashboard';
+    const title =
+        mode === 'server'
+            ? matched?.name ||
+              // The theme's own routes are not in routes.server, so without this
+              // the topbar would fall back to "Server" on the Plugins page.
+              THEME_SERVER_ROUTES.find((route) => subPath === `/${route.path}`)?.name ||
+              'Server'
+            : isAccount
+            ? matched?.name || 'Account'
+            : 'Dashboard';
 
     const subtitle = mode === 'server' ? serverName || 'Loading server' : brandName();
 
@@ -74,6 +90,7 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
         <Sidebar
             mode={mode}
             serverId={serverId}
+            serverUuid={serverUuid}
             matchUrl={match?.url}
             onNavigate={onNavigate}
             onLogout={onLogout}

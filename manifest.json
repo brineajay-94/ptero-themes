@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -21,6 +21,26 @@
             "path": "resources/scripts/lib/theme.ts",
             "action": "create",
             "note": "ptColor() helper for Chart.js - dark-only, no theme state"
+        },
+        {
+            "path": "resources/scripts/lib/serverExtras.ts",
+            "action": "create",
+            "note": "The server routes the theme adds on top of the panel's routes.server table, in one place so the router, the sidebar and the topbar title cannot drift apart. Currently Plugins (file.read)"
+        },
+        {
+            "path": "resources/scripts/api/server/plugins.ts",
+            "action": "create",
+            "note": "Plugin installer API. Modrinth catalog (search + versions) called straight from the browser - api.modrinth.com sends access-control-allow-origin: *, and Spigot/Hangar do not, so supporting them would mean the panel proxying arbitrary URLs. Installs go through the panel's own POST files/pull, which hands the URL to the daemon, so the jar never passes through the browser and needs no new route or permission"
+        },
+        {
+            "path": "resources/scripts/components/server/plugins/PluginsContainer.tsx",
+            "action": "create",
+            "note": "Plugins page: installed list with remove, Modrinth search with a version picker, install, and a warning when a version declares required dependencies. Installing needs file.create, removing file.delete, opening the page file.read"
+        },
+        {
+            "path": "resources/scripts/components/server/plugins/style.module.css",
+            "action": "create",
+            "note": "Plugins page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces"
         },
         {
             "path": "resources/scripts/lib/brand.ts",
@@ -45,12 +65,12 @@
         {
             "path": "resources/scripts/components/AppShell.tsx",
             "action": "create",
-            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it"
+            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it. Resolves the topbar title for the theme's own server routes (lib/serverExtras) and passes serverUuid down so the sidebar can decide whether to offer Plugins"
         },
         {
             "path": "resources/scripts/components/Sidebar.tsx",
             "action": "create",
-            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer"
+            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer. Renders the theme's extra server routes, showing Plugins only when the server actually has a plugins/ directory"
         },
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
@@ -65,7 +85,7 @@
         {
             "path": "resources/scripts/routers/ServerRouter.tsx",
             "action": "replace",
-            "note": "Wraps server routes in AppShell and drops the legacy SubNavigation"
+            "note": "Wraps server routes in AppShell and drops the legacy SubNavigation, and mounts the theme's own server routes (currently Plugins) after the panel's table so a stock route of the same path would win rather than be shadowed"
         },
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",

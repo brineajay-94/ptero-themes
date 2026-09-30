@@ -67,6 +67,7 @@ const ICONS = {
   "check-circle": "faCheckCircle",
   "exclamation-circle": "faExclamationCircle",
   "exclamation-triangle": "faExclamationTriangle",
+  "puzzle-piece": "faPuzzlePiece",
   "shield-alt": "faShieldAlt",
   hdd: "faHdd",
   memory: "faMemory",

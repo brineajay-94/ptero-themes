@@ -387,7 +387,7 @@ render, so they match the panel.
 
 ## What changes
 
-44 files. Full detail lives in `manifest.json`; the summary:
+51 files. Full detail lives in `manifest.json`; the summary:
 
 **Build & chrome**
 
@@ -395,7 +395,7 @@ render, so they match the panel.
 | --- | --- |
 | `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
 | `resources/views/templates/wrapper.blade.php` | replace - stylesheet link, plus `data-pt-theme` on `<html>` and a theme-color that follow the chosen palette (title and favicon stay stock) |
-| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create â€” violet/indigo tokens + shell/auth/dashboard/console/files styles |
+| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create - monochrome tokens + shell/auth/dashboard/console/files styles |
 | `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
 
 **Shell**
@@ -439,6 +439,58 @@ render, so they match the panel.
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions, API routes and the database are unaffected.
+
+## Plugins
+
+A plugin installer at **Server -> Plugins**, for jar plugins. It searches the
+Modrinth catalog, installs straight into `plugins/`, lists what is installed and
+removes it. It is theme-only: **no new panel route, no new permission, no
+backend of ours.**
+
+| File | Action |
+| --- | --- |
+| `components/server/plugins/PluginsContainer.tsx` | create - the page |
+| `components/server/plugins/style.module.css` | create - page styling on the theme tokens |
+| `api/server/plugins.ts` | create - Modrinth catalog + the panel file calls |
+| `lib/serverExtras.ts` | create - the route definition, shared by router/sidebar/topbar |
+
+**How an install actually happens.** The panel already exposes
+`POST /api/client/servers/{uuid}/files/pull`, which hands a URL to the *daemon*.
+The jar therefore never passes through the browser - no CORS, no memory ceiling,
+no size limit - and the endpoint only requires `Permission::ACTION_FILE_CREATE`,
+which every user already has. Nothing is proxied through PHP.
+
+**Why Modrinth only.** `api.modrinth.com` sends `access-control-allow-origin: *`,
+so the browser can query it directly. Spigot and Hangar do not, and supporting
+them would mean the panel fetching arbitrary URLs on the user's behalf - an SSRF
+surface that would need allowlisting. Modrinth alone keeps this frontend-only.
+
+**Why the nav item is conditional.** The panel does not expose the egg name to
+the client: `ServerController::index` never calls `parseIncludes()`, so
+`?include=egg` is silently ignored, and both `egg_features` and `docker_image` are
+identical across every Minecraft egg (`["eula","java_version","pid_limit"]` on
+all of them). Probing for a `plugins/` directory is the only signal that actually
+distinguishes a Paper server from a Vanilla one, and it works on any panel
+version. The probe is one request per server and does not block the nav.
+
+**Permissions.** `file.read` to open the page, `file.create` to install,
+`file.delete` to remove. A read-only subuser can see what is installed but sees
+no install or remove controls.
+
+**Also worth knowing.** A version that declares `required` dependencies shows a
+warning before install, because installing it without them fails silently at
+server start. Modrinth versions can carry more than one file (signatures and
+metadata alongside the jar) and `file_type` is not populated consistently, so the
+installer selects on `primary` and re-checks the extension is `.jar`.
+
+> **If your panel is a Blueprint build**, it may already ship a `mcplugins`
+> extension with its own "Plugins Installer" at `/mcplugins`. On the panel this
+> was developed against, that extension's route table is never imported by
+> `@/routers/routes`, so it renders no nav item and no page even though its
+> backend endpoints are registered and working. This feature does not touch it.
+> If you later wire that extension up, you will have two plugin pages - the paths
+> differ (`/plugins` vs `/mcplugins`), so nothing breaks, but you may want to
+> remove one.
 
 ## Customising
 

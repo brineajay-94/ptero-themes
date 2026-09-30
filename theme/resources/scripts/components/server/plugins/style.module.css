@@ -1,0 +1,232 @@
+/*
+ * Plugin installer page.
+ *
+ * Follows the same conventions as the console and file-manager modules: square
+ * corners, --pt-gray-700 surfaces with a --pt-gray-500 hairline, and accent
+ * steps that match what they are for. 400 is the hairline/rule step; 300 is for
+ * text and fills that carry a dark label; 600 is a muted fill and 700+ are
+ * surfaces, so none of those belong on a border here.
+ */
+
+.notice {
+    @apply flex items-start gap-3 p-3 mb-4 text-sm;
+
+    border: 1px solid rgb(var(--pt-navy-600));
+    border-left: 3px solid rgb(var(--pt-gold-400));
+    background-color: rgb(var(--pt-navy-600) / 0.18);
+    color: rgb(var(--pt-gray-200));
+}
+
+.notice--warn {
+    border-color: rgb(var(--pt-yellow-700));
+    border-left-color: rgb(var(--pt-yellow-500));
+    background-color: rgb(var(--pt-yellow-500) / 0.12);
+    color: rgb(var(--pt-gray-100));
+}
+
+.notice > svg {
+    @apply flex-shrink-0 mt-0.5;
+}
+
+/* ------------------------------------------------------------------- tabs -- */
+
+.tabs {
+    @apply flex items-stretch mb-4 border-b;
+    border-color: rgb(var(--pt-gray-600));
+}
+
+.tab {
+    @apply relative px-4 py-2 text-sm font-semibold uppercase tracking-wide;
+
+    background: none;
+    border: 0;
+    color: rgb(var(--pt-gray-400));
+    cursor: pointer;
+    transition: color 150ms ease;
+}
+
+.tab:hover {
+    color: rgb(var(--pt-gray-100));
+}
+
+.tab--active {
+    color: rgb(var(--pt-gray-50));
+}
+
+.tab--active::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background-color: rgb(var(--pt-gold-400));
+}
+
+.tabCount {
+    @apply ml-2 px-1.5 text-xs font-bold;
+    background-color: rgb(var(--pt-navy-600));
+    color: rgb(var(--pt-gray-100));
+}
+
+/* ---------------------------------------------------------------- toolbar -- */
+
+.toolbar {
+    @apply flex flex-col gap-2 mb-4;
+}
+
+/* An explicit media query rather than `@apply ... sm:flex-row`: applying a
+ * responsive variant is not reliably supported, and on the engine versions this
+ * panel ships it silently drops the override, leaving the search row stacked on
+ * desktop. */
+@media (min-width: 640px) {
+    .toolbar {
+        flex-direction: row;
+    }
+}
+
+.search {
+    @apply flex-1 px-3 py-2 text-sm w-full;
+
+    border: 1px solid rgb(var(--pt-gray-500));
+    border-radius: 0;
+    background-color: rgb(var(--pt-black));
+    color: rgb(var(--pt-gray-100));
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.search::placeholder {
+    color: rgb(var(--pt-gray-400));
+}
+
+.search:focus {
+    border-color: rgb(var(--pt-navy-300));
+    box-shadow: 0 0 0 3px rgb(var(--pt-navy-300) / 0.22);
+}
+
+/* --------------------------------------------------------------- results -- */
+
+.grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+}
+
+.project {
+    @apply flex flex-col p-3;
+
+    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+    transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.project:hover {
+    border-color: rgb(var(--pt-gold-400) / 0.75);
+    transform: translateY(-1px);
+}
+
+.projectHead {
+    @apply flex items-start gap-3 mb-2;
+}
+
+.projectIcon {
+    @apply grid place-items-center flex-shrink-0;
+    width: 2.5rem;
+    height: 2.5rem;
+
+    border: 1px solid var(--pt-glass-border);
+    background-color: rgb(var(--pt-navy-500) / 0.16);
+    color: rgb(var(--pt-gray-100));
+    font-size: 1.1rem;
+    overflow: hidden;
+}
+
+.projectIcon > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.projectTitle {
+    @apply font-header font-semibold text-base leading-tight;
+    color: rgb(var(--pt-gray-50));
+}
+
+.projectAuthor {
+    @apply text-xs;
+    color: rgb(var(--pt-gray-400));
+}
+
+.description {
+    @apply text-sm mb-3 flex-1;
+    color: rgb(var(--pt-gray-300));
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.projectFoot {
+    @apply flex items-center gap-2 flex-wrap;
+}
+
+.select {
+    @apply flex-1 px-2 py-1.5 text-xs min-w-0;
+
+    border: 1px solid rgb(var(--pt-gray-500));
+    border-radius: 0;
+    background-color: rgb(var(--pt-black));
+    color: rgb(var(--pt-gray-100));
+    outline: none;
+}
+
+.select:focus {
+    border-color: rgb(var(--pt-navy-300));
+}
+
+.meta {
+    @apply flex items-center gap-3 text-xs;
+    color: rgb(var(--pt-gray-400));
+}
+
+.meta strong {
+    color: rgb(var(--pt-gray-200));
+    font-weight: 600;
+}
+
+/* -------------------------------------------------------------- installed -- */
+
+.installed {
+    @apply flex flex-col;
+}
+
+.installedRow {
+    @apply flex items-center gap-3 px-3 py-2 mb-2;
+
+    border: 1px solid rgb(var(--pt-gray-500) / 0.35);
+    border-left: 3px solid rgb(var(--pt-navy-600));
+    background-color: rgb(var(--pt-gray-700));
+    transition: border-color 150ms ease;
+}
+
+.installedRow:hover {
+    border-color: rgb(var(--pt-gold-400) / 0.75);
+    border-left-color: rgb(var(--pt-gold-400));
+}
+
+.installedName {
+    @apply flex-1 min-w-0 font-mono text-sm truncate;
+    color: rgb(var(--pt-gray-100));
+}
+
+.installedMeta {
+    @apply text-xs flex-shrink-0;
+    color: rgb(var(--pt-gray-400));
+}
+
+.empty {
+    @apply p-6 text-center text-sm;
+    border: 1px dashed rgb(var(--pt-gray-600));
+    color: rgb(var(--pt-gray-400));
+}

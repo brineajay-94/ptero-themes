@@ -15,6 +15,13 @@ import { useLocation } from 'react-router';
 import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
+import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
+import PluginsContainer from '@/components/server/plugins/PluginsContainer';
+
+/** Components for the theme's own server routes, keyed by path segment. */
+const THEME_ROUTE_COMPONENTS: Record<string, React.ComponentType> = {
+    plugins: PluginsContainer,
+};
 
 export default () => {
     const match = useRouteMatch<{ id: string }>();
@@ -60,7 +67,7 @@ export default () => {
 
     return (
         <React.Fragment key={'server-router'}>
-            <AppShell mode={'server'} serverName={name} serverId={serverId}>
+            <AppShell mode={'server'} serverName={name} serverId={serverId} serverUuid={uuid || undefined}>
                 {!uuid || !id ? (
                     error ? (
                         <ServerError message={error} />
@@ -86,6 +93,24 @@ export default () => {
                                                 </Spinner.Suspense>
                                             </PermissionRoute>
                                         ))}
+                                        {/* Theme routes live outside the panel's routes.server
+                                            * table (see lib/serverExtras) and are rendered after it,
+                                            * so a stock route of the same path would win rather than
+                                            * being shadowed by ours. */}
+                                        {THEME_SERVER_ROUTES.map(({ path, permission }) => {
+                                            const Component = THEME_ROUTE_COMPONENTS[path];
+                                            if (!Component) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <PermissionRoute key={path} permission={permission} path={to(path)} exact>
+                                                    <Spinner.Suspense>
+                                                        <Component />
+                                                    </Spinner.Suspense>
+                                                </PermissionRoute>
+                                            );
+                                        })}
                                         <Route path={'*'} component={NotFound} />
                                     </Switch>
                                 </TransitionRouter>

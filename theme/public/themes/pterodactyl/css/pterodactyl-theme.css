@@ -113,15 +113,30 @@
     --pt-gold-800: 26 26 30;
     --pt-gold-900: 13 13 15;
 
-    /* Surfaces and text (dark only, no mirror). 50 is the brightest text, 900 the
-     * darkest chrome. */
+    /* Surfaces and text (dark only, no mirror).
+     *
+     * The ramp is split in two at 500/600, and the split is not cosmetic:
+     *
+     *   50 - 500  TEXT steps. Stock Pterodactyl uses `text-neutral-500` for every
+     *           piece of small muted text in the panel - the auth "Forgot
+     *           password?" link, pagination footers, and the meta line on every
+     *           subuser / database / schedule / backup row (22 uses). It has to
+     *           be a readable colour, so 500 clears 4.5:1 on every surface here
+     *           (4.69:1 on a card, 5.01:1 on the page).
+     *   600 - 900 SURFACE steps. `bg-neutral-600` is a row fill in 12 places and
+     *           `border-neutral-600` a divider in 5, so these stay dark. 500 to
+     *           600 is therefore a deliberate cliff, not a missing step.
+     *
+     * These used to run 500 = `38 38 42` and 600 = `28 28 32`, i.e. two dark
+     * surface steps, which put muted text at 1.22:1 on a card - effectively
+     * invisible. */
     --pt-gray-50: 245 245 247;
-    --pt-gray-100: 209 209 214;
-    --pt-gray-200: 176 176 183;
-    --pt-gray-300: 148 148 156;
-    --pt-gray-400: 122 122 130;
-    --pt-gray-500: 38 38 42; /* hover surface */
-    --pt-gray-600: 28 28 32; /* borders / hover */
+    --pt-gray-100: 214 214 219;
+    --pt-gray-200: 188 188 194;
+    --pt-gray-300: 162 162 169;
+    --pt-gray-400: 140 140 147; /* muted text, hairlines */
+    --pt-gray-500: 128 128 135; /* faintest text - text-neutral-500 */
+    --pt-gray-600: 28 28 32; /* SURFACE from here down: fills, borders, hover */
     --pt-gray-700: 20 20 23; /* card, sidebar, header */
     --pt-gray-800: 11 11 13; /* page */
     --pt-gray-900: 6 6 8; /* raised chrome */
@@ -335,14 +350,18 @@
     --pt-gold-800: 104 78 30;
     --pt-gold-900: 54 40 16;
 
-    /* Surfaces and text - warm neutral, so the amber is the only hue. */
+    /* Surfaces and text - warm neutral, so the amber is the only hue. Same
+     * 500/600 split as the black palette, and for the same reason: 500 is
+     * `text-neutral-500` and has to read, 600 is a fill. The amber card is a
+     * step lighter than the black one (32 32 32), so the text steps sit
+     * slightly higher to clear the same 4.5:1 - 500 lands at 4.62:1 here. */
     --pt-gray-50: 245 243 240; /* brightest text */
-    --pt-gray-100: 214 211 206; /* nav item text */
-    --pt-gray-200: 178 175 170; /* meta text */
-    --pt-gray-300: 150 148 144; /* muted text */
-    --pt-gray-400: 130 128 125; /* nav labels */
-    --pt-gray-500: 48 48 48; /* hover surface */
-    --pt-gray-600: 40 40 40; /* borders / hover */
+    --pt-gray-100: 220 217 212; /* nav item text */
+    --pt-gray-200: 196 192 186; /* meta text */
+    --pt-gray-300: 176 172 166; /* muted text */
+    --pt-gray-400: 156 152 146; /* nav labels */
+    --pt-gray-500: 140 136 130; /* faintest text - text-neutral-500 */
+    --pt-gray-600: 40 40 40; /* SURFACE from here down: fills, borders, hover */
     --pt-gray-700: 32 32 32; /* card, #202020 */
     --pt-gray-800: 12 12 12; /* page, #0c0c0c */
     --pt-gray-900: 7 7 7; /* raised chrome */
@@ -1585,8 +1604,11 @@
 }
 
 .pt-chip--neutral {
-    background-color: rgb(var(--pt-gray-500) / 0.28);
-    border-color: rgb(var(--pt-gray-500) / 0.6);
+    /* 0.28 was tuned when gray-500 was a dark surface step. It is a text step
+     * now, so at the old alpha this tint washed out behind the gray-200 label;
+     * 0.14 keeps the chip readable as a chip without competing with the text. */
+    background-color: rgb(var(--pt-gray-500) / 0.14);
+    border-color: rgb(var(--pt-gray-500) / 0.45);
     color: rgb(var(--pt-gray-200));
 }
 

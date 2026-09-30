@@ -54,8 +54,22 @@
         @show
 
         {{-- brine-theme: dark violet/indigo palette. Must be present before the
-             React bundle paints so every Tailwind colour resolves. --}}
-        <link rel="stylesheet" href="/themes/pterodactyl/css/pterodactyl-theme.css?v={{ config('app.version', '1.0.0') }}">
+             React bundle paints so every Tailwind colour resolves.
+
+             The cache-buster is the stylesheet's own mtime, not
+             config('app.version'). app.version is the *panel's* version, so it
+             only changes when the panel is upgraded - never when the theme is
+             updated. Combined with the `max-age=14400` the web server sends for
+             static files, a theme update left browsers holding the previous
+             stylesheet for up to four hours with no revalidation, which is how a
+             page kept rendering the old blue accent after the palette had
+             already changed underneath it.
+
+             mtime moves whenever the installer replaces the file, so the URL
+             changes exactly when the content does. There is no version string
+             to keep in step with anything, and a missing file degrades to the
+             old behaviour instead of erroring. --}}
+        <link rel="stylesheet" href="/themes/pterodactyl/css/pterodactyl-theme.css?v={{ @filemtime(public_path('themes/pterodactyl/css/pterodactyl-theme.css')) ?: config('app.version', '1.0.0') }}">
 
 
         @yield('assets')

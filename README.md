@@ -902,13 +902,28 @@ relation will see the wrong thing.
   few colours do not follow the theme.
 - Chart dataset colours (cyan/yellow) are captured when a chart is created.
   They match the dark palette, so this is not visible in practice.
-- `text-neutral-500` on `gray-700` measures **1.56:1** in the default and
-  **blue** palettes, and 1.22:1 in **black** - well under the 3:1 floor. This
-  is pre-existing (the value is `72 65 118`, documented as the *hover surface*,
-  and it is unchanged from 1.7.1) and the panel uses that class as small muted
-  label text in a few places. It was left alone deliberately: the palettes exist
-  to re-skin the panel, not to restyle the shipped default, and changing
-  `gray-500` would move every existing install's surfaces.
+- The neutral ramp splits at 500/600: `50`-`500` are **text** steps and `600`-`900`
+  are **surface** steps, so there is a deliberate cliff between 500 and 600 rather
+  than a missing step. The stock panel uses `text-neutral-500` for all of its
+  small muted text (22 call sites - the auth "Forgot password?" link, pagination
+  footers, the meta line on every subuser/database/schedule/backup row) but
+  `bg-neutral-600` as a row fill (12 call sites) and `border-neutral-600` as a
+  divider (5). Those two roles want opposite colours, so `500` is a readable
+  grey and `600` stays dark. Measured on the black palette: `neutral-500` is
+  **4.69:1** on a card and **5.01:1** on the page; on amber, 4.62:1 and 5.55:1.
+  It used to be `38 38 42` - a surface value - which put that text at 1.22:1,
+  effectively invisible.
+- `tailwind.config.js` carries a literal copy of the ramp for the pre-3.1
+  fallback path, and the two have to stay in step; the tokens in the stylesheet
+  are what a Tailwind 3.1+ build actually emits. Both blocks carry a comment
+  saying so.
+- The stylesheet is cache-busted on its own `mtime`, not on the theme version.
+  It used to be `config('app.version')`, which is the *panel's* version and so
+  never changes on a theme update - with the `max-age=14400` the web server
+  sends for static files, a theme update left browsers on the previous
+  stylesheet for up to four hours with no revalidation. That is how the login
+  page kept rendering a blue submit button after the palette underneath it had
+  already changed.
 - Because `tailwind.config.js` is replaced, upgrading the panel may overwrite
   it (and the other `replace` entries). Uninstall, upgrade, then reinstall.
 - The file editor and the activity/backup/admin sub-pages keep the stock

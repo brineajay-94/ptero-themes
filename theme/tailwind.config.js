@@ -50,12 +50,24 @@ const CSS_VARS = MAJOR > 3 || (MAJOR === 3 && MINOR >= 1);
 // theme's own classes still respond, because they read the variables directly.
 // Amber is fully interchangeable on 3.1+.
 const PALETTE = {
+    // Kept byte-for-byte in step with the `--pt-gray-*` block in
+    // pterodactyl-theme.css. This copy is the literal fallback Tailwind bakes on
+    // versions below 3.1, which cannot apply an opacity modifier to a CSS
+    // variable; on 3.1+ the tokens are emitted as rgb(var(--pt-*)) and these
+    // numbers are unused. Drift between the two is what makes a rebuild look
+    // like the stylesheet "did not apply", so the two blocks are changed
+    // together.
+    //
+    // 50-500 are TEXT steps, 600-900 are SURFACE steps - see the long comment
+    // on the gray block in the stylesheet. The stock panel uses
+    // `text-neutral-500` for all of its small muted text, so 500 has to be a
+    // readable colour, while `bg-neutral-600` is a row fill and stays dark.
     'gray-50': [245, 245, 247],
-    'gray-100': [209, 209, 214],
-    'gray-200': [176, 176, 183],
-    'gray-300': [148, 148, 156],
-    'gray-400': [122, 122, 130],
-    'gray-500': [38, 38, 42],
+    'gray-100': [214, 214, 219],
+    'gray-200': [188, 188, 194],
+    'gray-300': [162, 162, 169],
+    'gray-400': [140, 140, 147],
+    'gray-500': [128, 128, 135],
     'gray-600': [28, 28, 32],
     'gray-700': [20, 20, 23],
     'gray-800': [11, 11, 13],

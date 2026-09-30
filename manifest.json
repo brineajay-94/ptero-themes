@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -20,12 +20,12 @@
         {
             "path": "tailwind.config.js",
             "action": "replace",
-            "note": "Emits every colour utility as rgb(var(--pt-*)) on Tailwind 3.1+ and as baked-in hex on 2.1/3.0, which cannot apply an opacity modifier to a CSS variable; adds navy/gold brand ramps and aliases blue/primary to navy and cyan to gold"
+            "note": "Emits every colour utility as rgb(var(--pt-*)) on Tailwind 3.1+ and as baked-in hex on 2.1/3.0, which cannot apply an opacity modifier to a CSS variable; adds navy/gold brand ramps and aliases blue/primary to navy and cyan to gold. The literal PALETTE here is the pre-3.1 fallback and is kept byte-for-byte in step with the --pt-* blocks in pterodactyl-theme.css - drift between the two makes a rebuild look like the stylesheet did not apply"
         },
         {
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
-            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame"
+            "note": "Stock head (title, favicons, theme-color) + palette stylesheet link only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame. The stylesheet is cache-busted on its own mtime: config(app.version) is the panel version, so it never changes on a theme update and browsers kept the previous stylesheet for the max-age the server sends"
         },
         {
             "path": "resources/scripts/lib/theme.ts",
@@ -45,7 +45,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles. Also owns focus rings for every theme control: outline:none on :focus so a tap does not leave the UA ring (the hard outline around the mobile burger), and a gold ring on :focus-visible so keyboard focus is still visible - the per-component rules used to do the exact opposite"
+            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles. Also owns focus rings for every theme control: outline:none on :focus so a tap does not leave the UA ring, and a gold ring on :focus-visible so keyboard focus is still visible. The neutral ramp is split at 500/600 - 50-500 are text steps and 600-900 are surface steps - because stock uses text-neutral-500 for muted text and bg-neutral-600 for row fills"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -95,7 +95,7 @@
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Login form + success flash after registration (?registered=1)"
+            "note": "Login form + success flash after registration (?registered=1). The \"Forgot password?\" link steps neutral-400 to neutral-300 on hover, not 500 to 600 - 600 is a surface step in this theme, so a 600 hover would darken the text as the pointer arrived"
         },
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",
@@ -120,7 +120,7 @@
         {
             "path": "resources/scripts/components/auth/ResetPasswordContainer.tsx",
             "action": "replace",
-            "note": "Same treatment for the password reset screen"
+            "note": "Same treatment for the password recovery screen, including the same corrected muted-link hover direction"
         },
         {
             "path": "resources/scripts/components/dashboard/DashboardContainer.tsx",

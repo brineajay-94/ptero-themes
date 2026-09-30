@@ -44,13 +44,18 @@
     box-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
     overflow: hidden;
 
+    /* This used to be a full-bleed hack on phones: `margin-left: -1rem` with
+     * `width: calc(100% + 2rem)`, so the console ran edge to edge under the
+     * page padding. `.terminal` clips the overflow, which means xterm's
+     * FitAddon measured a box 2rem wider than anything the user could see and
+     * laid the line out to fit it - so the right-hand end of every line was cut
+     * off, which is the clipped text in the mobile screenshots.
+     *
+     * The width now always matches the visible area. The edge-to-edge look is
+     * kept by dropping the container's own padding to zero on phones instead,
+     * which does not lie to the measurer. */
     & .overflows_container {
-        @apply -ml-4 sm:ml-0;
-        width: calc(100% + 2rem);
-
-        @screen sm {
-            @apply w-full;
-        }
+        @apply w-full;
     }
 
     & .terminal_bar {
@@ -84,7 +89,9 @@
     }
 
     & > .container {
-        @apply p-1 sm:p-2 min-h-[16rem] flex-1 font-mono text-sm;
+        /* No padding on phones so the console still reaches the screen edge
+         * without overflowing its own clipping parent. */
+        @apply p-0 sm:p-2 min-h-[16rem] flex-1 font-mono text-sm;
         background-color: rgb(var(--pt-black));
 
         & #terminal {
@@ -99,6 +106,13 @@
                 background-color: rgb(var(--pt-gold-500) / 0.7);
                 border-radius: 0;
             }
+        }
+
+        /* Safety net: xterm wraps by default, so a long unbreakable token is
+         * the only thing that can exceed the width. Letting it scroll is better
+         * than letting the clipping parent eat it. */
+        & .xterm-viewport {
+            overflow-x: auto;
         }
     }
 

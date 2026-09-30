@@ -419,8 +419,9 @@ render, so they match the panel.
 | `routers/AuthenticationRouter.tsx` | replace |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
 | `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
+| `components/elements/DropdownMenu.tsx` | replace - viewport-clamped `position: fixed` panel (see *File actions menu* below) |
 | `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
-| `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,MassActionsBar,style.module.css}` | replace |
+| `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,FileDropdownMenu,MassActionsBar,style.module.css}` | replace |
 
 **Infrastructure carried over from the token work**
 
@@ -634,6 +635,17 @@ relation will see the wrong thing.
 - **Site name** - set it in the same *Name & icon* block. It is stored as the panel's
   own name (`settings::app:name`), so the sidebar, topbar, login card, footer and
   page title all pick it up through `brandName()` without anything hardcoded.
+- **Upload size limits** - the page never advertises a size the server cannot take.
+  It reads `upload_max_filesize` and `post_max_size` and shows the lower of those
+  and the theme's own cap, so a stock PHP install (2M/8M) says 1984 KB rather than
+  the theme's 4096 KB. This matters because PHP discards an oversized upload
+  *silently* - no exception, no validation error, the field just arrives empty -
+  which used to land in the "no file was chosen" branch and flash a green
+  "Site name saved." while the icon went nowhere. A discarded upload is now
+  reported with the reason from `$_FILES` and the real limit, and a body that blew
+  `post_max_size` (which empties `$_POST` as well, so every field vanished) is
+  called out instead of failing validation on the site name. Raise the limits in
+  php.ini and reload PHP if you want bigger files.
 - **Backgrounds and scrim** - Admin -> **Site Settings** -> *Login & register
   background* / *Dashboard background* each take an uploaded file *or* a pasted
   `https://` link ending in `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` or `.svg`.
@@ -829,6 +841,43 @@ relation will see the wrong thing.
     are gone from the call sites.
   - The ring colour follows `--pt-gold-500`, the same accent as the rest of the
     theme, rather than the stock white. `isBlue` still works.
+- **File actions menu** - the theme ships its own
+  `components/elements/DropdownMenu.tsx` because the three-dot button on a file
+  row did nothing at all, for two reasons that compounded:
+  - The stock panel rendered the panel `position: absolute` inside a plain
+    wrapper and nudged it with `left = viewportX - width`. That arithmetic is
+    only correct when the wrapper happens to sit at the viewport origin; inside
+    a `.file_row` at some page gutter it placed the panel `left` px too far
+    right.
+  - `.file_row` also set `overflow: hidden`, so the panel was clipped by the row
+    that contained it. The row has a square corner radius, so nothing needed
+    clipping - `.details` already truncates its own text - and the clipping is
+    gone.
+  - The panel is now `position: fixed`, so the click coordinates line up, with
+    the vertical placement taken from the toggle's own rect and clamped to the
+    viewport, flipping above the toggle when it would fall off the bottom. It
+    repositions on scroll and resize, and closes on outside click or
+    right-click. `components/server/files/FileDropdownMenu.tsx` is overridden to
+    match: the stock rows hovered to `bg-neutral-100` on `text-neutral-700`,
+    which on the black palette is a near-white bar with near-black text cutting
+    across a dark menu.
+- **Mobile console** - the console used to be full-bleed on phones via
+  `margin-left: -1rem` with `width: calc(100% + 2rem)`. Because `.terminal`
+  clips its overflow, xterm's `FitAddon` measured a box 2rem wider than anything
+  the user could actually see and laid each line out to fit it, so the right-hand
+  end was always cut off. The width now always matches the visible area and the
+  edge-to-edge look comes from zeroing the container's own padding on phones,
+  which does not lie to the measurer. `Console.tsx` also watches its host with a
+  `ResizeObserver`, because the box changes width without a window resize when
+  the mobile drawer opens or the browser's URL bar collapses - without it the
+  terminal kept the column count it was fitted with.
+- **Focus rings** - the stylesheet owns the outline for every theme control:
+  `outline: none` on `:focus` so a tap does not leave the browser's default ring
+  (the hard outline around the burger in the mobile screenshots), and a
+  `--pt-gold-400` ring on `:focus-visible` so keyboard focus is still visible.
+  The per-component rules had it exactly backwards - they removed the outline on
+  `:focus-visible`, taking the ring away from keyboard users, and left plain
+  `:focus` alone, which is the state a tap produces.
 
 ## Known limitations
 

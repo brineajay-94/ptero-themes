@@ -1,12 +1,22 @@
 {
     "name": "brine-theme",
-    "version": "1.9.0",
+    "version": "1.9.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
         "max": "2.0.0"
     },
     "files": [
+        {
+            "path": "resources/scripts/components/elements/DropdownMenu.tsx",
+            "action": "replace",
+            "note": "Dropdown positioning and surface. The stock panel rendered `absolute` inside a plain wrapper and nudged it with `left = viewportX - width`, which is only correct when the wrapper sits at the viewport origin - inside a .file_row it was pushed off to the right, and the row clipped it, so the per-file actions never appeared. Now `position: fixed` with the vertical placement taken from the toggle rect and clamped to the viewport, repositioned on scroll/resize. Surface uses the theme tokens instead of bg-white. Same props, named export and triggerMenu ref API as stock"
+        },
+        {
+            "path": "resources/scripts/components/server/files/FileDropdownMenu.tsx",
+            "action": "replace",
+            "note": "Per-file actions panel. The stock rows hovered to bg-neutral-100 on text-neutral-700, which on the black palette is a near-white bar with near-black text across a dark menu; rows are now tinted to the palette so hover brightens by one step and Delete reads as destructive without turning white. Toggle matches the file-row hover and names the file for screen readers. Same behaviour as stock, including the pterodactyl:files:ctx right-click event"
+        },
         {
             "path": "tailwind.config.js",
             "action": "replace",
@@ -35,7 +45,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles"
+            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles. Also owns focus rings for every theme control: outline:none on :focus so a tap does not leave the UA ring (the hard outline around the mobile burger), and a gold ring on :focus-visible so keyboard focus is still visible - the per-component rules used to do the exact opposite"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -155,12 +165,12 @@
         {
             "path": "resources/scripts/components/server/console/Console.tsx",
             "action": "replace",
-            "note": "Terminal chrome: window bar, dots, title and command hint"
+            "note": "Terminal chrome: window bar, dots, title and command hint, plus a ResizeObserver on the terminal host so the FitAddon re-fits when the box changes width without a window resize - the mobile drawer opening, or the browser URL bar collapsing"
         },
         {
             "path": "resources/scripts/components/server/console/style.module.css",
             "action": "replace",
-            "note": "Navy-black terminal, neutral stat cards and gold accents"
+            "note": "Navy-black terminal, neutral stat cards and gold accents. The mobile full-bleed hack (-ml-4 with width: calc(100% + 2rem)) is gone: it made xterm measure a box 2rem wider than the visible area, so the right end of every line was clipped. Edge-to-edge is kept by zeroing the container padding on phones instead, which does not lie to the measurer"
         },
         {
             "path": "resources/scripts/components/server/console/StatBlock.tsx",
@@ -195,7 +205,7 @@
         {
             "path": "resources/scripts/components/server/files/style.module.css",
             "action": "replace",
-            "note": "File manager row, tile, empty-state and mass-action styles"
+            "note": "File manager row, tile, empty-state and mass-action styles. The row deliberately does not set overflow: hidden - it has a square corner radius so nothing needs clipping, and clipping was swallowing the per-row dropdown anchored to it"
         },
         {
             "path": "resources/scripts/components/server/files/MassActionsBar.tsx",
@@ -205,12 +215,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises. A file that PHP discarded is reported as an error with the reason from $_FILES rather than being silently treated as \"no file chosen\" and flashing a green success"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
+            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block, each with upload/link, on-off switch, intensity slider, live preview and its own Save), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). Upload help text shows the server-derived ceiling rather than the theme cap, so it cannot promise a size PHP will drop. Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",

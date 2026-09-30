@@ -160,6 +160,31 @@ export default () => {
         }, 100)
     );
 
+    // A window resize is not the only way this box changes width. On a phone the
+    // console also resizes when the navigation drawer opens or closes, and when
+    // the browser's URL bar collapses. Without this the terminal keeps the
+    // column count it was fitted with, which is what left lines hanging past the
+    // edge of the screen. The debounce keeps a drag of the drawer from calling
+    // fit() on every frame.
+    useEffect(() => {
+        const element = ref.current;
+        if (!element || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const observer = new ResizeObserver(
+            debounce(() => {
+                if (terminal.element) {
+                    fitAddon.fit();
+                }
+            }, 100)
+        );
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [terminal]);
+
     useEffect(() => {
         const listeners: Record<string, (s: string) => void> = {
             [SocketEvent.STATUS]: handlePowerChangeEvent,

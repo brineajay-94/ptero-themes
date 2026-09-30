@@ -394,6 +394,57 @@
     border-radius: 0 !important;
 }
 
+/* ============================================================== focus rings ==
+ *
+ * Every interactive control in the theme used to carry
+ * `outline: none` on `:focus-visible`, which is exactly backwards:
+ *
+ *   - `:focus-visible` matches when the browser thinks the user is navigating
+ *     by keyboard, so the ring was being removed for the people who need it.
+ *   - `:focus` also matches on tap and click, and browsers then fall back to
+ *     their own default ring, so the one case that did not need a ring was the
+ *     only one that reliably showed one. That is the hard outline around the
+ *     burger in the mobile screenshots.
+ *
+ * The correct split is a blanket `outline: none` on plain `:focus` (pointer
+ * interaction) and a visible ring on `:focus-visible` (keyboard interaction).
+ * The per-component rules further down are left in place for their hover and
+ * colour states; this block only owns the outline, and uses `!important` so it
+ * wins over them regardless of which one is declared last.
+ */
+.pt-burger:focus,
+.pt-nav-item:focus,
+.pt-logout-btn:focus,
+.pt-avatar-btn:focus,
+.pt-topbar-actions > a:focus,
+.pt-topbar-actions > button:focus,
+.pt-topbar-links > a:focus,
+.pt-crumb:focus,
+.pt-link:focus,
+.pt-server-card:focus,
+.pt-drawer-close:focus,
+.pt-console-actions button:focus,
+.pt-chip:focus {
+    outline: none;
+}
+
+.pt-burger:focus-visible,
+.pt-nav-item:focus-visible,
+.pt-logout-btn:focus-visible,
+.pt-avatar-btn:focus-visible,
+.pt-topbar-actions > a:focus-visible,
+.pt-topbar-actions > button:focus-visible,
+.pt-topbar-links > a:focus-visible,
+.pt-crumb:focus-visible,
+.pt-link:focus-visible,
+.pt-server-card:focus-visible,
+.pt-drawer-close:focus-visible,
+.pt-console-actions button:focus-visible,
+.pt-chip:focus-visible {
+    outline: 2px solid rgb(var(--pt-gold-400)) !important;
+    outline-offset: 2px !important;
+}
+
 /* --------------------------------------------------------- semantic colour scales -- */
 /*
  * red / green / yellow keep their stock values so server status colours still
@@ -904,11 +955,13 @@
     }
 }
 
-.pt-burger:hover,
-.pt-burger:focus-visible {
+.pt-burger:hover {
     background-color: rgb(255 255 255 / 0.2);
-    outline: none;
 }
+
+/* The focus outline for this and every other theme control is owned by the
+ * "focus rings" block near the top of this file, which gets the pointer/keyboard
+ * split right. */
 
 /* Top bar actions (search, theme toggle, avatar, logout) reuse the stock
    icon-button treatment but are pinned to the navy bar. */
@@ -1779,7 +1832,7 @@
 .fm-path .fm-path-leaf {
     padding: 0 0.25rem;
     font-weight: 700;
-    color: #ffffff;
+    color: rgb(var(--pt-gray-50));
 }
 
 .fm-mass {

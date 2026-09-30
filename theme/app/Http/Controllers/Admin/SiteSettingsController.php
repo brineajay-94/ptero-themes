@@ -113,6 +113,134 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
     ) {
     }
 
+    /**
+     * The largest upload this server will actually accept, in KB.
+     *
+     * The theme's own caps are only the outer bound. PHP enforces its own
+     * `upload_max_filesize` and `post_max_size` first, and when either is the
+     * smaller one PHP discards the file *silently* - no exception, no validation
+     * error, the field just arrives empty. That is why the advertised size has
+     * to be clamped to what the server can really take, and why an upload that
+     * vanished is reported as an error instead of a cheerful "saved".
+     *
+     * @return int KB, never above the theme's own cap
+     */
+    private function uploadCeilingKb(): int
+    {
+        $cap = min(self::ICON_MAX_KB, self::BACKGROUND_MAX_KB);
+
+        $bytes = [];
+        foreach (['upload_max_filesize', 'post_max_size'] as $directive) {
+            $value = $this->iniBytes((string) ini_get($directive));
+
+            if ($value > 0) {
+                // post_max_size covers the whole multipart body, so a file that
+                // is the last field still has to leave room for the other
+                // fields; 64 KB is far more than this form ever sends.
+                $bytes[] = $value - 65536;
+            }
+        }
+
+        if ($bytes === []) {
+            return $cap;
+        }
+
+        return max(1, min($cap, (int) floor(min($bytes) / 1024)));
+    }
+
+    /**
+     * A php.ini shorthand size ("2M", "512K", "1G") as a byte count. Plain
+     * integers are bytes. Returns 0 for "0" and for anything unparseable, which
+     * the caller treats as "no usable limit" rather than "no uploads allowed".
+     */
+    private function iniBytes(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        if (!preg_match('/^(\d+)\s*([KMG])?B?$/i', $value, $m)) {
+            return 0;
+        }
+
+        $bytes = (int) $m[1];
+        $unit = strtoupper($m[2] ?? '');
+
+        return match ($unit) {
+            'K' => $bytes * 1024,
+            'M' => $bytes * 1024 * 1024,
+            'G' => $bytes * 1024 * 1024 * 1024,
+            default => $bytes,
+        };
+    }
+
+    /**
+     * Why an upload the browser sent never reached us, or null when there was no
+     * such upload.
+     *
+     * `$_FILES[$field]['error']` is the only place the reason survives: by the
+     * time Laravel builds its file bag a size-rejected upload is an object that
+     * is simply not valid, which is indistinguishable from "the admin picked no
+     * file at all" further up the stack.
+     */
+    private function uploadRejected(string $field): ?string
+    {
+        $error = isset($_FILES[$field]) && is_array($_FILES[$field])
+            ? (int) ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE)
+            : UPLOAD_ERR_NO_FILE;
+
+        if ($error === UPLOAD_ERR_NO_FILE || $error === UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            return sprintf(
+                'That file was too large for this server and was discarded before PHP could see it. '
+                . 'The limit here is <strong>%d KB</strong> (<code>upload_max_filesize</code>). '
+                . 'Shrink the image, or raise the limit in php.ini and reload PHP.',
+                $this->uploadCeilingKb()
+            );
+        }
+
+        if ($error === UPLOAD_ERR_PARTIAL) {
+            return 'That upload was cut short - the connection dropped part-way through. Try again.';
+        }
+
+        if ($error === UPLOAD_ERR_NO_TMP_DIR) {
+            return 'PHP has no temporary folder configured, so the upload could not be received. Check <code>upload_tmp_dir</code> in php.ini.';
+        }
+
+        if ($error === UPLOAD_ERR_CANT_WRITE) {
+            return 'PHP could not write the upload to disk. Check the permissions on <code>upload_tmp_dir</code>.';
+        }
+
+        if ($error === UPLOAD_ERR_EXTENSION) {
+            return 'A PHP extension blocked the upload. Check the <code>file_uploads</code> and <code>disable_functions</code> settings.';
+        }
+
+        return 'The upload was rejected by the server (PHP upload error ' . $error . '). Check the PHP error log.';
+    }
+
+    /**
+     * True when the whole POST body was discarded because it exceeded
+     * `post_max_size`.
+     *
+     * PHP empties `$_POST` and `$_FILES` entirely in that case and reports
+     * nothing, so from here it is indistinguishable from an empty submission
+     * and the admin just gets "the name field is required" for a form they
+     * filled in correctly. Comparing the declared length against the limit is
+     * the only way to tell the two apart.
+     */
+    private function bodyTooLarge(): bool
+    {
+        $limit = $this->iniBytes((string) ini_get('post_max_size'));
+        $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+
+        return $limit > 0 && $length > $limit;
+    }
+
     public function index(): View
     {
         $links = [];
@@ -132,6 +260,7 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'links' => $links,
             'themes' => self::THEMES,
             'theme' => $this->themeVariant(),
+            'upload_ceiling_kb' => $this->uploadCeilingKb(),
             'backgrounds' => [
                 'auth' => [
                     'enabled' => $this->bool('Brine::bg_auth_enabled'),
@@ -296,9 +425,25 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
      */
     public function updateGeneral(Request $request): RedirectResponse
     {
+        if ($this->bodyTooLarge()) {
+            $this->alert->danger(
+                'The form was larger than this server accepts (<code>post_max_size</code>), so nothing was received. '
+                . 'Use a smaller file - the limit for an icon is <strong>' . $this->uploadCeilingKb() . ' KB</strong>.'
+            )->flash();
+
+            return redirect()->route('admin.site-settings');
+        }
+
+        $rejected = $this->uploadRejected('icon');
+        if ($rejected !== null) {
+            $this->alert->danger($rejected)->flash();
+
+            return redirect()->route('admin.site-settings');
+        }
+
         $request->validate([
             'name' => 'required|string|max:191',
-            'icon' => 'nullable|file|mimes:' . implode(',', self::ICON_TYPES) . '|max:' . self::ICON_MAX_KB,
+            'icon' => 'nullable|file|mimes:' . implode(',', self::ICON_TYPES) . '|max:' . $this->uploadCeilingKb(),
             'icon_url' => 'nullable|string|max:2048',
         ]);
 
@@ -339,6 +484,16 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         $upload = $request->file('icon');
         if ($upload === null) {
             $this->alert->success('Site name saved.')->flash();
+
+            return redirect()->route('admin.site-settings');
+        }
+
+        // A file object can exist and still be unusable - the size check above
+        // is Laravel's, and a few failure modes (a stopped upload, a tmp dir
+        // that vanished mid-request) only surface here. move() would throw a
+        // raw exception and 500 the page, so it is caught first.
+        if (!$upload->isValid()) {
+            $this->alert->danger('The icon upload was incomplete and was not saved. Try picking the file again.')->flash();
 
             return redirect()->route('admin.site-settings');
         }
@@ -387,10 +542,26 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             abort(404);
         }
 
+        if ($this->bodyTooLarge()) {
+            $this->alert->danger(
+                'The form was larger than this server accepts (<code>post_max_size</code>), so nothing was received. '
+                . 'Use a smaller file - the limit for a background is <strong>' . $this->uploadCeilingKb() . ' KB</strong>.'
+            )->flash();
+
+            return redirect()->route('admin.site-settings');
+        }
+
+        $rejected = $this->uploadRejected($slot . '_file');
+        if ($rejected !== null) {
+            $this->alert->danger($rejected)->flash();
+
+            return redirect()->route('admin.site-settings');
+        }
+
         $request->validate([
             $slot . '_enabled' => 'nullable|boolean',
             $slot . '_url' => 'nullable|string|max:2048',
-            $slot . '_file' => 'nullable|file|mimes:' . implode(',', self::BACKGROUND_TYPES) . '|max:' . self::BACKGROUND_MAX_KB,
+            $slot . '_file' => 'nullable|file|mimes:' . implode(',', self::BACKGROUND_TYPES) . '|max:' . $this->uploadCeilingKb(),
             $slot . '_overlay_intensity' => 'nullable|integer|min:0|max:100',
         ]);
 
@@ -485,6 +656,10 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
         if ($file === null) {
             return null;
+        }
+
+        if (!$file->isValid()) {
+            return sprintf('The %s upload was incomplete and was not saved. Try picking the file again.', $slot);
         }
 
         $directory = $this->backgroundDirectory();

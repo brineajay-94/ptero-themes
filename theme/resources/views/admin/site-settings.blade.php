@@ -251,8 +251,9 @@
                                            accept=".png,.svg,.jpg,.jpeg,.ico,.gif,.webp"
                                            data-icon-preview="iconPreviewImage" />
                                     <p class="help-block">
-                                        PNG, SVG, JPG, ICO, GIF or WEBP up to 4096 KB. Square artwork looks best - the same
-                                        file becomes the favicon everywhere.
+                                        PNG, SVG, JPG, ICO, GIF or WEBP up to {{ $upload_ceiling_kb }} KB &mdash; whichever is
+                                        smaller, this theme&rsquo;s cap and what this server&rsquo;s PHP will actually accept.
+                                        Square artwork looks best; the same file becomes the favicon everywhere.
                                     </p>
                                 </div>
 
@@ -333,7 +334,7 @@
                                                accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
                                                data-bg-preview="{{ $slot }}PreviewImage"
                                                data-bg-scrim="{{ $slot }}PreviewScrim" />
-                                        <p class="help-block">Up to 8192 KB.</p>
+                                        <p class="help-block">Up to {{ $upload_ceiling_kb }} KB, as set by this server&rsquo;s PHP.</p>
                                     </div>
 
                                     <p class="bs-ss-or">— or —</p>

@@ -23,7 +23,9 @@
     border-left: 3px solid transparent;
     border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
-    overflow: hidden;
+    /* Deliberately not `overflow: hidden`. The row has a square corner radius, so
+     * nothing here needs clipping, and clipping swallowed the per-row dropdown
+     * that is anchored to this row. Text truncation is handled by .details. */
     transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 
     &:hover {

@@ -353,6 +353,122 @@
     --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
 }
 
+/* ---------------------------------------------------------------- navy -- */
+/* Flat navy + gold. Adapted from a school-management panel (the "Niraula
+ * EduMedia" look: navy #1a3c6d, gold #c8a44e, Montserrat body) but kept DARK,
+ * and with every gradient and glow switched off.
+ *
+ * The brief was "no gradients, no glow, simple", so this variant is the
+ * deliberate opposite of the other three. Two things make that work:
+ *
+ *   1. The colour source is re-pointed. The gold ramp stops being an alias of
+ *      navy (it is one in the default - see the `--pt-gold` note in `:root`) and
+ *      becomes a real gold scale, so the brand rule, the `cyan` alias and the
+ *      active-nav marker all turn gold. The reference uses navy for primary
+ *      actions and gold as the accent, which lines up exactly with this file's
+ *      `blue`/`primary` -> navy and `cyan` -> gold aliases, so no config change
+ *      is needed.
+ *
+ *   2. The *machinery* is switched off, not just re-coloured. The aurora, the
+ *      frost gradients, the page-depth wash and the topbar rule all go to
+ *      `none`, and the glass recipe is flattened (no blur, no saturate, no
+ *      tint, no top highlight, hairline borders, a 1px shadow). Tokens alone
+ *      cannot do all of that - several surfaces carry a hard-coded alpha such as
+ *      `rgb(var(--pt-navy-900) / 0.62)` - so a companion rule block further
+ *      down the file ("flat surfaces") finishes the job at class specificity.
+ *      Read that block as part of this palette.
+ *
+ * Ramps are the reference's own values. Two deliberate departures:
+ *   - `navy-600` is a lighter steel blue (#588ed2) than the reference's #1a3c6d,
+ *     because it is the `blue`/`primary` alias and therefore paints link text on
+ *     a near-black page *and* inside cards. The reference navy measures 2.63:1
+ *     on the page; this is 5.31:1 on the page and 4.79:1 on a card, so it clears
+ *     AA in both places. (For reference, the shipped default's own accent is only
+ *     3.74:1 on its card.)
+ *   - Corners stay square. The reference rounds to 4-6px, but this file resets
+ *     every radius to 0 at `*` specificity, so rounding only the glass surfaces
+ *     would leave cards rounded and stock buttons square. Square is consistent
+ *     with the rest of the theme and with the "simple" brief.
+ *
+ * The gold is not a tint: #c8a44e measures 7.58:1 on the page and 5.98:1 on the
+ * sidebar, so it carries link and label weight unaided. Card-on-page separation
+ * is deliberately low (1.11:1) - the reference is in the same place at 1.12:1,
+ * where a white card sits on #f0f1f3 and the 1px border does the separating. */
+[data-pt-theme='navy'] {
+    /* Blue family - `blue` / `primary` alias. Buttons, links, focus rings. */
+    --pt-navy-50: 226 236 247;
+    --pt-navy-100: 198 216 237;
+    --pt-navy-200: 158 186 220;
+    --pt-navy-300: 118 155 199;
+    --pt-navy-400: 96 138 190;
+    --pt-navy-500: 96 150 216;
+    --pt-navy-600: 88 142 210; /* #588ed2 - 5.31:1 on the page, 4.79:1 on a card */
+    --pt-navy-700: 62 106 166; /* #3e6aa6 hover */
+    --pt-navy-800: 34 62 106; /* active nav row, file-manager path bar */
+    --pt-navy-900: 21 43 77; /* #152b4d sidebar / topbar / brand */
+
+    /* Gold family - `cyan` alias. This is a real ramp here, not a navy alias:
+     * it is the brand accent. */
+    --pt-gold-50: 252 248 236;
+    --pt-gold-100: 246 238 214;
+    --pt-gold-200: 238 224 175;
+    --pt-gold-300: 228 207 132;
+    --pt-gold-400: 214 184 104;
+    --pt-gold-500: 206 172 88;
+    --pt-gold-600: 200 164 78; /* #c8a44e the reference accent */
+    --pt-gold-700: 158 128 58;
+    --pt-gold-800: 92 74 32;
+    --pt-gold-900: 48 38 16;
+
+    /* Surfaces and text - cool neutral, so the navy and gold stay the only
+     * hues on screen. 50 is the brightest text, 900 the darkest chrome. */
+    --pt-gray-50: 238 243 249;
+    --pt-gray-100: 206 215 227;
+    --pt-gray-200: 174 185 200;
+    --pt-gray-300: 149 161 178;
+    --pt-gray-400: 131 144 162;
+    --pt-gray-500: 48 62 84; /* hover surface */
+    --pt-gray-600: 30 42 60; /* borders / hover */
+    --pt-gray-700: 23 33 49; /* card */
+    --pt-gray-800: 15 23 38; /* page */
+    --pt-gray-900: 10 16 27; /* raised chrome */
+
+    --pt-black: 8 12 20; /* console */
+
+    /* The glow ramps are re-pointed at gold and steel so that anything the flat
+     * block below misses still reads as accent rather than as violet neon. */
+    --pt-violet-500: 200 164 78;
+    --pt-violet-400: 214 184 104;
+    --pt-cyan-500: 96 138 190;
+
+    /* ---- everything decorative off ---- */
+    --pt-aurora: none;
+    --pt-page-depth: none;
+    --pt-frost-hero: none;
+    --pt-frost-console: none;
+    --pt-frost-bloom: none;
+    --pt-topbar-rule: none;
+    /* The `*-solid` pair is only reached from the reduced-transparency query,
+     * and only as a `background-image`, so a two-stop gradient of one colour is
+     * how you spell "flat" in that property. The flat block sets these to
+     * `none` regardless. */
+    --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-gray-700)), rgb(var(--pt-gray-700)));
+    --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-gray-700)), rgb(var(--pt-gray-700)));
+
+    /* ---- flat surfaces ---- */
+    --pt-glass-blur: 0px;
+    --pt-glass-saturate: 100%;
+    --pt-glass-tint: 255 255 255 / 0;
+    --pt-glass-tint-strong: 255 255 255 / 0;
+    --pt-glass-border: 255 255 255 / 0.16;
+    --pt-glass-border-hover: 255 255 255 / 0.32;
+    --pt-glass-highlight: 255 255 255 / 0; /* kills the top inner sheen */
+    --pt-glass-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    --pt-glass-radius: 0px;
+    --pt-glass-radius-sm: 0px;
+    --pt-glass-radius-lg: 0px;
+}
+
 /* ------------------------------------------------------ square corners -- */
 /* Baseline: nothing in this theme is rounded. This kills the stock panel's
  * input/button rounding and any CSS-module value in one place, which is what
@@ -2041,6 +2157,187 @@
 .fm-mass {
     background-color: rgb(var(--pt-navy-900) / 0.92);
     border-color: rgb(var(--pt-violet-400) / 0.5);
+}
+
+/* ============================================================ flat mode ==
+ *
+ * The second half of the `navy` palette - read it together with the
+ * [data-pt-theme='navy'] token block near the top of this file.
+ *
+ * The glass layer above bakes its translucency in as literal alphas rather than
+ * tokens (`rgb(var(--pt-navy-900) / 0.62)` and friends), so re-pointing tokens
+ * alone cannot flatten it: the sidebar would still be 62% transparent over a
+ * `none` aurora, the cards would still be half-tinted, and the active nav marker
+ * would still carry a 10px glow. Every rule below exists to remove exactly one
+ * such hard-coded effect.
+ *
+ * Selector shape is `[data-pt-theme='navy'] .pt-*` - (0,2,0) against the glass
+ * layer's (0,1,0) - so these win on specificity alone and do not depend on being
+ * the last rule in the file. That also means they outrank the
+ * prefers-reduced-transparency and forced-colours queries below, which is
+ * harmless: both of those only ever *remove* effects, and there is nothing left
+ * here for them to remove.
+ */
+[data-pt-theme='navy'] .pt-shell::before,
+[data-pt-theme='navy'] .pt-auth-page::before {
+    background-image: none;
+}
+
+/* The auth page paints its own two radial glows inline rather than through a
+ * token, so it needs saying explicitly. */
+[data-pt-theme='navy'] .pt-auth-page {
+    background-image: none;
+}
+
+/* Chrome: solid navy, no blur, no drop shadow, no inset edge. */
+[data-pt-theme='navy'] .pt-sidebar,
+[data-pt-theme='navy'] .pt-topbar,
+[data-pt-theme='navy'] .pt-drawer-panel,
+[data-pt-theme='navy'] .pt-brand,
+[data-pt-theme='navy'] .pt-sidebar-foot {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-sidebar,
+[data-pt-theme='navy'] .pt-topbar,
+[data-pt-theme='navy'] .pt-drawer-panel,
+[data-pt-theme='navy'] .pt-brand,
+[data-pt-theme='navy'] .pt-sidebar-foot {
+    background-color: rgb(var(--pt-navy-900));
+}
+
+[data-pt-theme='navy'] .pt-topbar {
+    box-shadow: inset 0 -1px 0 var(--pt-glass-border);
+}
+
+/* The 2px rule under the topbar is a gradient by default. Solid gold instead. */
+[data-pt-theme='navy'] .pt-topbar::after {
+    background-image: none;
+    background-color: rgb(var(--pt-gold-600));
+}
+
+/* The reference marks the current page with a gold-tinted row and a 3px gold
+ * bar on its left edge. No glow. */
+[data-pt-theme='navy'] .pt-nav-item.active {
+    background-color: rgb(var(--pt-gold-600) / 0.14);
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-nav-item.active::before {
+    background-color: rgb(var(--pt-gold-600));
+    box-shadow: none;
+}
+
+/* Cards: solid, border-defined, 1px shadow. */
+[data-pt-theme='navy'] .pt-hero,
+[data-pt-theme='navy'] .pt-console-head {
+    background-image: none;
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: var(--pt-glass-shadow);
+}
+
+[data-pt-theme='navy'] .pt-hero::after {
+    display: none;
+}
+
+[data-pt-theme='navy'] .pt-server-card {
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-server-card:hover,
+[data-pt-theme='navy'] .pt-server-card:focus-visible {
+    background-color: rgb(var(--pt-gray-600));
+    box-shadow: none;
+}
+
+/* The status rail fades out and glows. Make it a solid block instead. */
+[data-pt-theme='navy'] .pt-server-card::before {
+    background-image: none;
+    box-shadow: none;
+    opacity: 1;
+}
+
+[data-pt-theme='navy'] .pt-server-tile {
+    background-image: none;
+    background-color: rgb(var(--pt-navy-800));
+    box-shadow: none;
+}
+
+/* Auth card. */
+[data-pt-theme='navy'] .pt-auth-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: var(--pt-glass-shadow);
+}
+
+[data-pt-theme='navy'] .pt-auth-card::before {
+    display: none;
+}
+
+[data-pt-theme='navy'] .pt-auth-footer {
+    background-color: rgb(var(--pt-gray-900));
+}
+
+[data-pt-theme='navy'] .pt-auth input:not([type='checkbox']):not([type='radio']),
+[data-pt-theme='navy'] .pt-auth textarea,
+[data-pt-theme='navy'] .pt-auth select {
+    background-color: rgb(var(--pt-gray-900));
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-auth-emblem {
+    box-shadow: 0 0 0 1px var(--pt-glass-border);
+}
+
+/* Two more coloured blooms, both decorative rather than informative: the
+ * halo under the auth submit button and the one under the console's Start
+ * button. The auth *focus ring* a few lines up is deliberately NOT touched -
+ * a focus indicator is not a glow, and removing it would cost keyboard users
+ * the only cue they have. */
+[data-pt-theme='navy'] .pt-auth button[type='submit'],
+[data-pt-theme='navy'] .pt-console-actions button.pt-power {
+    box-shadow: none;
+}
+
+/* Controls, bars and chips. */
+[data-pt-theme='navy'] .pt-burger,
+[data-pt-theme='navy'] .pt-avatar-btn,
+[data-pt-theme='navy'] .pt-logout-btn,
+[data-pt-theme='navy'] .pt-drawer-close {
+    background-color: rgb(255 255 255 / 0.06);
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-logout-btn:hover,
+[data-pt-theme='navy'] .pt-logout-btn:focus-visible {
+    background-color: rgb(var(--pt-red-600) / 0.85);
+    border-color: rgb(var(--pt-red-600));
+    color: #ffffff;
+}
+
+[data-pt-theme='navy'] .pt-chip {
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .pt-bar {
+    background-color: rgb(var(--pt-gray-900));
+    box-shadow: none;
+}
+
+/* File manager chrome. */
+[data-pt-theme='navy'] .fm-path {
+    background-color: rgb(var(--pt-navy-800));
+    box-shadow: none;
+}
+
+[data-pt-theme='navy'] .fm-mass {
+    background-color: rgb(var(--pt-navy-900));
+    border-color: rgb(var(--pt-gold-600) / 0.5);
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.5);
 }
 
 /* --------------------------------------------------------- accessibility -- */

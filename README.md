@@ -467,13 +467,59 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   own background), so a configured photo covers it completely and nothing has to
   test whether a photo exists.
 - **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
-  whole user panel. Three palettes ship, all dark:
+  whole user panel. Four palettes ship, all dark:
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
   | `default` | the shipped violet | `#19152e` / `#2b254c` / `#2b87d3` |
   | `blue` | ocean blue, deeper page | `#0d1e38` / `#172a45` / `#1d63cd` |
   | `black` | monochrome on true black | `#0b0b0d` / `#141417` / `#2b87d3` |
+  | `navy` | flat navy + gold, no glow | `#0f1726` / `#152b4d` / `#c8a44e` |
+
+  ### The `navy` palette - flat navy and gold
+
+  `navy` is the odd one out: the other three are the same design in different
+  colours, and this one changes the *material*. It is adapted from a
+  school-management panel (the "Niraula EduMedia" look - navy `#1a3c6d`, gold
+  `#c8a44e`, Montserrat) and has **no gradients, no glow and no frosted blur**.
+  Borders and solid fills do all the work.
+
+  It takes two things to get there, and you need both:
+
+  - **The token block** near the top of the stylesheet re-points the ramps. The
+    gold ramp stops being an alias of navy (it is one everywhere else) and
+    becomes a real gold scale, so the brand rule, the `cyan` alias and the
+    active-nav marker all turn gold. Every decorative token goes to `none`:
+    `--pt-aurora`, `--pt-page-depth`, `--pt-frost-*`, `--pt-topbar-rule`. The
+    glass recipe is flattened - blur `0px`, saturate `100%`, tint and top
+    highlight `0`, hairline borders, a `0 1px 2px` shadow.
+  - **The flat-mode rule block** further down the file finishes the job. Tokens
+    alone cannot do it: the glass layer bakes its translucency in as literal
+    alphas (`rgb(var(--pt-navy-900) / 0.62)` and a dozen others), and four
+    coloured `box-shadow` blooms are written inline. Those rules are
+    `[data-pt-theme='navy'] .pt-*`, i.e. (0,2,0) against the glass layer's
+    (0,1,0), so they win on specificity and do not depend on source order.
+
+  **If you edit this palette, edit both halves.** Changing a token without
+  touching the rule block leaves a 62%-transparent sidebar and a glowing
+  Start button; changing a rule without the token leaves violet aurora behind.
+
+  The auth **focus ring** is deliberately left in place. It looks like one of the
+  blooms and is not - removing it would cost keyboard users their only focus cue.
+
+  Two values deliberately depart from the reference:
+  - `navy-600` is `#588ed2`, not the reference's `#1a3c6d`. It is the
+    `blue`/`primary` alias, so it paints link text on a near-black page *and*
+    inside cards; the reference navy is 2.63:1 on the page, this is 5.31:1 on the
+    page and 4.79:1 on a card. (The shipped default's own accent manages only
+    3.74:1 on its card.)
+  - Corners stay square. The reference rounds to 4-6px, but this file resets every
+    radius to `0` at `*` specificity, so rounding only the glass surfaces would
+    leave cards rounded and stock buttons square.
+
+  Card-on-page separation is deliberately low (1.11:1). The reference is in the
+  same place at 1.12:1, where a white card sits on `#f0f1f3` and the 1px border
+  does the separating.
 
   Switching one is instant on the next click, with **no rebuild, no asset
   flush and no cache clear** - the palettes are `[data-pt-theme='<slug>']`
@@ -485,7 +531,7 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   baked-in brand hex to disagree (verified: 196 `var(--pt-` references, zero
   `#2b87d3`).
 
-  Two details worth knowing before editing a palette:
+  Three details worth knowing before editing a palette:
   - **Source order decides, not specificity.** `:root` and `[data-pt-theme='x']`
     are both (0,1,0), so the variant blocks must stay *below* `:root` in the
     stylesheet. Moving them above silently reverts every panel to the default.

@@ -1278,6 +1278,55 @@
    a media query adds no specificity, so declaring it here would let the base
    rule below simply overwrite it. */
 
+/* The hero illustration and its bloom.
+ *
+ * Sits in the upper-centre of the hero, above the marketing line. `min(46rem,
+ * 78%)` keeps it clear of both edges on a narrow hero without letting it
+ * dominate a wide one, and the 68% height cap stops it colliding with the copy
+ * on a short viewport.
+ *
+ * The bloom is a sibling of the image inside the wrapper rather than a
+ * `background-image` on the hero: the React component hides the *wrapper* when
+ * the file is missing, so an absent illustration takes its glow with it. Doing it
+ * with `:has()` on the hero would not work - the element still matches the
+ * selector after it has been hidden.
+ *
+ * The bloom matters more than it looks. The artwork is a lit object on a dark
+ * page, and without something behind it the hard edge of its slab reads as a
+ * cut-out; a wide, very low-opacity bloom in the artwork's own blue bridges it,
+ * and the drop-shadow catches the underside so it reads as floating. */
+.pt-auth-hero-art {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    width: min(46rem, 78%);
+    /* Height is a share of the hero, not a hardcoded aspect ratio: the artwork
+       is an admin-supplied file and its proportions are not ours to assume, so
+       the box has to work for whatever arrives. `object-fit: contain` then fits
+       the image inside it without cropping or distorting. */
+    height: 68%;
+    transform: translate(-50%, -62%);
+    pointer-events: none;
+    user-select: none;
+}
+
+.pt-auth-hero-art::before {
+    content: '';
+    position: absolute;
+    inset: -12% -8%;
+    background: radial-gradient(closest-side, rgb(88 140 255 / 0.17), transparent 72%);
+    pointer-events: none;
+}
+
+.pt-auth-hero-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 34px 48px rgb(0 0 0 / 0.55));
+}
+
 .pt-auth-hero-copy {
     position: relative;
     z-index: 1;

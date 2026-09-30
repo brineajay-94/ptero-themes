@@ -28,6 +28,31 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
 const HERO_LINES = ['Your world,', 'always within reach'];
 const HERO_SUB = 'Build, customize and manage your server from one place';
 
+/**
+ * The hero illustration, if the panel has one.
+ *
+ * The file is optional, so a load error hides the whole wrapper rather than
+ * leaving a broken-image icon. It has to be the wrapper and not the <img>: the
+ * glow behind the artwork is a child of it, and hiding only the image would
+ * leave the glow behind on a hero with no artwork.
+ *
+ * The artwork is composited normally, which means it needs a transparent
+ * background - the shipped PNG has had its white keyed out, because on a
+ * #141417 hero an opaque white plate reads as a pasted rectangle.
+ */
+const HeroArt: React.FC = () => (
+    <div className={'pt-auth-hero-art'}>
+        <img
+            src={'/themes/pterodactyl/images/auth-illustration.png'}
+            alt={''}
+            aria-hidden={'true'}
+            onError={(e) => {
+                (e.currentTarget as HTMLImageElement).parentElement!.style.display = 'none';
+            }}
+        />
+    </div>
+);
+
 const SubuserHint = () => (
     <div className={'pt-subuser-hint'}>
         <span className={'pt-subuser-hint-icon'} aria-hidden={'true'}>
@@ -53,6 +78,7 @@ export default forwardRef<HTMLFormElement, Props>(
     ({ title, subtitle, footer, showSubuserHint = false, ...props }, ref) => (
         <div className={'pt-auth'}>
             <section className={'pt-auth-hero'}>
+                <HeroArt />
                 <div className={'pt-auth-hero-copy'}>
                     <h2 className={'pt-auth-hero-title'}>
                         {HERO_LINES.map((line) => (

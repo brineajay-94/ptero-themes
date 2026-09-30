@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.11.0",
+    "version": "1.11.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -95,7 +95,7 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image and the two-tone marketing line, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. Carries the hero copy as fixed constants - it is the theme marketing line, not a panel setting - while the site name comes from brandName() on the lockup"
+            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image, the two-tone marketing line and the illustration, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. The illustration is wrapped in a div that hides itself on a load error, because the file is optional and a panel that updates before the asset lands should show an empty hero rather than a broken-image icon - and because the glow behind the artwork is a child of that wrapper, so hiding only the img would leave the glow behind"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",

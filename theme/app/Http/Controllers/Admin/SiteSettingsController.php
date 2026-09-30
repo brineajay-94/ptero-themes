@@ -92,12 +92,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'dark' => true,
             'swatch' => ['#19152e', '#2b254c', '#39335f', '#2b87d3', '#7c5cf6'],
         ],
-        'blue' => [
-            'label' => 'Blue',
-            'blurb' => 'The same structure hue-shifted to ocean blue, with a slightly deeper page.',
-            'dark' => true,
-            'swatch' => ['#0d1e38', '#172a45', '#223858', '#1d63cd', '#3884ff'],
-        ],
         'black' => [
             'label' => 'Black',
             'blurb' => 'Monochrome surfaces on true black. The accent stays blue so links still read as links.',
@@ -109,6 +103,12 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'blurb' => 'Flat navy surfaces with a gold accent. No gradients, no glow, no frosted blur - borders and solid fills do all the work.',
             'dark' => true,
             'swatch' => ['#0f1726', '#172131', '#152b4d', '#c8a44e', '#5286c9'],
+        ],
+        'amber' => [
+            'label' => 'Black & amber (flat)',
+            'blurb' => 'Near-black surfaces with a single warm gold for buttons, links and headings. Flat and rounded - no gradients, no glow.',
+            'dark' => true,
+            'swatch' => ['#0c0c0c', '#202020', '#1c1c1c', '#d9a441', '#e6c36a'],
         ],
     ];
 

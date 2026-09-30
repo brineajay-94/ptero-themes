@@ -20,7 +20,7 @@ class AssetComposer
      * in pterodactyl-theme.css - a slug with no block simply renders as the
      * default, which is why the whitelist here doubles as a safety net.
      */
-    private const THEME_VARIANTS = ['default', 'blue', 'black', 'navy'];
+    private const THEME_VARIANTS = ['default', 'black', 'navy', 'amber'];
 
     /**
      * AssetComposer constructor.

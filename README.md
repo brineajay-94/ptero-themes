@@ -471,55 +471,77 @@ Server-side rendering, permissions, API routes and the database are unaffected.
 
   | Slug | Look | Page / surface / accent |
   | --- | --- | --- |
-  | `default` | the shipped violet | `#19152e` / `#2b254c` / `#2b87d3` |
-  | `blue` | ocean blue, deeper page | `#0d1e38` / `#172a45` / `#1d63cd` |
-  | `black` | monochrome on true black | `#0b0b0d` / `#141417` / `#2b87d3` |
-  | `navy` | flat navy + gold, no glow | `#0f1726` / `#152b4d` / `#c8a44e` |
+  | `default` | the shipped violet, frosted glass | `#19152e` / `#2b254c` / `#2b87d3` |
+  | `black` | true monochrome, frosted glass | `#0b0b0d` / `#141417` / `#2b87d3` |
+  | `navy` | flat navy + gold, square | `#0f1726` / `#152b4d` / `#c8a44e` |
+  | `amber` | flat black + amber, rounded | `#0c0c0c` / `#1c1c1c` / `#d9a441` |
 
-  ### The `navy` palette - flat navy and gold
+  ### The two flat palettes - `navy` and `amber`
 
-  `navy` is the odd one out: the other three are the same design in different
-  colours, and this one changes the *material*. It is adapted from a
-  school-management panel (the "Niraula EduMedia" look - navy `#1a3c6d`, gold
-  `#c8a44e`, Montserrat) and has **no gradients, no glow and no frosted blur**.
-  Borders and solid fills do all the work.
+  `navy` and `amber` are the odd ones out: `default` and `black` are the same
+  design in different colours, and these two change the *material*. Both have
+  **no gradients, no glow and no frosted blur** - borders and solid fills do all
+  the work. `navy` is adapted from a school-management panel (the "Niraula
+  EduMedia" look); `amber` is adapted from a game-hosting login screen (a
+  near-black landing page with one warm gold doing all the work).
 
-  It takes two things to get there, and you need both:
+  Each takes two halves, and both are needed:
 
   - **The token block** near the top of the stylesheet re-points the ramps. The
     gold ramp stops being an alias of navy (it is one everywhere else) and
     becomes a real gold scale, so the brand rule, the `cyan` alias and the
-    active-nav marker all turn gold. Every decorative token goes to `none`:
-    `--pt-aurora`, `--pt-page-depth`, `--pt-frost-*`, `--pt-topbar-rule`. The
-    glass recipe is flattened - blur `0px`, saturate `100%`, tint and top
-    highlight `0`, hairline borders, a `0 1px 2px` shadow.
-  - **The flat-mode rule block** further down the file finishes the job. Tokens
-    alone cannot do it: the glass layer bakes its translucency in as literal
-    alphas (`rgb(var(--pt-navy-900) / 0.62)` and a dozen others), and four
-    coloured `box-shadow` blooms are written inline. Those rules are
-    `[data-pt-theme='navy'] .pt-*`, i.e. (0,2,0) against the glass layer's
-    (0,1,0), so they win on specificity and do not depend on source order.
+    active-nav marker all turn gold. That lines up with this file's existing
+    `blue`/`primary` -> navy and `cyan` -> gold aliases, so `tailwind.config.js`
+    needs no change. Every decorative token goes to `none`: `--pt-aurora`,
+    `--pt-page-depth`, `--pt-frost-*`, `--pt-topbar-rule`. The glass recipe is
+    flattened - blur `0px`, saturate `100%`, tint and top highlight `0`,
+    hairline borders, a `0 1px 2px` shadow.
+  - **The flat-mode rule block** further down finishes the job, shared by both
+    via `:is([data-pt-theme='navy'], [data-pt-theme='amber'])`. Tokens alone
+    cannot do it: the glass layer bakes its translucency in as literal alphas
+    (`rgb(var(--pt-navy-900) / 0.62)` and a dozen others), and four coloured
+    `box-shadow` blooms are written inline. Those rules are (0,2,0) against the
+    glass layer's (0,1,0) - `:is()` takes the specificity of its most specific
+    argument, so the attribute still counts - and they therefore win without
+    depending on source order.
 
-  **If you edit this palette, edit both halves.** Changing a token without
-  touching the rule block leaves a 62%-transparent sidebar and a glowing
-  Start button; changing a rule without the token leaves violet aurora behind.
+  **If you edit either palette, edit both halves.** Changing a token without
+  touching the rule block leaves a 62%-transparent sidebar and a glowing Start
+  button; changing a rule without the token leaves violet aurora behind.
 
   The auth **focus ring** is deliberately left in place. It looks like one of the
   blooms and is not - removing it would cost keyboard users their only focus cue.
 
-  Two values deliberately depart from the reference:
-  - `navy-600` is `#588ed2`, not the reference's `#1a3c6d`. It is the
+  How the two differ:
+
+  | | `navy` | `amber` |
+  | --- | --- | --- |
+  | Base | blue-black surfaces | neutral near-black |
+  | Second hue | navy (surfaces + a lighter link blue) | none - the blue ramp is re-pointed at the same gold |
+  | Corners | square (`0px`) | rounded (12px card, 8px fields, pill submit button) |
+  | Active nav row | gold tint + 3px gold bar | gold tint + 3px gold bar |
+
+  `amber` is monochrome by design: in the reference the button, the links and
+  the logo are all the same amber, so `bg-primary-600` and `text-blue-*` come
+  out gold too. Its `navy-800/900` are the exception - those are surfaces, not
+  accents, so they stay neutral. Its rounding needs its own short block as well,
+  because the panel's Tailwind form controls are components this file never
+  touches and would stay square under the `* { border-radius: 0 !important }`
+  reset.
+
+  Values that depart from their references on purpose:
+  - `navy`'s `navy-600` is `#588ed2`, not the reference's `#1a3c6d`. It is the
     `blue`/`primary` alias, so it paints link text on a near-black page *and*
     inside cards; the reference navy is 2.63:1 on the page, this is 5.31:1 on the
     page and 4.79:1 on a card. (The shipped default's own accent manages only
     3.74:1 on its card.)
-  - Corners stay square. The reference rounds to 4-6px, but this file resets every
-    radius to `0` at `*` specificity, so rounding only the glass surfaces would
-    leave cards rounded and stock buttons square.
+  - `navy` keeps square corners. The reference rounds to 4-6px, but rounding only
+    the glass surfaces would leave cards rounded and stock buttons square.
+    `amber` does round, and carries the extra block that makes that consistent.
+  - Card-on-page separation is deliberately low in both (1.11:1 and 1.20:1).
+    Both references are in the same place - 1.12:1 for the school panel, where a
+    white card sits on `#f0f1f3` - and the 1px border does the separating.
 
-  Card-on-page separation is deliberately low (1.11:1). The reference is in the
-  same place at 1.12:1, where a white card sits on `#f0f1f3` and the 1px border
-  does the separating.
 
   Switching one is instant on the next click, with **no rebuild, no asset
   flush and no cache clear** - the palettes are `[data-pt-theme='<slug>']`

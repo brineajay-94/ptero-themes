@@ -239,65 +239,6 @@
  * terminal is dark on every platform.
  */
 
-/* ---------------------------------------------------------------- blue -- */
-/* Same dark structure as the default, hue-shifted from violet to ocean blue
- * and the page pushed a little deeper so the sidebar still separates. */
-[data-pt-theme='blue'] {
-    --pt-navy-50: 239 246 255;
-    --pt-navy-100: 206 227 247;
-    --pt-navy-200: 160 199 240;
-    --pt-navy-300: 108 165 231;
-    --pt-navy-400: 62 132 224;
-    --pt-navy-500: 37 111 214;
-    --pt-navy-600: 29 99 205; /* #1d63cd */
-    --pt-navy-700: 24 78 161; /* #184ea1 hover */
-    --pt-navy-800: 20 38 70; /* active nav row */
-    --pt-navy-900: 13 30 56; /* page */
-
-    --pt-gold-50: 239 246 255;
-    --pt-gold-100: 206 227 247;
-    --pt-gold-200: 160 199 240;
-    --pt-gold-300: 108 165 231;
-    --pt-gold-400: 62 132 224;
-    --pt-gold-500: 37 111 214;
-    --pt-gold-600: 29 99 205;
-    --pt-gold-700: 24 78 161;
-    --pt-gold-800: 20 38 70;
-    --pt-gold-900: 13 30 56;
-
-    --pt-gray-50: 238 245 253;
-    --pt-gray-100: 199 216 236;
-    --pt-gray-200: 163 187 214;
-    --pt-gray-300: 143 170 201;
-    --pt-gray-400: 122 150 183;
-    --pt-gray-500: 45 72 106; /* hover surface */
-    --pt-gray-600: 34 56 88; /* borders / hover */
-    --pt-gray-700: 23 42 69; /* card, sidebar, header */
-    --pt-gray-800: 13 30 56; /* page */
-    --pt-gray-900: 8 20 38; /* raised chrome */
-
-    --pt-violet-500: 56 132 255; /* #3884ff */
-    --pt-violet-400: 125 178 255;
-    --pt-cyan-500: 56 189 248; /* #38bdf8 */
-
-    --pt-aurora: radial-gradient(48rem 34rem at 6% -8%, rgb(var(--pt-violet-500) / 0.26), transparent 62%),
-        radial-gradient(42rem 30rem at 96% 2%, rgb(var(--pt-navy-500) / 0.24), transparent 64%),
-        radial-gradient(40rem 32rem at 78% 100%, rgb(var(--pt-cyan-500) / 0.1), transparent 62%),
-        radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.12), transparent 64%);
-    /* Only the glow-driven gradients need restating. --pt-frost-hero and
-     * --pt-frost-console are built from navy-700 plus the glow ramps, all of
-     * which this block re-points, so they follow automatically; restating them
-     * would be a copy that can only drift out of step. The `*-solid` pair is
-     * omitted for the same reason. */
-    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.24), transparent 68%);
-    --pt-topbar-rule: linear-gradient(
-        90deg,
-        rgb(var(--pt-violet-400) / 0.8),
-        rgb(var(--pt-navy-400) / 0.9) 45%,
-        transparent
-    );
-}
-
 /* --------------------------------------------------------------- black -- */
 /* Monochrome. The surfaces lose all hue, but the primary ramp is deliberately
  * left blue: without it, links, the primary button and the focus ring all stop
@@ -467,6 +408,107 @@
     --pt-glass-radius: 0px;
     --pt-glass-radius-sm: 0px;
     --pt-glass-radius-lg: 0px;
+}
+
+/* --------------------------------------------------------------- amber -- */
+/* Flat black + amber, taken from a game-hosting login screen: a near-black
+ * two-panel landing page with a single warm gold doing all the work - gold
+ * heading, gold links, one solid gold Log in button, and nothing else
+ * coloured at all.
+ *
+ * Flat like `navy`, and it shares that palette's flat-mode rule block (the
+ * `:is(...)` selector further down covers both). It differs in two ways:
+ *
+ *   1. There is no second hue. The reference is monochrome-gold: the button,
+ *      the links and the logo are all the same amber. So this palette points
+ *      the *blue* ramp at the same gold as the `cyan` ramp - `bg-primary-600`
+ *      and `text-blue-*` come out amber, which is what the reference shows.
+ *      navy-800/900 are the exception: they are surfaces, not accents, so they
+ *      stay neutral black.
+ *   2. The corners are rounded, not square. The reference rounds its card to
+ *      roughly 12px, its fields to 8px and its Log in button into a pill. The
+ *      `* { border-radius: 0 !important }` reset further down would flatten
+ *      all of it, so this palette sets the glass radius tokens AND carries a
+ *      short block that puts the rounding back on the stock Tailwind form
+ *      controls the token cannot reach. `navy` deliberately stays square.
+ *
+ * Surfaces are near-black and warm-neutral rather than blue-black, which is
+ * what separates it from `black` (that one is a true neutral with a blue
+ * accent) and from `navy` (blue-black surfaces, gold accent).
+ *
+ * The amber is the whole design, so it is not a tint: #d9a441 measures 8.60:1
+ * on the page and 7.16:1 on a card, comfortably clear of AA on both. */
+[data-pt-theme='amber'] {
+    /* Blue family - `blue` / `primary` alias. Resolves to the same amber as
+     * the gold ramp, because in the reference there is no blue at all. The
+     * light steps stay warm neutrals so text on dark keeps a clean ramp. */
+    --pt-navy-50: 250 246 238;
+    --pt-navy-100: 238 229 212;
+    --pt-navy-200: 214 200 175;
+    --pt-navy-300: 190 170 138;
+    --pt-navy-400: 224 186 106;
+    --pt-navy-500: 221 172 78;
+    --pt-navy-600: 217 164 65; /* #d9a441 - the accent, 8.60:1 on the page */
+    --pt-navy-700: 176 132 51; /* hover */
+    --pt-navy-800: 38 38 38; /* active nav row, file-manager path bar */
+    --pt-navy-900: 28 28 28; /* #1c1c1c sidebar / topbar / brand */
+
+    /* Gold family - `cyan` alias, and the accent. */
+    --pt-gold-50: 254 250 240;
+    --pt-gold-100: 250 240 214;
+    --pt-gold-200: 244 226 170;
+    --pt-gold-300: 236 208 128;
+    --pt-gold-400: 230 195 106;
+    --pt-gold-500: 224 180 88;
+    --pt-gold-600: 217 164 65; /* #d9a441 */
+    --pt-gold-700: 172 128 48;
+    --pt-gold-800: 104 78 30;
+    --pt-gold-900: 54 40 16;
+
+    /* Surfaces and text - warm neutral, so the amber is the only hue. */
+    --pt-gray-50: 245 243 240; /* brightest text */
+    --pt-gray-100: 214 211 206; /* nav item text */
+    --pt-gray-200: 178 175 170; /* meta text */
+    --pt-gray-300: 150 148 144; /* muted text */
+    --pt-gray-400: 130 128 125; /* nav labels */
+    --pt-gray-500: 48 48 48; /* hover surface */
+    --pt-gray-600: 40 40 40; /* borders / hover */
+    --pt-gray-700: 32 32 32; /* card, #202020 */
+    --pt-gray-800: 12 12 12; /* page, #0c0c0c */
+    --pt-gray-900: 7 7 7; /* raised chrome */
+
+    --pt-black: 4 4 4; /* console, true black */
+
+    /* Glow ramps re-pointed at the amber so anything the flat block misses
+     * still reads as accent rather than as violet neon. */
+    --pt-violet-500: 217 164 65;
+    --pt-violet-400: 230 195 106;
+    --pt-cyan-500: 224 180 88;
+
+    /* ---- everything decorative off ---- */
+    --pt-aurora: none;
+    --pt-page-depth: none;
+    --pt-frost-hero: none;
+    --pt-frost-console: none;
+    --pt-frost-bloom: none;
+    --pt-topbar-rule: none;
+    --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-gray-700)), rgb(var(--pt-gray-700)));
+    --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-gray-700)), rgb(var(--pt-gray-700)));
+
+    /* ---- flat surfaces ---- */
+    --pt-glass-blur: 0px;
+    --pt-glass-saturate: 100%;
+    --pt-glass-tint: 255 255 255 / 0;
+    --pt-glass-tint-strong: 255 255 255 / 0;
+    --pt-glass-border: 255 255 255 / 0.14;
+    --pt-glass-border-hover: 255 255 255 / 0.28;
+    --pt-glass-highlight: 255 255 255 / 0;
+    --pt-glass-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+
+    /* ---- rounded, unlike navy ---- */
+    --pt-glass-radius: 12px;
+    --pt-glass-radius-sm: 8px;
+    --pt-glass-radius-lg: 16px;
 }
 
 /* ------------------------------------------------------ square corners -- */
@@ -2161,8 +2203,9 @@
 
 /* ============================================================ flat mode ==
  *
- * The second half of the `navy` palette - read it together with the
- * [data-pt-theme='navy'] token block near the top of this file.
+ * The second half of the `navy` and `amber` palettes - read it together with
+ * their token blocks near the top of this file. Both are flat, so both need
+ * this; `default` and `black` keep the glass treatment.
  *
  * The glass layer above bakes its translucency in as literal alphas rather than
  * tokens (`rgb(var(--pt-navy-900) / 0.62)` and friends), so re-pointing tokens
@@ -2171,125 +2214,128 @@
  * would still carry a 10px glow. Every rule below exists to remove exactly one
  * such hard-coded effect.
  *
- * Selector shape is `[data-pt-theme='navy'] .pt-*` - (0,2,0) against the glass
- * layer's (0,1,0) - so these win on specificity alone and do not depend on being
- * the last rule in the file. That also means they outrank the
+ * Selector shape is
+ *     :is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-*
+ * which is (0,2,0) against the glass layer's (0,1,0) - `:is()` takes the
+ * specificity of its most specific argument, so the attribute still counts.
+ * These rules therefore win on specificity alone and do not depend on being the
+ * last rule in the file. That also means they outrank the
  * prefers-reduced-transparency and forced-colours queries below, which is
  * harmless: both of those only ever *remove* effects, and there is nothing left
  * here for them to remove.
  */
-[data-pt-theme='navy'] .pt-shell::before,
-[data-pt-theme='navy'] .pt-auth-page::before {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-shell::before,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-page::before {
     background-image: none;
 }
 
 /* The auth page paints its own two radial glows inline rather than through a
  * token, so it needs saying explicitly. */
-[data-pt-theme='navy'] .pt-auth-page {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-page {
     background-image: none;
 }
 
 /* Chrome: solid navy, no blur, no drop shadow, no inset edge. */
-[data-pt-theme='navy'] .pt-sidebar,
-[data-pt-theme='navy'] .pt-topbar,
-[data-pt-theme='navy'] .pt-drawer-panel,
-[data-pt-theme='navy'] .pt-brand,
-[data-pt-theme='navy'] .pt-sidebar-foot {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-sidebar,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-topbar,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-drawer-panel,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-brand,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-sidebar-foot {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-sidebar,
-[data-pt-theme='navy'] .pt-topbar,
-[data-pt-theme='navy'] .pt-drawer-panel,
-[data-pt-theme='navy'] .pt-brand,
-[data-pt-theme='navy'] .pt-sidebar-foot {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-sidebar,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-topbar,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-drawer-panel,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-brand,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-sidebar-foot {
     background-color: rgb(var(--pt-navy-900));
 }
 
-[data-pt-theme='navy'] .pt-topbar {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-topbar {
     box-shadow: inset 0 -1px 0 var(--pt-glass-border);
 }
 
 /* The 2px rule under the topbar is a gradient by default. Solid gold instead. */
-[data-pt-theme='navy'] .pt-topbar::after {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-topbar::after {
     background-image: none;
     background-color: rgb(var(--pt-gold-600));
 }
 
 /* The reference marks the current page with a gold-tinted row and a 3px gold
  * bar on its left edge. No glow. */
-[data-pt-theme='navy'] .pt-nav-item.active {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-nav-item.active {
     background-color: rgb(var(--pt-gold-600) / 0.14);
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-nav-item.active::before {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-nav-item.active::before {
     background-color: rgb(var(--pt-gold-600));
     box-shadow: none;
 }
 
 /* Cards: solid, border-defined, 1px shadow. */
-[data-pt-theme='navy'] .pt-hero,
-[data-pt-theme='navy'] .pt-console-head {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-hero,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-console-head {
     background-image: none;
     background-color: rgb(var(--pt-gray-700));
     box-shadow: var(--pt-glass-shadow);
 }
 
-[data-pt-theme='navy'] .pt-hero::after {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-hero::after {
     display: none;
 }
 
-[data-pt-theme='navy'] .pt-server-card {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-server-card {
     background-color: rgb(var(--pt-gray-700));
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-server-card:hover,
-[data-pt-theme='navy'] .pt-server-card:focus-visible {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-server-card:hover,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-server-card:focus-visible {
     background-color: rgb(var(--pt-gray-600));
     box-shadow: none;
 }
 
 /* The status rail fades out and glows. Make it a solid block instead. */
-[data-pt-theme='navy'] .pt-server-card::before {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-server-card::before {
     background-image: none;
     box-shadow: none;
     opacity: 1;
 }
 
-[data-pt-theme='navy'] .pt-server-tile {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-server-tile {
     background-image: none;
     background-color: rgb(var(--pt-navy-800));
     box-shadow: none;
 }
 
 /* Auth card. */
-[data-pt-theme='navy'] .pt-auth-card {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-card {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background-color: rgb(var(--pt-gray-700));
     box-shadow: var(--pt-glass-shadow);
 }
 
-[data-pt-theme='navy'] .pt-auth-card::before {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-card::before {
     display: none;
 }
 
-[data-pt-theme='navy'] .pt-auth-footer {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-footer {
     background-color: rgb(var(--pt-gray-900));
 }
 
-[data-pt-theme='navy'] .pt-auth input:not([type='checkbox']):not([type='radio']),
-[data-pt-theme='navy'] .pt-auth textarea,
-[data-pt-theme='navy'] .pt-auth select {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth input:not([type='checkbox']):not([type='radio']),
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth textarea,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth select {
     background-color: rgb(var(--pt-gray-900));
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-auth-emblem {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth-emblem {
     box-shadow: 0 0 0 1px var(--pt-glass-border);
 }
 
@@ -2298,46 +2344,73 @@
  * button. The auth *focus ring* a few lines up is deliberately NOT touched -
  * a focus indicator is not a glow, and removing it would cost keyboard users
  * the only cue they have. */
-[data-pt-theme='navy'] .pt-auth button[type='submit'],
-[data-pt-theme='navy'] .pt-console-actions button.pt-power {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-auth button[type='submit'],
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-console-actions button.pt-power {
     box-shadow: none;
 }
 
 /* Controls, bars and chips. */
-[data-pt-theme='navy'] .pt-burger,
-[data-pt-theme='navy'] .pt-avatar-btn,
-[data-pt-theme='navy'] .pt-logout-btn,
-[data-pt-theme='navy'] .pt-drawer-close {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-burger,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-avatar-btn,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-logout-btn,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-drawer-close {
     background-color: rgb(255 255 255 / 0.06);
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-logout-btn:hover,
-[data-pt-theme='navy'] .pt-logout-btn:focus-visible {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-logout-btn:hover,
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-logout-btn:focus-visible {
     background-color: rgb(var(--pt-red-600) / 0.85);
     border-color: rgb(var(--pt-red-600));
     color: #ffffff;
 }
 
-[data-pt-theme='navy'] .pt-chip {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-chip {
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .pt-bar {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .pt-bar {
     background-color: rgb(var(--pt-gray-900));
     box-shadow: none;
 }
 
 /* File manager chrome. */
-[data-pt-theme='navy'] .fm-path {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .fm-path {
     background-color: rgb(var(--pt-navy-800));
     box-shadow: none;
 }
 
-[data-pt-theme='navy'] .fm-mass {
+:is([data-pt-theme='navy'], [data-pt-theme='amber']) .fm-mass {
     background-color: rgb(var(--pt-navy-900));
     border-color: rgb(var(--pt-gold-600) / 0.5);
     box-shadow: 0 8px 20px rgb(0 0 0 / 0.5);
+}
+
+/* ====================================================== amber rounding ==
+ *
+ * The `amber` palette is rounded; `navy` is square. The glass radius tokens
+ * handle the surfaces the theme styles itself (card, sidebar, topbar, hero,
+ * chips, and the small controls listed in the "radii opt-in" block), but the
+ * panel's own form controls are Tailwind components this file never touches -
+ * they would stay square under the `* { border-radius: 0 !important }` reset,
+ * which is what makes the reference's rounded fields and pill button
+ * impossible to reach from a token alone.
+ *
+ * `!important` is required and not laziness: the reset is `!important` at (0,0,0)
+ * and these are (0,1,0), so without it the reset would win.
+ *
+ * The submit button is a full pill, matching the reference's Log in button.
+ * Checkboxes and radios are left alone - they are square by convention and the
+ * reference does not round them either. */
+[data-pt-theme='amber'] input:not([type='checkbox']):not([type='radio']),
+[data-pt-theme='amber'] textarea,
+[data-pt-theme='amber'] select,
+[data-pt-theme='amber'] button {
+    border-radius: 8px !important;
+}
+
+[data-pt-theme='amber'] .pt-auth button[type='submit'] {
+    border-radius: 999px !important;
 }
 
 /* --------------------------------------------------------- accessibility -- */

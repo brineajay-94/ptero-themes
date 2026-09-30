@@ -6,9 +6,9 @@
     $ptThemeVariant = !empty($siteConfiguration['theme']['variant']) ? $siteConfiguration['theme']['variant'] : 'default';
     $ptThemeColors = [
         'default' => '#19152e',
-        'blue' => '#0d1e38',
         'black' => '#0b0b0d',
         'navy' => '#0f1726',
+        'amber' => '#0c0c0c',
     ];
     $ptThemeColor = $ptThemeColors[$ptThemeVariant] ?? $ptThemeColors['default'];
 @endphp

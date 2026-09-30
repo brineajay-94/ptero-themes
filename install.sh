@@ -74,6 +74,52 @@ THEME_VERSION="$(awk -F'"' '/"version"/ { print $4; exit }' "$MANIFEST")"
 STATE_FILE="$PANEL_DIR/.brine-theme.state"
 THEME_MARKER="$PANEL_DIR/public/themes/pterodactyl/css/pterodactyl-theme.css"
 
+# The user PHP runs as. Every file below is copied with `cp -a` under sudo, which
+# preserves ownership and therefore lands the whole payload as root:root. That
+# is not fatal for the read-only assets, but the panel has to write into
+# public/themes/pterodactyl/images (the admin-uploaded icon) and
+# .../backgrounds (the uploaded hero images). A root-owned 755 directory makes
+# the Site Settings upload fail with "not writable by PHP" no matter what the
+# admin does in the browser, so the payload is handed to this user at the end.
+#
+# Detected rather than hardcoded: panels run under www-data, nginx, apache,
+# httpd, pgsql, or a container's own uid, and a wrong guess here is what caused
+# the failure in the first place.
+detect_web_user() {
+    local candidate
+
+    # 1. The owner of the panel's own storage is what the app already writes as.
+    if [ -d "$PANEL_DIR/storage" ]; then
+        candidate="$(stat -c '%U' "$PANEL_DIR/storage" 2>/dev/null || true)"
+        if [ -n "$candidate" ] && [ "$candidate" != "root" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    fi
+
+    # 2. The owner of public/assets, written by the asset build.
+    for candidate in "$PANEL_DIR/public/assets" "$PANEL_DIR/public/themes" "$PANEL_DIR/bootstrap/cache"; do
+        [ -d "$candidate" ] || continue
+        candidate="$(stat -c '%U' "$candidate" 2>/dev/null || true)"
+        if [ -n "$candidate" ] && [ "$candidate" != "root" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    # 3. Fall back to the usual suspects, in order of likelihood.
+    for candidate in www-data nginx apache httpd pgsql; do
+        if id -u "$candidate" >/dev/null 2>&1; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+WEB_USER="$(detect_web_user || true)"
+
 # Read "path"/"action" pairs out of manifest.json without requiring jq.
 PAIRS=()
 while IFS= read -r line; do
@@ -261,6 +307,29 @@ while IFS=$'\t' read -r path action; do
     cp -a "$source" "$target"
     echo "$(printf '%-8s' "$action") $path"
 done < <(printf '%s\n' "${PAIRS[@]}")
+
+# Hand the payload to the user PHP runs as. See detect_web_user for why this
+# matters: `cp -a` under sudo preserves root ownership, and without this the
+# admin-uploaded icon can never be written because images/ is root-owned.
+#
+# backgrounds/ is not in the manifest - the controller creates it on first use -
+# so it is created here too, otherwise the first background upload hits the same
+# wall one directory over.
+THEME_PUBLIC="$PANEL_DIR/public/themes/pterodactyl"
+if [ -n "$WEB_USER" ]; then
+    chown -R "$WEB_USER":"$(id -gn "$WEB_USER")" "$THEME_PUBLIC" 2>/dev/null || true
+    mkdir -p "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    chown -R "$WEB_USER":"$(id -gn "$WEB_USER")" "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    # 775, not 755: the group is the panel's own group, so this lets an admin
+    # group member write too without opening the directory to everyone.
+    chmod 775 "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    echo "ownership  public/themes/pterodactyl/{images,backgrounds} -> $WEB_USER (775)"
+else
+    mkdir -p "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    chmod 777 "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    echo "warning: could not detect the user PHP runs as; images/ and backgrounds/ were made world-writable." >&2
+    echo "         set them to the panel user by hand: chown -R <user> $THEME_PUBLIC" >&2
+fi
 
 # The stock /favicons are no longer referenced anywhere (the admin-uploaded
 # logo is the favicon now), so take them out of the panel. They land inside the

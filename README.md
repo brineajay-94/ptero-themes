@@ -881,6 +881,23 @@ relation will see the wrong thing.
 
 ## Known limitations
 
+- **The icon/background upload needs a writable `public/themes/pterodactyl`.**
+  The installer runs under `sudo` and copies with `cp -a`, which preserves
+  ownership, so the payload used to land as `root:root` - including
+  `images/`, which the manifest ships (`logo.svg`). `www-data` could then not
+  write the uploaded icon and Site Settings refused the save with *"the folder
+  is not writable by PHP"*, however the admin set the permissions in the
+  browser. The installer now detects the user PHP runs as (the owner of
+  `storage/`, then `public/assets`, then the usual suspects) and hands
+  `public/themes/pterodactyl` plus `images/` and `backgrounds/` to it at 775.
+  If you installed with a build from before that, fix it once:
+  ```sh
+  chown -R www-data:www-data /var/www/pterodactyl/public/themes/pterodactyl
+  chmod 775 /var/www/pterodactyl/public/themes/pterodactyl/{images,backgrounds}
+  ```
+  Substitute your own PHP user if it is not `www-data`. `backgrounds/` is not
+  in the manifest - the controller creates it on first use - so the installer
+  creates it too, rather than leaving the same trap one directory over.
 - Syntax highlighting in the file editor still uses stock hex literals, so those
   few colours do not follow the theme.
 - Chart dataset colours (cyan/yellow) are captured when a chart is created.

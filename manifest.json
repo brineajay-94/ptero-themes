@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.10.1",
+    "version": "1.11.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -50,7 +50,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, the round small loading ring, and a [data-pt-theme] block for the amber palette - the default black palette is the :root block itself. Owns focus rings for every theme control (none on :focus, a gold ring on :focus-visible). The neutral ramp is split at 500/600 - 50-500 text, 600-900 surface. The auth screens are a 50/50 split: .pt-auth-hero owns the admin auth image with a two-stop vertical scrim so the marketing line at its foot stays legible, .pt-auth-panel owns the vertical rule and the centring. The responsive overrides are declared after every base rule on purpose - a media query adds no specificity, so declaring one first lets the base rule overwrite it"
+            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, the round small loading ring, and a [data-pt-theme] block for the amber palette - the default black palette is the :root block itself. Owns focus rings for every theme control (none on :focus, a gold ring on :focus-visible). The neutral ramp is split at 500/600 - 50-500 text, 600-900 surface. The auth screens are a 50/50 split: .pt-auth-hero owns the admin auth image with a two-stop vertical scrim so the marketing line at its foot stays legible, .pt-auth-panel owns the vertical rule and the centring; the responsive overrides are declared after every base rule on purpose, because a media query adds no specificity. Shared scale tokens so the panel reads as one surface: --pt-shadow-sm/md/lg replace fifteen hand-written box-shadows, --pt-hairline replaces four border greys, and --pt-dur-fast/base/slow replace two unit systems for the same duration. prefers-reduced-motion covers every theme transition, not just the drawer"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -175,7 +175,7 @@
         {
             "path": "resources/scripts/components/server/console/style.module.css",
             "action": "replace",
-            "note": "Navy-black terminal, neutral stat cards and gold accents. The mobile full-bleed hack (-ml-4 with width: calc(100% + 2rem)) is gone: it made xterm measure a box 2rem wider than the visible area, so the right end of every line was clipped. Edge-to-edge is kept by zeroing the container padding on phones instead, which does not lie to the measurer"
+            "note": "Navy-black terminal, neutral stat cards and gold accents. The mobile full-bleed hack (-ml-4 with width: calc(100% + 2rem)) is gone: it made xterm measure a box 2rem wider than the visible area, so the right end of every line was clipped. Edge-to-edge is kept by zeroing the container padding on phones instead, which does not lie to the measurer. Shadows and transitions use the shared --pt-shadow-* / --pt-dur-* scale"
         },
         {
             "path": "resources/scripts/components/server/console/StatBlock.tsx",
@@ -210,7 +210,7 @@
         {
             "path": "resources/scripts/components/server/files/style.module.css",
             "action": "replace",
-            "note": "File manager row, tile, empty-state and mass-action styles. The row deliberately does not set overflow: hidden - it has a square corner radius so nothing needs clipping, and clipping was swallowing the per-row dropdown anchored to it"
+            "note": "File manager row, tile, empty-state and mass-action styles. The row deliberately does not set overflow: hidden - it has a square corner radius so nothing needs clipping, and clipping was swallowing the per-row dropdown anchored to it. Uses the shared --pt-shadow-md and --pt-hairline"
         },
         {
             "path": "resources/scripts/components/server/files/MassActionsBar.tsx",
@@ -280,7 +280,7 @@
         {
             "path": "resources/scripts/components/server/jars/style.module.css",
             "action": "create",
-            "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces"
+            "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces. Uses the shared --pt-shadow-md and --pt-hairline"
         },
         {
             "path": "app/Services/ServerSoftwareService.php",

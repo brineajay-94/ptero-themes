@@ -178,6 +178,42 @@
      * left for a shadow to borrow, so the elevation has to come from opacity. */
     --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
 
+    /* --------------------------------------------------------- elevation --
+     * Three steps, used by everything that sits above the page. These existed
+     * as fifteen-odd hand-written box-shadows, each with its own blur and
+     * opacity, so no two raised surfaces in the panel cast the same shadow and
+     * the hierarchy was guesswork. On a true-black page there is no luminance
+     * for a shadow to borrow, so the only way to read elevation is opacity -
+     * which is exactly what a shared scale fixes.
+     *
+     *   sm  a hairline lift: rows, chips, small controls
+     *   md  a card resting on the page
+     *   lg  a panel over content: modals, dropdowns, the auth card
+     */
+    --pt-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --pt-shadow-md: 0 6px 18px rgb(0 0 0 / 0.28), 0 1px 2px rgb(0 0 0 / 0.3);
+    --pt-shadow-lg: 0 24px 48px -20px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
+
+    /* ------------------------------------------------------------ motion --
+     * Durations named, so a hover on a nav item and a hover on a file row feel
+     * like the same panel. These were fifteen distinct `transition:`
+     * declarations mixing `150ms` with `0.15s` for the same value.
+     *
+     * The easing is deliberately left as the literal `ease` rather than a
+     * token. Routing all twenty-eight of them through one custom curve would
+     * change how every hover in the panel animates at once, for a consistency
+     * gain nobody can see - and the durations are what actually read as
+     * "same panel" or not. */
+    --pt-dur-fast: 120ms;
+    --pt-dur-base: 180ms;
+    --pt-dur-slow: 300ms;
+
+    /* ---------------------------------------------------------- hairline --
+     * The one border colour for a surface edge. Components were picking from
+     * gray-500 at 0.35 / 0.45 / 0.55 / 0.6 alpha, which reads as four
+     * unrelated greys side by side. */
+    --pt-hairline: rgb(var(--pt-gray-500) / 0.4);
+
     /* Frosted gradients live here rather than inline. Two reasons: the fallbacks
      * for reduced-transparency / forced-colors then reuse the exact stops
      * instead of drifting, and `rgb(var(--pt-*) / <alpha>)` inside a gradient
@@ -393,6 +429,16 @@
     --pt-glass-border-hover: 255 255 255 / 0.28;
     --pt-glass-highlight: 255 255 255 / 0;
     --pt-glass-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+
+    /* Flat palette: no drop shadows, so elevation comes from a surface tint and
+       its border instead. The steps stay in the scale so a component that asks
+       for elevation still gets *something* on amber instead of nothing. */
+    --pt-shadow-sm: 0 1px 0 rgb(255 255 255 / 0.02);
+    --pt-shadow-md: 0 0 0 1px rgb(255 255 255 / 0.02);
+    --pt-shadow-lg: 0 0 0 1px rgb(255 255 255 / 0.03);
+
+    /* Motion and hairlines are shared with the default palette unchanged - the
+       timings and the border greys are the same on both. */
 
     /* ---- rounded, where the rest of the theme is square ---- */
     --pt-glass-radius: 12px;
@@ -711,7 +757,7 @@
     font-weight: 500;
     color: rgb(var(--pt-navy-100));
     text-decoration: none;
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: background-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease;
 }
 
 .pt-nav-item > .pt-nav-ico {
@@ -792,7 +838,7 @@
     color: rgb(var(--pt-navy-100));
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    transition: background-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease, border-color var(--pt-dur-base) ease;
 }
 
 .pt-logout-btn:hover,
@@ -820,7 +866,7 @@
     padding: 0 0.75rem;
     background-color: rgb(var(--pt-navy-700));
     border-bottom: 2px solid rgb(var(--pt-gold-400));
-    box-shadow: 0 2px 10px rgb(0 0 0 / 0.22);
+    box-shadow: var(--pt-shadow-sm);
 }
 
 .pt-topbar-lead {
@@ -859,7 +905,7 @@
     font-size: 0.92rem;
     line-height: 0;
     text-decoration: none;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+    transition: background-color var(--pt-dur-base) ease, border-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 }
 
 .pt-topbar-links > a:hover,
@@ -966,7 +1012,7 @@
     color: #ffffff;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition: background-color var(--pt-dur-base) ease;
 }
 
 @media (min-width: 1024px) {
@@ -1009,7 +1055,7 @@
     font-size: 0.95rem;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: background-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease;
 }
 
 .pt-topbar-actions > a:hover,
@@ -1037,7 +1083,7 @@
     background-color: rgb(255 255 255 / 0.1);
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 150ms ease;
+    transition: border-color var(--pt-dur-base) ease;
 }
 
 .pt-avatar-btn:hover,
@@ -1086,7 +1132,7 @@
     inset: 0;
     background-color: rgb(5 10 20 / 0.62);
     opacity: 0;
-    transition: opacity 200ms ease;
+    transition: opacity var(--pt-dur-base) ease;
     backdrop-filter: blur(2px);
 }
 
@@ -1132,10 +1178,46 @@
     cursor: pointer;
 }
 
+/* Reduced motion.
+ *
+ * This used to cover the drawer and nothing else, which left every other
+ * transition in the theme running for a user who has asked the operating system
+ * not to animate anything: nav items, buttons, server cards, file rows, stat
+ * blocks, inputs, chips, the dropdown panel. Fifteen-odd declarations, one
+ * exemption.
+ *
+ * Scoped to the theme's own classes rather than a blanket
+ * `* { transition: none }`, because the panel draws things whose motion carries
+ * meaning - the xterm cursor, the resource bars - and silently freezing those
+ * would be a different accessibility bug. Animations are left alone for the same
+ * reason; only transitions are cut. */
 @media (prefers-reduced-motion: reduce) {
     .pt-drawer-panel,
-    .pt-drawer-scrim {
-        transition: none;
+    .pt-drawer-scrim,
+    .pt-drawer-close,
+    .pt-topbar-actions > a,
+    .pt-topbar-actions > button,
+    .pt-topbar-actions > .pt-action,
+    .pt-topbar-links > a,
+    .pt-nav-item,
+    .pt-burger,
+    .pt-avatar-btn,
+    .pt-logout-btn,
+    .pt-hero,
+    .pt-server-card,
+    .pt-console-head,
+    .pt-server-tile,
+    .pt-chip,
+    .pt-crumb,
+    .pt-link,
+    .pt-auth button[type='submit'],
+    .pt-auth input,
+    .pt-auth textarea,
+    .pt-auth select,
+    .pt-subuser-hint,
+    .fm-path,
+    .fm-path-link {
+        transition: none !important;
     }
 }
 
@@ -1276,7 +1358,7 @@
     border: 1px solid var(--pt-glass-border);
     border-radius: var(--pt-glass-radius-sm);
     background-color: rgb(var(--pt-gray-700));
-    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.8);
+    box-shadow: var(--pt-shadow-sm);
 }
 
 .pt-auth-emblem img {
@@ -1303,7 +1385,7 @@
     border: 1px solid rgb(var(--pt-gray-600) / 0.9);
     border-radius: var(--pt-glass-radius-lg);
     background-color: rgb(var(--pt-gray-700));
-    box-shadow: 0 32px 64px -28px rgb(0 0 0 / 0.75), 0 2px 10px rgb(0 0 0 / 0.4);
+    box-shadow: var(--pt-shadow-lg);
     overflow: hidden;
 }
 
@@ -1369,7 +1451,13 @@
    `min-width: 0` is load-bearing. A flex item defaults to `min-width: auto`,
    which refuses to shrink below its content's min-content width - and the card's
    max-width plus the panel's padding is wider than a phone, so without this the
-   whole page overflowed sideways on mobile instead of the card shrinking. */
+   whole page overflowed sideways on mobile instead of the card shrinking.
+
+   No `min-height` here on purpose. `.pt-auth-page` already sets
+   `min-height: 100vh` and is a flex row, so this stretches to it for free. A
+   second `100vh` on the inner element meant the auth screen could only ever be
+   as tall as the viewport - which is right on the panel and wrong anywhere the
+   auth layout is embedded at a chosen height, including the preview harness. */
 .pt-auth {
     position: relative;
     z-index: 2;
@@ -1377,7 +1465,6 @@
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
-    min-height: 100vh;
 }
 
 .pt-auth-body {
@@ -1414,7 +1501,7 @@
     background-color: rgb(var(--pt-gray-600) / 0.5);
     color: rgb(var(--pt-gray-50));
     font-size: 0.9rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, background-color var(--pt-dur-base) ease;
 }
 
 .pt-auth textarea {
@@ -1494,8 +1581,8 @@
     font-weight: 700;
     letter-spacing: 0.01em;
     text-transform: none;
-    box-shadow: 0 10px 22px -14px rgb(0 0 0 / 0.8);
-    transition: filter 0.15s ease, transform 0.1s ease;
+    box-shadow: var(--pt-shadow-sm);
+    transition: filter var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
 }
 
 /* The stock Button sets its own background through a twin.macro class baked at
@@ -1605,7 +1692,7 @@
 .pt-crumb {
     color: rgb(var(--pt-gray-300));
     text-decoration: none;
-    transition: color 150ms ease;
+    transition: color var(--pt-dur-base) ease;
 }
 
 .pt-crumb:hover,
@@ -1650,7 +1737,7 @@
     -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
     backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
     box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color var(--pt-dur-base) ease, border-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease;
 }
 
 .pt-link:hover,
@@ -1675,7 +1762,7 @@
     border-radius: 0;
     border-bottom: 3px solid rgb(var(--pt-gold-400));
     background-image: linear-gradient(135deg, rgb(var(--pt-navy-800)), rgb(var(--pt-navy-900)));
-    box-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
+    box-shadow: var(--pt-shadow-md);
     overflow: hidden;
 }
 
@@ -1749,13 +1836,13 @@
     gap: 1rem;
     margin-bottom: 0.6rem;
     padding: 0.95rem 1.1rem;
-    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    border: 1px solid var(--pt-hairline);
     border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
     color: inherit;
     text-decoration: none;
     overflow: hidden;
-    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 }
 
 .pt-server-card::before {
@@ -1771,7 +1858,7 @@
 .pt-server-card:hover,
 .pt-server-card:focus-visible {
     border-color: rgb(var(--pt-gold-400));
-    box-shadow: 0 10px 26px rgb(0 0 0 / 0.16);
+    box-shadow: var(--pt-shadow-md);
     transform: translateY(-1px);
     outline: none;
 }
@@ -1866,7 +1953,7 @@
      * now, so at the old alpha this tint washed out behind the gray-200 label;
      * 0.14 keeps the chip readable as a chip without competing with the text. */
     background-color: rgb(var(--pt-gray-500) / 0.14);
-    border-color: rgb(var(--pt-gray-500) / 0.45);
+    border-color: var(--pt-hairline);
     color: rgb(var(--pt-gray-200));
 }
 
@@ -1924,7 +2011,7 @@
     height: 100%;
     border-radius: 0;
     background-image: linear-gradient(90deg, rgb(var(--pt-navy-400)), rgb(var(--pt-gold-500)));
-    transition: width 300ms ease;
+    transition: width var(--pt-dur-slow) ease;
 }
 
 .pt-bar.is-alarm > i {
@@ -1949,7 +2036,7 @@
 .pt-footer {
     margin-top: 2.5rem;
     padding-top: 1rem;
-    border-top: 1px solid rgb(var(--pt-gray-500) / 0.4);
+    border-top: 1px solid var(--pt-hairline);
     text-align: center;
     font-size: 0.72rem;
     color: rgb(var(--pt-gray-300));
@@ -2001,7 +2088,7 @@
     border-radius: 0;
     border-bottom: 3px solid rgb(var(--pt-gold-400));
     background-image: linear-gradient(120deg, rgb(var(--pt-navy-700)), rgb(var(--pt-navy-900)));
-    box-shadow: 0 12px 30px rgb(0 0 0 / 0.22);
+    box-shadow: var(--pt-shadow-md);
     overflow: hidden;
 }
 
@@ -2071,7 +2158,7 @@
     align-items: center;
     min-width: 0;
     padding: 0.5rem 0.6rem;
-    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    border: 1px solid var(--pt-hairline);
     border-radius: 0;
     background-color: rgb(var(--pt-navy-800));
     color: rgb(var(--pt-navy-200));
@@ -2123,7 +2210,7 @@
     border: 1px solid rgb(var(--pt-gold-400) / 0.65);
     border-radius: 0;
     background-color: rgb(var(--pt-navy-900) / 0.97);
-    box-shadow: 0 16px 36px rgb(0 0 0 / 0.4);
+    box-shadow: var(--pt-shadow-lg);
     pointer-events: auto;
 }
 
@@ -2371,7 +2458,7 @@
     box-shadow:
         0 18px 40px -12px rgb(0 0 0 / 0.7),
         0 4px 12px rgb(0 0 0 / 0.4);
-    transition: all 150ms ease;
+    transition: all var(--pt-dur-base) ease;
 }
 
 @media (min-width: 640px) {
@@ -2400,7 +2487,7 @@
 /* The flat palettes suppress the inner highlight that makes a frosted card read
  * as glass, so give the dialog its top edge back as a plain hairline. */
 [data-pt-theme='amber'] .pt-modal {
-    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.8), 0 4px 12px rgb(0 0 0 / 0.5);
+    box-shadow: var(--pt-shadow-lg);
 }
 
 /* ------------------------------------------------- hero / console (tinted) -- */
@@ -2442,7 +2529,7 @@
 .pt-server-card:focus-visible {
     border-color: var(--pt-glass-border-hover);
     background-color: rgb(var(--pt-gray-700) / 0.68);
-    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.18);
+    box-shadow: var(--pt-shadow-md), inset 0 1px 0 rgb(255 255 255 / 0.18);
 }
 
 /* Status rail glows instead of reading as a flat colour block. */
@@ -2703,7 +2790,7 @@
 [data-pt-theme='amber'] .fm-mass {
     background-color: rgb(var(--pt-navy-900));
     border-color: rgb(var(--pt-gold-600) / 0.5);
-    box-shadow: 0 8px 20px rgb(0 0 0 / 0.5);
+    box-shadow: var(--pt-shadow-sm);
 }
 
 /* ====================================================== amber rounding ==

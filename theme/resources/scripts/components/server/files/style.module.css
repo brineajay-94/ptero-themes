@@ -19,19 +19,19 @@
     display: flex;
     align-items: center;
     margin-bottom: 0.45rem;
-    border: 1px solid rgb(var(--pt-gray-500) / 0.35);
+    border: 1px solid var(--pt-hairline);
     border-left: 3px solid transparent;
     border-radius: 0;
     background-color: rgb(var(--pt-gray-700));
     /* Deliberately not `overflow: hidden`. The row has a square corner radius, so
      * nothing here needs clipping, and clipping swallowed the per-row dropdown
      * that is anchored to this row. Text truncation is handled by .details. */
-    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 
     &:hover {
         border-color: rgb(var(--pt-gold-400) / 0.75);
         border-left-color: rgb(var(--pt-gold-400));
-        box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+        box-shadow: var(--pt-shadow-md);
         transform: translateY(-1px);
     }
 
@@ -82,7 +82,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: color 150ms ease;
+    transition: color var(--pt-dur-base) ease;
 }
 
 .file_row:hover .file_name {

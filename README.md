@@ -163,6 +163,23 @@ panel will render. There is no toggle: the mock renders one dark scheme.
 The markup is hard-coded (no API) but mirrors the panel's real components and
 the redesigned pages in this package.
 
+**Keep it honest.** A preview that drifts from the real components is worse than
+no preview: it will happily show you a screen that no longer exists. It already
+had - the topbar mock still rendered the old search / dashboard / admin / avatar
+/ sign-out row long after `NavigationBar.tsx` removed all five, and an audit
+built on it produced two findings that were pure fiction. When a component
+changes, check its section here:
+
+```bash
+# every pt-* class the preview uses must be styled by the theme
+grep -oE 'class="[^"]*"' preview/index.html | grep -oE '\bpt-[a-z0-9-]+' | sort -u
+```
+
+Sections that show framework components the theme does not re-implement (alerts,
+pagination, the stock buttons) are mocked in `preview/panel-preview.css`. Treat
+what you see there as a placeholder, not as the installed panel - a mock alert
+banner says nothing about the alerts the panel actually renders.
+
 Regenerate the preview stylesheet, icon map and font list after changing the
 palette or `tailwind.config.js`:
 
@@ -905,6 +922,28 @@ relation will see the wrong thing.
     an upload that never landed.
   - The favicon's `type` is derived from the extension instead of being hardcoded
     to `image/png`, which lied for every format except PNG.
+- **Elevation, hairlines and motion are shared scale tokens, not per-component
+  values.** `--pt-shadow-sm/md/lg`, `--pt-hairline` and `--pt-dur-fast/base/slow`
+  replaced fifteen hand-written `box-shadow`s, four border greys and two unit
+  systems for the same duration (`150ms` and `0.15s`). On a true-black page
+  there is no luminance for a shadow to borrow, so elevation can only be read
+  from opacity - which is exactly what a shared scale fixes. The amber palette
+  redefines the three shadows as flat outlines, because that palette is
+  deliberately shadowless; the durations and the border greys are shared. The
+  easing is left as the literal `ease` on purpose: routing all twenty-eight
+  through one custom curve would change how every hover in the panel animates at
+  once, for a consistency gain nobody can see.
+- **`prefers-reduced-motion` covers the whole theme.** It used to exempt only the
+  drawer, leaving every other transition running for a user who has asked the
+  operating system not to animate anything. It is scoped to the theme's own
+  classes rather than a blanket `* { transition: none }`, because the panel draws
+  things whose motion carries meaning - the xterm cursor, the resource bars - and
+  freezing those would be a different accessibility bug. Animations are left
+  alone for the same reason; only transitions are cut.
+- **The auth layout is embeddable at any height.** `.pt-auth` no longer sets
+  `min-height: 100vh` on top of `.pt-auth-page`'s; the inner element stretches to
+  the page for free as a flex item. Redundant on the panel, and it meant the auth
+  screen could only ever be as tall as the viewport.
 - **File actions menu** - the theme ships its own `components/elements/DropdownMenu.tsx` because the three-dot button on a file row did nothing at all, for two reasons that compounded:
   - The stock panel rendered the panel `position: absolute` inside a plain
     wrapper and nudged it with `left = viewportX - width`. That arithmetic is

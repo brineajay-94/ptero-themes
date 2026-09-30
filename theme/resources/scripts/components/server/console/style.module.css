@@ -9,9 +9,9 @@
      * `bg-primary-600` tiles use, so painting a border with it makes the rule
      * disappear. */
     border-bottom: 3px solid rgb(var(--pt-gold-400));
-    box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+    box-shadow: var(--pt-shadow-md);
     overflow: hidden;
-    transition: border-color 150ms ease, transform 150ms ease;
+    transition: border-color var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 }
 
 .stat_block:hover {
@@ -28,7 +28,7 @@
     @apply transition-colors duration-500;
     @apply sm:flex sm:mr-4;
 
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.28);
+    box-shadow: var(--pt-shadow-sm);
 
     & > svg {
         @apply w-6 h-6 m-auto;
@@ -41,7 +41,7 @@
     border: 1px solid rgb(var(--pt-navy-600));
     border-radius: 0;
     background-color: rgb(var(--pt-black));
-    box-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
+    box-shadow: var(--pt-shadow-lg);
     overflow: hidden;
 
     /* This used to be a full-bleed hack on phones: `margin-left: -1rem` with
@@ -147,7 +147,7 @@
     background-color: rgb(var(--pt-gray-700));
     border: 1px solid rgb(var(--pt-gray-500) / 0.45);
     border-bottom: 4px solid rgb(var(--pt-gold-400));
-    box-shadow: 0 8px 22px rgb(0 0 0 / 0.16);
+    box-shadow: var(--pt-shadow-md);
     overflow: hidden;
 }
 

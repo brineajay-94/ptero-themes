@@ -42,7 +42,7 @@
     border: 0;
     color: rgb(var(--pt-gray-400));
     cursor: pointer;
-    transition: color 150ms ease;
+    transition: color var(--pt-dur-base) ease;
 }
 
 .tab:hover {
@@ -178,7 +178,7 @@
     background-color: rgb(var(--pt-black));
     color: rgb(var(--pt-gray-100));
     outline: none;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease;
 }
 
 .search::placeholder {
@@ -206,10 +206,10 @@
 .project {
     @apply flex flex-col p-3;
 
-    border: 1px solid rgb(var(--pt-gray-500) / 0.45);
+    border: 1px solid var(--pt-hairline);
     background-color: rgb(var(--pt-gray-700));
-    box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
-    transition: border-color 150ms ease, transform 150ms ease;
+    box-shadow: var(--pt-shadow-md);
+    transition: border-color var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 }
 
 .project:hover {
@@ -298,7 +298,7 @@
     border: 1px solid rgb(var(--pt-gray-500) / 0.35);
     border-left: 3px solid rgb(var(--pt-navy-600));
     background-color: rgb(var(--pt-gray-700));
-    transition: border-color 150ms ease;
+    transition: border-color var(--pt-dur-base) ease;
 }
 
 .installedRow:hover {

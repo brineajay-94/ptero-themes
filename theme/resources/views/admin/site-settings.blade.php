@@ -468,6 +468,8 @@
                                     <p class="help-block">
                                         Up to {{ $upload_ceiling_kb }} KB, as set by this server&rsquo;s PHP.
                                         PNG, JPG, GIF, WEBP or SVG.
+                                        <br /><strong>SVG is used exactly as drawn</strong> and its white background is
+                                        <em>not</em> removed &mdash; give the artwork its own transparency.
                                     </p>
                                 </div>
 
@@ -494,7 +496,10 @@
                                             arrives would sit there as a white rectangle. On save the server keys the
                                             white to transparency, keeps the genuinely light pixels that belong to the
                                             drawing &mdash; the slab top, clouds, glowing panels &mdash; and crops to
-                                            what is left. A <code>https://</code> link cannot be processed this way.
+                                            what is left.
+                                            <br />This applies to a <strong>raster upload</strong> (PNG, JPG, GIF, WEBP) only.
+                                            An <strong>SVG</strong> and a <code>https://</code> link are stored and shown
+                                            exactly as they are, because the server cannot key what it cannot decode.
                                         </p>
                                     </div>
                                 @else

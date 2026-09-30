@@ -18,18 +18,20 @@ import { httpErrorToHuman } from '@/api/http';
 import {
     formatBytes,
     formatCount,
-    getPluginVersions,
-    InstalledPlugin,
-    installPlugin,
-    listInstalledPlugins,
+    getJarVersions,
+    InstalledJar,
+    JAR_KINDS,
+    JarKind,
+    installJar,
+    listInstalledJars,
     ModrinthHit,
     ModrinthVersion,
     PAGE_SIZE,
     primaryJarFor,
     readMinecraftVersion,
-    removePlugin,
-    searchPlugins,
-} from '@/api/server/plugins';
+    removeJar,
+    searchJars,
+} from '@/api/server/jars';
 import style from './style.module.css';
 
 type Tab = 'installed' | 'browse';
@@ -61,7 +63,13 @@ const emptyProject = (): ProjectState => ({
     ignoreVersion: false,
 });
 
-export default () => {
+export interface JarsContainerProps {
+    /** Which flavour this route installs. */
+    kind: JarKind;
+}
+
+export default ({ kind }: JarsContainerProps) => {
+    const config = JAR_KINDS[kind];
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const variables = ServerContext.useStoreState((state) => state.server.data!.variables);
     const addFlash = useStoreActions((actions) => actions.flashes.addFlash);
@@ -82,7 +90,7 @@ export default () => {
     const [searchError, setSearchError] = useState<string | null>(null);
     const [results, setResults] = useState<{ total: number; hits: ModrinthHit[] } | null>(null);
 
-    const [installed, setInstalled] = useState<InstalledPlugin[] | null>(null);
+    const [installed, setInstalled] = useState<InstalledJar[] | null>(null);
     const [installedError, setInstalledError] = useState<string | null>(null);
     const [busy, setBusy] = useState<Record<string, boolean>>({});
     const [projects, setProjects] = useState<Record<string, ProjectState>>({});
@@ -90,12 +98,12 @@ export default () => {
     const refreshInstalled = useCallback(async () => {
         try {
             setInstalledError(null);
-            setInstalled(await listInstalledPlugins(uuid));
+            setInstalled(await listInstalledJars(kind, uuid));
         } catch (error) {
             setInstalled(null);
             setInstalledError(httpErrorToHuman(error));
         }
-    }, [uuid]);
+    }, [kind, uuid]);
 
     useEffect(() => {
         refreshInstalled();
@@ -128,7 +136,7 @@ export default () => {
         setLoading(true);
         setSearchError(null);
 
-        searchPlugins(trimmed, {
+        searchJars(kind, trimmed, {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
             sort: trimmed ? 'relevance' : 'downloads',
@@ -168,7 +176,7 @@ export default () => {
             setProject(hit.project_id, { loading: true, failed: false, ignoreVersion });
 
             try {
-                const versions = (await getPluginVersions(hit.project_id, filter)).slice(0, VERSION_LIMIT);
+                const versions = (await getJarVersions(kind, hit.project_id, filter)).slice(0, VERSION_LIMIT);
                 setProject(hit.project_id, {
                     versions,
                     // Newest first from the API, so index 0 is the pick. It is the
@@ -200,7 +208,7 @@ export default () => {
         if (!jar) {
             addFlash({
                 type: 'error',
-                key: 'plugins',
+                key: kind,
                 title: 'No jar',
                 message: `${hit.title} ${version.version_number} has no downloadable jar.`,
             });
@@ -210,42 +218,42 @@ export default () => {
         setBusy((current) => ({ ...current, [hit.project_id]: true }));
 
         try {
-            await installPlugin(uuid, jar.url, jar.filename);
+            await installJar(kind, uuid, jar.url, jar.filename);
             addFlash({
                 type: 'success',
-                key: 'plugins',
+                key: kind,
                 title: 'Installed',
-                message: `${jar.filename} added to plugins/. Restart the server to load it.`,
+                message: `${jar.filename} added to ${config.directory}/. Restart the server to load it.`,
             });
             await refreshInstalled();
         } catch (error) {
-            addFlash({ type: 'error', key: 'plugins', title: 'Install failed', message: httpErrorToHuman(error) });
+            addFlash({ type: 'error', key: kind, title: 'Install failed', message: httpErrorToHuman(error) });
         } finally {
             setBusy((current) => ({ ...current, [hit.project_id]: false }));
         }
     };
 
-    const onRemove = async (plugin: InstalledPlugin) => {
-        setBusy((current) => ({ ...current, [plugin.name]: true }));
+    const onRemove = async (jar: InstalledJar) => {
+        setBusy((current) => ({ ...current, [jar.name]: true }));
 
         try {
-            await removePlugin(uuid, plugin.name);
+            await removeJar(kind, uuid, jar.name);
             addFlash({
                 type: 'success',
-                key: 'plugins',
+                key: kind,
                 title: 'Removed',
-                message: `${plugin.name} deleted. Restart the server to apply.`,
+                message: `${jar.name} deleted. Restart the server to apply.`,
             });
             await refreshInstalled();
         } catch (error) {
-            addFlash({ type: 'error', key: 'plugins', title: 'Remove failed', message: httpErrorToHuman(error) });
+            addFlash({ type: 'error', key: kind, title: 'Remove failed', message: httpErrorToHuman(error) });
         } finally {
-            setBusy((current) => ({ ...current, [plugin.name]: false }));
+            setBusy((current) => ({ ...current, [jar.name]: false }));
         }
     };
 
     const installedNames = useMemo(
-        () => new Set((installed || []).map((plugin) => plugin.name.toLowerCase())),
+        () => new Set((installed || []).map((jar) => jar.name.toLowerCase())),
         [installed]
     );
 
@@ -369,13 +377,13 @@ export default () => {
     };
 
     return (
-        <ServerContentBlock title={'Plugins'} showFlashKey={'plugins'}>
+        <ServerContentBlock title={config.label} showFlashKey={kind}>
             {installedError ? (
                 <div className={`${style.notice} ${style['notice--warn']}`}>
                     <FontAwesomeIcon icon={faExclamationTriangle} />
                     <span>
-                        Could not read <code>plugins/</code>: {installedError}. If this server is not a plugin
-                        server, that directory will not exist.
+                        Could not read <code>{config.directory}/</code>: {installedError}. If this server does not
+                        use {config.singular}s, that directory will not exist.
                     </span>
                 </div>
             ) : (
@@ -403,22 +411,22 @@ export default () => {
                             <Spinner centered />
                         ) : installed.length === 0 ? (
                             <div className={style.empty}>
-                                No plugins installed yet. Create a <code>plugins/</code> folder in the file
-                                manager, or use Browse to add one.
+                                No {config.singular}s installed yet. Create a <code>{config.directory}/</code> folder in the
+                                file manager, or use Browse to add one.
                             </div>
                         ) : (
                             <div className={style.installed}>
-                                {installed.map((plugin) => (
-                                    <div key={plugin.name} className={style.installedRow}>
+                                {installed.map((jar) => (
+                                    <div key={jar.name} className={style.installedRow}>
                                         <FontAwesomeIcon icon={faPuzzlePiece} className={'text-gray-400'} />
-                                        <span className={style.installedName}>{plugin.name}</span>
-                                        <span className={style.installedMeta}>{formatBytes(plugin.size)}</span>
+                                        <span className={style.installedName}>{jar.name}</span>
+                                        <span className={style.installedMeta}>{formatBytes(jar.size)}</span>
                                         <Can action={'file.delete'}>
                                             <Button.Danger
                                                 type={'button'}
-                                                onClick={() => onRemove(plugin)}
-                                                disabled={busy[plugin.name]}
-                                                title={`Remove ${plugin.name}`}
+                                                onClick={() => onRemove(jar)}
+                                                disabled={busy[jar.name]}
+                                                title={`Remove ${jar.name}`}
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </Button.Danger>
@@ -436,8 +444,8 @@ export default () => {
                                         className={style.search}
                                         value={query}
                                         onChange={(event) => onQueryChange(event.currentTarget.value)}
-                                        placeholder={'Search Modrinth…'}
-                                        aria-label={'Search plugins'}
+                                        placeholder={`Search Modrinth for a ${config.singular}…`}
+                                        aria-label={`Search ${config.label}`}
                                         autoComplete={'off'}
                                         spellCheck={false}
                                     />
@@ -506,7 +514,7 @@ export default () => {
                                 <div className={style.empty}>
                                     {trimmedQuery
                                         ? `Nothing matched “${trimmedQuery}”.`
-                                        : 'No plugins found.'}
+                                        : `No ${config.singular}s found.`}
                                 </div>
                             )}
 
@@ -515,7 +523,7 @@ export default () => {
                                     <div className={`${style.meta} mb-3`}>
                                         <span>
                                             <strong>{formatCount(results.total)}</strong>{' '}
-                                            {results.total === 1 ? 'plugin' : 'plugins'}
+                                            {results.total === 1 ? config.singular : `${config.singular}s`}
                                             {trimmedQuery ? ` for “${trimmedQuery}”` : ' - most downloaded'}
                                         </span>
                                     </div>

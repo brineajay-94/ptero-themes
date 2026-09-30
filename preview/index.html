@@ -89,6 +89,17 @@
                         <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
                         <span class="flex-1 truncate">Activity</span>
                     </a>
+                    <!-- The theme's own jar routes. Shown per server based on what
+                         it can actually hold: plugins/ means Plugins, mods/ means
+                         Mods, and a hybrid with both gets both. -->
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="puzzle-piece" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Plugins</span>
+                    </a>
+                    <a href="#" class="pt-nav-item">
+                        <span class="pt-nav-ico" data-icon="cubes" data-icon-size="1rem"></span>
+                        <span class="flex-1 truncate">Mods</span>
+                    </a>
                     <a href="#" class="pt-nav-item">
                         <span class="pt-nav-ico" data-icon="shield-alt" data-icon-size="1rem"></span>
                         <span class="flex-1 truncate">Admin Area</span>
@@ -394,6 +405,116 @@
                                     <span class="ml-2">Previous</span>
                                 </button>
                                 <span class="pg-pageinfo">Page <strong>1</strong> of <strong>170</strong></span>
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">
+                                    <span class="mr-2">Next</span>
+                                    <span data-icon="chevron-right" data-icon-size="0.8rem"></span>
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Mods (JarsContainer with kind="mods") ---------------->
+                        <!-- Same component as Plugins, parameterised: directory mods/,
+                             project_type:mod, loaders forge/fabric/quilt/neoforge. -->
+                        <section>
+                            <h2 class="pt-section-title !mt-0">Mods</h2>
+
+                            <div class="pg-tabs">
+                                <button type="button" class="pg-tab pg-tab--active">
+                                    Installed<span class="pg-count">2</span>
+                                </button>
+                                <button type="button" class="pg-tab">Browse</button>
+                            </div>
+
+                            <div class="pg-row">
+                                <span class="text-gray-400"><span data-icon="cubes" data-icon-size="1rem"></span></span>
+                                <span class="pg-row-name">sodium-fabric-0.6.0+mc1.21.4.jar</span>
+                                <span class="pg-row-meta">1.1 MB</span>
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Remove</button>
+                            </div>
+                            <div class="pg-row">
+                                <span class="text-gray-400"><span data-icon="cubes" data-icon-size="1rem"></span></span>
+                                <span class="pg-row-name">fabric-api-0.115.1+1.21.4.jar</span>
+                                <span class="pg-row-meta">3.4 MB</span>
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Remove</button>
+                            </div>
+
+                            <div class="pg-toolbar mt-6">
+                                <div class="pg-searchwrap">
+                                    <span class="pg-searchicon" data-icon="search" data-icon-size="0.85rem"></span>
+                                    <input class="pg-search" type="text" placeholder="Search Modrinth for a mod…" aria-label="Search Mods" autocomplete="off" />
+                                </div>
+                            </div>
+
+                            <div class="pg-filterbar">
+                                <span class="pg-badge">Minecraft 1.21.4</span>
+                                <form class="pg-versionform">
+                                    <input class="pg-versioninput" type="text" value="1.21.4" aria-label="Minecraft version" size="8" />
+                                    <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Apply</button>
+                                    <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">Clear</button>
+                                </form>
+                            </div>
+
+                            <div class="pg-meta mb-3">
+                                <span><strong>2.1k</strong> mods - most downloaded</span>
+                            </div>
+
+                            <div class="pg-results">
+                                <div class="pg-project">
+                                    <div class="pg-project-head">
+                                        <span class="pg-project-icon"><span data-icon="cubes" data-icon-size="1.1rem"></span></span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="pg-project-title block truncate">Sodium</span>
+                                            <span class="pg-project-author">by CaffeineMC · LGPL-3.0</span>
+                                        </span>
+                                    </div>
+                                    <p class="pg-desc">A modern rendering engine for Minecraft which massively improves performance.</p>
+                                    <div class="pg-meta mb-2">
+                                        <span><strong>233.2m</strong> downloads</span>
+                                        <span>latest <strong>mc1.21.4-0.6.0</strong></span>
+                                    </div>
+                                    <div class="pg-foot">
+                                        <select class="pg-select" aria-label="Version for Sodium">
+                                            <option>0.6.0+1.21.4 · 1.1 MB</option>
+                                            <option>0.5.8+1.21.1 · 1.0 MB</option>
+                                        </select>
+                                        <span class="pg-badge">1.21.4</span>
+                                        <button type="button" class="pt-btn">Install</button>
+                                    </div>
+                                </div>
+
+                                <div class="pg-project">
+                                    <div class="pg-project-head">
+                                        <span class="pg-project-icon"><span data-icon="cubes" data-icon-size="1.1rem"></span></span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="pg-project-title block truncate">Fabric API</span>
+                                            <span class="pg-project-author">by modrinth · Apache-2.0</span>
+                                        </span>
+                                    </div>
+                                    <p class="pg-desc">Core library for Fabric mods. Most other mods depend on this.</p>
+                                    <div class="pg-meta mb-2">
+                                        <span><strong>263.9m</strong> downloads</span>
+                                        <span>latest <strong>0.115.1+1.21.4</strong></span>
+                                    </div>
+                                    <div class="pg-notice pg-notice--warn mb-2">
+                                        <span data-icon="exclamation-triangle" data-icon-size="0.9rem"></span>
+                                        <span>Needs 1 required dependency. Install @P7dR8mSH too or this mod will fail to load.</span>
+                                    </div>
+                                    <div class="pg-foot">
+                                        <select class="pg-select" aria-label="Version for Fabric API">
+                                            <option>0.115.1+1.21.4 · 3.4 MB</option>
+                                        </select>
+                                        <span class="pg-badge">1.21.4</span>
+                                        <button type="button" class="pt-btn">Install</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pg-pagination">
+                                <button type="button" class="pt-btn pt-btn-grey pt-btn-xs" disabled>
+                                    <span data-icon="chevron-left" data-icon-size="0.8rem"></span>
+                                    <span class="ml-2">Previous</span>
+                                </button>
+                                <span class="pg-pageinfo">Page <strong>1</strong> of <strong>105</strong></span>
                                 <button type="button" class="pt-btn pt-btn-grey pt-btn-xs">
                                     <span class="mr-2">Next</span>
                                     <span data-icon="chevron-right" data-icon-size="0.8rem"></span>
@@ -826,6 +947,17 @@
                         <a href="#" class="pt-nav-item">
                             <span class="pt-nav-ico" data-icon="archive" data-icon-size="1rem"></span>
                             <span class="flex-1 truncate">Backups</span>
+                        </a>
+                        <!-- The theme's own jar routes. Shown per server based on
+                             what it can actually hold: plugins/ means Plugins,
+                             mods/ means Mods. A hybrid with both gets both. -->
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="puzzle-piece" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Plugins</span>
+                        </a>
+                        <a href="#" class="pt-nav-item">
+                            <span class="pt-nav-ico" data-icon="cubes" data-icon-size="1rem"></span>
+                            <span class="flex-1 truncate">Mods</span>
                         </a>
                     </nav>
                 </aside>

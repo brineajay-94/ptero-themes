@@ -68,6 +68,7 @@ const ICONS = {
   "exclamation-circle": "faExclamationCircle",
   "exclamation-triangle": "faExclamationTriangle",
   "puzzle-piece": "faPuzzlePiece",
+  cubes: "faCubes",
   "shield-alt": "faShieldAlt",
   hdd: "faHdd",
   memory: "faMemory",

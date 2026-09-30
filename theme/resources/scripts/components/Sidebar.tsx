@@ -13,6 +13,7 @@ import {
     faLock,
     faNetworkWired,
     faPuzzlePiece,
+    faCubes,
     faSignOutAlt,
     faSlidersH,
     faTerminal,
@@ -23,22 +24,30 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
+import type { ServerEggVariable } from '@/api/server/types';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
 import routes from '@/routers/routes';
 import { brandName, logoUrl } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
-import { hasPluginsDirectory } from '@/api/server/plugins';
+import { candidateJarKinds } from '@/lib/serverFamily';
+import { hasJarDirectory, type JarKind } from '@/api/server/jars';
 
 export interface SidebarProps {
     mode: 'dashboard' | 'server';
     serverId?: number | string | null;
     /**
-     * Only set in server mode. Used to decide whether the server can take jar
-     * plugins at all - see hasPluginsDirectory for why this is a filesystem
-     * probe rather than a check on the egg.
+     * Only set in server mode. Used to decide which jar flavours this server can
+     * actually take - see lib/serverFamily for why this is a combination of an
+     * egg fingerprint and a filesystem probe rather than a name check.
      */
     serverUuid?: string;
+    /**
+     * Only set in server mode. The egg's user-visible variables, passed down
+     * because the Sidebar renders in dashboard mode too, where there is no
+     * ServerContext to read them from.
+     */
+    serverVariables?: ServerEggVariable[];
     matchUrl?: string;
     onNavigate?: () => void;
     onLogout?: () => void;
@@ -55,7 +64,6 @@ const SERVER_ICONS: Record<string, IconDefinition> = {
     Startup: faSlidersH,
     Settings: faCog,
     Activity: faHistory,
-    Plugins: faPuzzlePiece,
 };
 
 const ACCOUNT_ICONS: Record<string, IconDefinition> = {
@@ -99,34 +107,48 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
     </>
 );
 
-export default ({ mode, serverId, serverUuid, matchUrl, onNavigate, onLogout }: SidebarProps) => {
+export default ({ mode, serverId, serverUuid, serverVariables, matchUrl, onNavigate, onLogout }: SidebarProps) => {
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
 
-    // Whether to offer Plugins at all. The panel does not expose the egg name to
-    // the client, so the only honest signal is whether the server actually has a
-    // plugins/ directory. Probed once per server; the nav renders immediately and
-    // the item appears when the answer lands, so nothing blocks on it.
-    const [pluginServer, setPluginServer] = useState(false);
+    // Which jar flavours this server can take. The panel does not expose the egg
+    // name, so this is an egg fingerprint (free, from the variables that are
+    // user_viewable) narrowed by probing the directories it does not rule out.
+    // A Paper server has plugins/, a Forge or Fabric server has mods/, a Vanilla
+    // or TeamSpeak server has neither.
+    //
+    // The nav renders immediately and items appear when the answer lands, so
+    // nothing blocks on it.
+    const [jarKinds, setJarKinds] = useState<JarKind[]>([]);
 
     useEffect(() => {
         if (mode !== 'server' || !serverUuid) {
-            setPluginServer(false);
+            setJarKinds([]);
             return;
         }
 
         let active = true;
-        hasPluginsDirectory(serverUuid).then((value) => {
-            if (active) {
-                setPluginServer(value);
-            }
-        });
+        const candidates = candidateJarKinds(serverVariables || []);
+
+        Promise.all(candidates.map((kind) => hasJarDirectory(kind, serverUuid)))
+            .then((found) => {
+                if (active) {
+                    setJarKinds(candidates.filter((_, index) => found[index]));
+                }
+            })
+            // A probe failure already resolves false per kind, so reaching here
+            // means something unexpected - hide the items rather than guess.
+            .catch(() => {
+                if (active) {
+                    setJarKinds([]);
+                }
+            });
 
         return () => {
             active = false;
         };
-    }, [mode, serverUuid]);
+    }, [mode, serverUuid, serverVariables]);
 
     const serverTo = (value: string) => {
         const base = (matchUrl || '').replace(/\/*$/, '');
@@ -182,13 +204,11 @@ export default ({ mode, serverId, serverUuid, matchUrl, onNavigate, onLogout }: 
                                     </Item>
                                 )
                             )}
-                        {THEME_SERVER_ROUTES.filter(
-                            (route) => !route.requiresPluginsDirectory || pluginServer
-                        ).map((route) => (
+                        {THEME_SERVER_ROUTES.filter((route) => jarKinds.includes(route.jarKind)).map((route) => (
                             <Can key={route.path} action={route.permission} matchAny>
                                 <Item
                                     to={serverTo(route.path)}
-                                    icon={SERVER_ICONS[route.name] || faPuzzlePiece}
+                                    icon={route.jarKind === 'mods' ? faCubes : faPuzzlePiece}
                                     onClick={onNavigate}
                                 >
                                     {route.name}

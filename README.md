@@ -440,18 +440,49 @@ render, so they match the panel.
 
 Server-side rendering, permissions, API routes and the database are unaffected.
 
-## Plugins
+## Plugins and Mods
 
-A plugin installer at **Server -> Plugins**, for jar plugins. It searches the
-Modrinth catalog, installs straight into `plugins/`, lists what is installed and
-removes it. It is theme-only: **no new panel route, no new permission, no
-backend of ours.**
+A jar installer at **Server -> Plugins** (Bukkit-family) and **Server -> Mods**
+(mod-loader). Both are the same component, parameterised by flavour: install a jar
+into `plugins/` or `mods/`, list what is installed, remove it. Theme-only:
+**no new panel route, no new permission, no backend of ours.**
+
 | File | Action |
 | --- | --- |
-| `components/server/plugins/PluginsContainer.tsx` | create - the page |
-| `components/server/plugins/style.module.css` | create - page styling on the theme tokens |
-| `api/server/plugins.ts` | create - Modrinth catalog + the panel file calls |
-| `lib/serverExtras.ts` | create - the route definition, shared by router/sidebar/topbar |
+| `components/server/jars/JarsContainer.tsx` | create - the page, for both flavours |
+| `components/server/jars/style.module.css` | create - page styling on the theme tokens |
+| `api/server/jars.ts` | create - Modrinth catalog + the panel file calls, per flavour |
+| `lib/serverFamily.ts` | create - which flavours a server can take |
+| `lib/serverExtras.ts` | create - the two routes, shared by router/sidebar/topbar |
+
+**What each server gets.**
+
+| Server | Nav |
+| --- | --- |
+| Paper / Spigot / Purpur (`plugins/`) | Plugins |
+| Forge / Fabric / Quilt / NeoForge (`mods/`) | Mods |
+| Both directories present | both items |
+| Vanilla, Source Engine, TeamSpeak, Rust | neither |
+
+**How that is decided.** The panel does not expose the egg *name* to the client:
+`ServerController::index` never calls `parseIncludes()`, so `?include=egg` is
+silently ignored, and `egg_features` is identical across the Minecraft eggs
+(`["eula","java_version","pid_limit"]` on every one of them). `docker_image` is
+the shared java image.
+
+What *is* available is the egg's variables, and they are a reliable fingerprint:
+`EggVariableTransformer` **throws** on anything not `user_viewable`, so only the
+variables an admin chose to expose reach the browser. Their *names* differ per
+family even where every value is `latest` - `FORGE_VERSION` and `BUILD_TYPE` for
+Forge, `MINECRAFT_VERSION` and `BUILD_NUMBER` for Paper, `VANILLA_VERSION` for
+Vanilla, `SRCDS_APPID` for Source Engine, `TS_VERSION` for TeamSpeak.
+
+So detection is two steps: the variable names rule out families outright (a
+TeamSpeak or Rust server costs zero requests), and the filesystem settles the
+rest. A Fabric egg that reuses `MINECRAFT_VERSION` is indistinguishable from
+Paper by name alone, so the sidebar probes `plugins/` and `mods/` in parallel
+and lets the directories decide. Probing is what makes it robust to a hybrid
+server and to a custom egg.
 
 **How an install actually happens.** The panel already exposes
 `POST /api/client/servers/{uuid}/files/pull`, which hands a URL to the *daemon*.
@@ -460,17 +491,10 @@ no size limit - and the endpoint only requires `Permission::ACTION_FILE_CREATE`,
 which every user already has. Nothing is proxied through PHP.
 
 **Why Modrinth only.** `api.modrinth.com` sends `access-control-allow-origin: *`,
-so the browser can query it directly. Spigot and Hangar do not, and supporting
-them would mean the panel fetching arbitrary URLs on the user's behalf - an SSRF
-surface that would need allowlisting. Modrinth alone keeps this frontend-only.
-
-**Why the nav item is conditional.** The panel does not expose the egg name to
-the client: `ServerController::index` never calls `parseIncludes()`, so
-`?include=egg` is silently ignored, and both `egg_features` and `docker_image` are
-identical across every Minecraft egg (`["eula","java_version","pid_limit"]` on
-all of them). Probing for a `plugins/` directory is the only signal that actually
-distinguishes a Paper server from a Vanilla one, and it works on any panel
-version. The probe is one request per server and does not block the nav.
+so the browser can query it directly - ~17k Paper plugins and ~46k Fabric mods,
+both filtered by `project_type`. Spigot and Hangar do not send CORS, and
+supporting them would mean the panel fetching arbitrary URLs on the user's behalf
+- an SSRF surface that would need allowlisting.
 
 **Permissions.** `file.read` to open the page, `file.create` to install,
 `file.delete` to remove. A read-only subuser can see what is installed but sees
@@ -478,11 +502,10 @@ no install or remove controls.
 
 **Browse, search and paging.**
 
-- **Browse** opens on the most-downloaded Paper plugins rather than an empty
-  prompt. That is an *empty* Modrinth query with `sort=downloads` - the same
-  request the search box makes, minus the query. An empty query was previously
-  rejected here as noise, which is right for a search box and wrong for a default
-  listing.
+- **Browse** opens on the most-downloaded entries rather than an empty prompt.
+  That is an *empty* Modrinth query with `sort=downloads` - the same request the
+  search box makes, minus the query. An empty query was previously rejected here
+  as noise, which is right for a search box and wrong for a default listing.
 - **Search is live**, debounced 300 ms, so results update as you type instead of
   on submit. Out-of-order responses are dropped, which a per-keystroke search
   makes routine: a slow request for `ess` must not overwrite `essentials`.
@@ -490,12 +513,12 @@ no install or remove controls.
   `limit`/`offset`. The page resets on the keystroke rather than after the
   debounce, so changing the query never briefly shows page 3 of the new results.
 
-**Minecraft version matching.** The page reads `MINECRAFT_VERSION` from the
-server's egg variables - Paper exposes it with `user_viewable`, so it is already
-in the client payload and needs no daemon round trip. That version then does two
-things: it filters the catalog through Modrinth's `versions:` facet, and it
-restricts the version picker to builds whose own `game_versions` array contains
-it, defaulting to the newest compatible one. Install therefore picks a build that
+**Minecraft version matching.** The page reads the version from the server's egg
+variables - `MINECRAFT_VERSION` on Bukkit, `MC_VERSION` on Forge, both
+`user_viewable` and so already in the client payload with no daemon round trip.
+It then filters the catalog through Modrinth's `versions:` facet and restricts
+the version picker to builds whose own `game_versions` array contains it,
+defaulting to the newest compatible one. Install therefore picks a build that
 matches the server rather than the newest build overall.
 
 Two details worth knowing:
@@ -504,10 +527,10 @@ Two details worth knowing:
   build's `game_versions` array is the authority on what it supports, and
   trusting the server-side filter alone has been observed to return a build whose
   array does not contain the version asked for.
-- The egg default is the literal string `latest`, which is a sentinel rather than
-  a version. That is reported as **unknown** and no filter is applied, with the
+- The egg default is the literal string `latest`, a sentinel rather than a
+  version. That is reported as **unknown** and no filter is applied, with the
   reason shown and an input to set one by hand. Guessing would silently hide
-  compatible plugins, which is worse than showing all of them. A project with no
+  compatible add-ons, which is worse than showing all of them. A project with no
   build for the selected version says so and offers to show every version rather
   than presenting an empty picker.
 
@@ -516,15 +539,6 @@ warning before install, because installing it without them fails silently at
 server start. Modrinth versions can carry more than one file (signatures and
 metadata alongside the jar) and `file_type` is not populated consistently, so the
 installer selects on `primary` and re-checks the extension is `.jar`.
-
-> **If your panel is a Blueprint build**, it may already ship a `mcplugins`
-> extension with its own "Plugins Installer" at `/mcplugins`. On the panel this
-> was developed against, that extension's route table is never imported by
-> `@/routers/routes`, so it renders no nav item and no page even though its
-> backend endpoints are registered and working. This feature does not touch it.
-> If you later wire that extension up, you will have two plugin pages - the paths
-> differ (`/plugins` vs `/mcplugins`), so nothing breaks, but you may want to
-> remove one.
 
 ## Customising
 

@@ -25,22 +25,7 @@
         {
             "path": "resources/scripts/lib/serverExtras.ts",
             "action": "create",
-            "note": "The server routes the theme adds on top of the panel's routes.server table, in one place so the router, the sidebar and the topbar title cannot drift apart. Currently Plugins (file.read)"
-        },
-        {
-            "path": "resources/scripts/api/server/plugins.ts",
-            "action": "create",
-            "note": "Plugin installer API. Modrinth catalog (search + versions) called straight from the browser - api.modrinth.com sends access-control-allow-origin: *, and Spigot/Hangar do not, so supporting them would mean the panel proxying arbitrary URLs. Installs go through the panel's own POST files/pull, which hands the URL to the daemon, so the jar never passes through the browser and needs no new route or permission"
-        },
-        {
-            "path": "resources/scripts/components/server/plugins/PluginsContainer.tsx",
-            "action": "create",
-            "note": "Plugins page: installed list with remove, Modrinth search with a version picker, install, and a warning when a version declares required dependencies. Installing needs file.create, removing file.delete, opening the page file.read"
-        },
-        {
-            "path": "resources/scripts/components/server/plugins/style.module.css",
-            "action": "create",
-            "note": "Plugins page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces"
+            "note": "The server routes the theme adds on top of the panel routes.server table - Plugins and Mods - in one place so the router, the sidebar and the topbar title cannot drift apart. Each carries a jarKind that gates its nav item"
         },
         {
             "path": "resources/scripts/lib/brand.ts",
@@ -65,12 +50,12 @@
         {
             "path": "resources/scripts/components/AppShell.tsx",
             "action": "create",
-            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it. Resolves the topbar title for the theme's own server routes (lib/serverExtras) and passes serverUuid down so the sidebar can decide whether to offer Plugins"
+            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it. Resolves the topbar title for the theme own server routes (lib/serverExtras) and passes the server uuid and egg variables down so the sidebar can pick the jar nav items"
         },
         {
             "path": "resources/scripts/components/Sidebar.tsx",
             "action": "create",
-            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer. Renders the theme's extra server routes, showing Plugins only when the server actually has a plugins/ directory"
+            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer. Renders the theme jar routes, showing Plugins when the server has plugins/ and Mods when it has mods/ - a hybrid gets both"
         },
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
@@ -85,7 +70,7 @@
         {
             "path": "resources/scripts/routers/ServerRouter.tsx",
             "action": "replace",
-            "note": "Wraps server routes in AppShell and drops the legacy SubNavigation, and mounts the theme's own server routes (currently Plugins) after the panel's table so a stock route of the same path would win rather than be shadowed"
+            "note": "Wraps server routes in AppShell and drops the legacy SubNavigation, and mounts the theme own server routes (Plugins and Mods) after the panel table so a stock route of the same path would win rather than be shadowed"
         },
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",
@@ -142,13 +127,13 @@
             "action": "replace",
             "note": "Adds the shared footer: Powered by the panel's own site name via brandName(), plus a Design copyright brineajay credit line"
         },
-          {
-              "path": "resources/scripts/components/elements/Modal.tsx",
-              "action": "replace",
-              "note": "Dialog surface painted by the .pt-modal class instead of a twin.macro bg-neutral-800. A colour inside a twin.macro css prop is inlined at build time, and below Tailwind 3.1 this config bakes literal hex, which pinned every dialog to the default violet on the black/amber palettes. Same props, exports and portal as stock"
-          },
-          {
-              "path": "resources/scripts/components/elements/Spinner.tsx",
+        {
+            "path": "resources/scripts/components/elements/Modal.tsx",
+            "action": "replace",
+            "note": "Dialog surface painted by the .pt-modal class instead of a twin.macro bg-neutral-800. A colour inside a twin.macro css prop is inlined at build time, and below Tailwind 3.1 this config bakes literal hex, which pinned every dialog to the default violet on the black/amber palettes. Same props, exports and portal as stock"
+        },
+        {
+            "path": "resources/scripts/components/elements/Spinner.tsx",
             "action": "replace",
             "note": "Replaces the stock loading ring: caps every size at 22px (stock large was 64px with m-20 of dead margin) and re-asserts border-radius 50% with !important, which the theme's universal `* { border-radius: 0 !important; }` square-corner reset otherwise flattened into a box. Ring colour follows --pt-gold-500"
         },
@@ -261,6 +246,26 @@
             "path": "resources/views/layouts/admin.blade.php",
             "action": "replace",
             "note": "Stock admin layout + Site Settings and Registration menu items, favicon from the uploaded icon"
+        },
+        {
+            "path": "resources/scripts/api/server/jars.ts",
+            "action": "create",
+            "note": "Jar installer API, shared by both flavours. Modrinth catalog (search + versions) called straight from the browser - api.modrinth.com sends access-control-allow-origin: *, and Spigot/Hangar do not, so supporting them would mean the panel proxying arbitrary URLs. Installs go through the panel own POST files/pull, which hands the URL to the daemon, so the jar never passes through the browser and needs no new route or permission. JAR_KINDS holds the per-flavour directory, Modrinth project_type and loaders"
+        },
+        {
+            "path": "resources/scripts/lib/serverFamily.ts",
+            "action": "create",
+            "note": "Classifies a server from its egg variables. The egg name is not exposed to the client - ServerController::index never calls parseIncludes() and egg_features is identical across the Minecraft eggs - but EggVariableTransformer throws on anything not user_viewable, so the variable NAMES that reach the browser are a reliable family fingerprint. Also decides which jar flavours are worth probing"
+        },
+        {
+            "path": "resources/scripts/components/server/jars/JarsContainer.tsx",
+            "action": "create",
+            "note": "The Plugins and Mods page - one component, parameterised by JarKind, since installing a Bukkit plugin and a Forge mod are the same operation with a different directory, project type and loaders. Installed list with remove, Modrinth search with a version picker, install, live search, 20-per-page pager, and a warning when a version declares required dependencies. Installing needs file.create, removing file.delete, opening the page file.read"
+        },
+        {
+            "path": "resources/scripts/components/server/jars/style.module.css",
+            "action": "create",
+            "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces"
         }
     ],
     "build": {

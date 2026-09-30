@@ -16,11 +16,19 @@ import ConflictStateRenderer from '@/components/server/ConflictStateRenderer';
 import PermissionRoute from '@/components/elements/PermissionRoute';
 import routes from '@/routers/routes';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
-import PluginsContainer from '@/components/server/plugins/PluginsContainer';
+import JarsContainer from '@/components/server/jars/JarsContainer';
+import type { JarKind } from '@/api/server/jars';
 
-/** Components for the theme's own server routes, keyed by path segment. */
-const THEME_ROUTE_COMPONENTS: Record<string, React.ComponentType> = {
-    plugins: PluginsContainer,
+/**
+ * Components for the theme's own server routes, keyed by path segment.
+ *
+ * Both routes render the same component with a different `kind` - installing a
+ * Bukkit plugin and a Forge mod are the same operation with different
+ * directory, project type and loaders, so they share an implementation.
+ */
+const THEME_ROUTE_COMPONENTS: Record<string, React.ComponentType<{ kind: JarKind }>> = {
+    plugins: JarsContainer,
+    mods: JarsContainer,
 };
 
 export default () => {
@@ -35,6 +43,7 @@ export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
+    const variables = ServerContext.useStoreState((state) => state.server.data?.variables);
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
     const clearServerState = ServerContext.useStoreActions((actions) => actions.clearServerState);
 
@@ -67,7 +76,7 @@ export default () => {
 
     return (
         <React.Fragment key={'server-router'}>
-            <AppShell mode={'server'} serverName={name} serverId={serverId} serverUuid={uuid || undefined}>
+            <AppShell mode={'server'} serverName={name} serverId={serverId} serverUuid={uuid || undefined} serverVariables={variables}>
                 {!uuid || !id ? (
                     error ? (
                         <ServerError message={error} />
@@ -97,7 +106,7 @@ export default () => {
                                             * table (see lib/serverExtras) and are rendered after it,
                                             * so a stock route of the same path would win rather than
                                             * being shadowed by ours. */}
-                                        {THEME_SERVER_ROUTES.map(({ path, permission }) => {
+                                        {THEME_SERVER_ROUTES.map(({ path, permission, jarKind }) => {
                                             const Component = THEME_ROUTE_COMPONENTS[path];
                                             if (!Component) {
                                                 return null;
@@ -106,7 +115,7 @@ export default () => {
                                             return (
                                                 <PermissionRoute key={path} permission={permission} path={to(path)} exact>
                                                     <Spinner.Suspense>
-                                                        <Component />
+                                                        <Component kind={jarKind} />
                                                     </Spinner.Suspense>
                                                 </PermissionRoute>
                                             );

@@ -6,6 +6,7 @@ import routes from '@/routers/routes';
 import http from '@/api/http';
 import { backgroundStyle, brandName } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
+import type { ServerEggVariable } from '@/api/server/types';
 
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
@@ -17,6 +18,8 @@ export interface AppShellProps {
      * in dashboard mode, where there is no server context to read from.
      */
     serverUuid?: string;
+    /** The egg's user-visible variables, used to pick the jar nav items. */
+    serverVariables?: ServerEggVariable[];
     children?: React.ReactNode;
 }
 
@@ -28,7 +31,7 @@ const normalize = (value: string) => (value === '' || value === '/' ? '/' : valu
  */
 const basePath = (path: string) => normalize(path.replace(/\/:[^(]+(?:\([^)]*\))?/, ''));
 
-const AppShell = ({ mode, serverName, serverId, serverUuid, children }: AppShellProps) => {
+const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, children }: AppShellProps) => {
     const location = useLocation();
     const match = useRouteMatch<{ id: string }>();
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -91,6 +94,7 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, children }: AppShell
             mode={mode}
             serverId={serverId}
             serverUuid={serverUuid}
+            serverVariables={serverVariables}
             matchUrl={match?.url}
             onNavigate={onNavigate}
             onLogout={onLogout}

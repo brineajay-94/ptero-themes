@@ -452,6 +452,20 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   and shipped to the client as `--pt-bg-overlay-strength{,-auth}`, with the colour
   triplet pinned to `0 0 0`. Any colour row left over from an older install is
   cleared the next time that area is saved.
+
+  **With no photo set, no scrim is painted at all** - the stylesheet default for
+  both strengths is `0`. `backgroundStyle()` writes the real triplet and strength
+  inline whenever a slot actually has an image, so the default is only ever
+  reached in the no-photo case, where a 62%/78% black wash does nothing but crush
+  the palette into a flat near-black slab and hide the aurora. The intensity
+  slider is unaffected: it travels through the inline value, not the default.
+
+  What carries the page instead is `--pt-page-depth`, painted on `.pt-shell`
+  itself: a soft lift under the topbar so the chrome separates from the content,
+  plus a barely-there 4rem grid so large empty areas have some texture. It sits
+  *below* the photo layer (`.pt-shell::after`, z-index 0, over the container's
+  own background), so a configured photo covers it completely and nothing has to
+  test whether a photo exists.
 - **Palette picker** - Admin -> **Site Settings** -> **Theme** recolours the
   whole user panel. Three palettes ship, all dark:
 
@@ -475,6 +489,15 @@ Server-side rendering, permissions, API routes and the database are unaffected.
   - **Source order decides, not specificity.** `:root` and `[data-pt-theme='x']`
     are both (0,1,0), so the variant blocks must stay *below* `:root` in the
     stylesheet. Moving them above silently reverts every panel to the default.
+  - **A variant must re-point the whole ramp, not just the grey one.** The
+    sidebar, topbar, brand block, drawer and sidebar footer all paint from
+    `navy-800` / `navy-900`, not from `gray-*` - those two steps are the *surface*
+    end of the primary ramp. `black` originally overrode only `gray-*` and left
+    them, so its entire left-hand chrome stayed violet (`#231e40` / `#19152e`)
+    while the rest of the panel went black. The rule of thumb: `navy-500..700`
+    are the interactive steps (blue in every palette, on purpose, so links and
+    focus rings keep reading as interactive), and `navy-800/900` are surfaces and
+    **must** follow the palette.
   - **The scrim is black on every palette**, and `--pt-black` / `--pt-white` are
     left alone on all of them - those two are only consumed by the console, and
     a terminal stays dark whichever palette is active.

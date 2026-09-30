@@ -37,11 +37,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                     </p>
                     <p className={'pt-footer-credit'}>
                         Design copyright{' '}
-                        <a
-                            href={'https://github.com/brineajay-94/ptero-themes'}
-                            target={'_blank'}
-                            rel={'noopener noreferrer'}
-                        >
+                        <a href={'https://ajaykafle.com.np'} target={'_blank'} rel={'noopener noreferrer'}>
                             brineajay
                         </a>
                     </p>

@@ -12,7 +12,6 @@ import {
     faKey,
     faLock,
     faNetworkWired,
-    faServer,
     faSignOutAlt,
     faSlidersH,
     faTerminal,
@@ -30,7 +29,6 @@ import { brandName, logoUrl } from '@/lib/brand';
 
 export interface SidebarProps {
     mode: 'dashboard' | 'server';
-    serverName?: string;
     serverId?: number | string | null;
     matchUrl?: string;
     onNavigate?: () => void;
@@ -91,7 +89,7 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
     </>
 );
 
-export default ({ mode, serverName, serverId, matchUrl, onNavigate, onLogout }: SidebarProps) => {
+export default ({ mode, serverId, matchUrl, onNavigate, onLogout }: SidebarProps) => {
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
@@ -120,14 +118,10 @@ export default ({ mode, serverName, serverId, matchUrl, onNavigate, onLogout }: 
                         <Item to={'/'} icon={faThLarge} onClick={onNavigate}>
                             Dashboard
                         </Item>
-                        {serverName && (
-                            <div className={'pt-nav-item'} style={{ cursor: 'default' }}>
-                                <span className={'pt-nav-ico'}>
-                                    <FontAwesomeIcon icon={faServer} />
-                                </span>
-                                <span className={'flex-1 truncate font-semibold text-white'}>{serverName}</span>
-                            </div>
-                        )}
+                        {/* There used to be a non-clickable row here showing the current
+                            server's name. It was a third copy of the same fact - the topbar
+                            subtitle and the console hero both name the server already - and
+                            as a nav row it looked like a broken link. */}
                         {routes.server
                             .filter((route) => !!route.name)
                             .map((route) =>

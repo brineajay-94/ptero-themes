@@ -73,7 +73,6 @@ const AppShell = ({ mode, serverName, serverId, children }: AppShellProps) => {
     const sidebar = (onNavigate?: () => void) => (
         <Sidebar
             mode={mode}
-            serverName={serverName}
             serverId={serverId}
             matchUrl={match?.url}
             onNavigate={onNavigate}

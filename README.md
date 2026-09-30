@@ -19,7 +19,10 @@ What it changes on top of the stock panel:
   Windows high contrast (`forced-colors`) get opaque surfaces automatically.
 - **Shell** — Aternos-style fixed sidebar (brand block, permission-filtered
   server + account navigation, user footer), sticky topbar with a violet→blue
-  gradient hairline, and a sliding mobile drawer with a hamburger burger.
+  gradient hairline, and a sliding mobile drawer with a hamburger burger. On a
+  server page the sidebar lists the server's own pages only — the current
+  server's name is not repeated there, because the topbar subtitle and the
+  console hero both already name it and a third copy reads as a dead link.
 - **Dashboard** — branded hero header with section title, and
   server cards that carry a status chip, allocation chip and CPU/MEM/DISK
   stat blocks with colour bars.

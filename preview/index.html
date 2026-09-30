@@ -751,27 +751,48 @@
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Login</h2>
                             <div class="overflow-hidden border border-neutral-600">
                                 <div class="pt-auth-page" style="min-height: 32rem">
-                                    <div class="pt-auth"><div class="pt-auth-card">
-                                        <div class="pt-auth-top">
-                                            <span class="pt-auth-emblem">
-                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="Pterodactyl" width="44" height="44" />
-                                            </span>
-                                            <h1>Pterodactyl</h1>
-                                        </div>
-                                        <div class="pt-auth-body">
-                                            <h2>Welcome back</h2>
-                                            <p class="pt-auth-subtitle">Sign in with your Pterodactyl account to manage your servers.</p>
-                                            <label class="block text-neutral-700 text-sm mb-2">Username or Email</label>
-                                            <input class="text_input mb-4" value="john@example.com" />
-                                            <label class="block text-neutral-700 text-sm mb-2">Password</label>
-                                            <input class="text_input" type="password" value="hunter22" />
-                                            <button type="submit" class="pt-btn pt-btn-primary pt-btn-block mt-5">Sign in</button>
-                                            <p class="text-center text-sm mt-4 text-neutral-500">
-                                                <a href="#">Forgot password?</a>
-                                            </p>
-                                        </div>
-                                        <div class="pt-auth-footer">Don't have an account? <a href="#register">Register here</a></div>
-                                    </div>
+                                    <div class="pt-auth">
+                                        <section class="pt-auth-hero">
+                                            <div class="pt-auth-hero-copy">
+                                                <h2 class="pt-auth-hero-title">
+                                                    <span>Your world,</span>
+                                                    <span>always within reach</span>
+                                                </h2>
+                                                <p class="pt-auth-hero-sub">Build, customize and manage your server from one place</p>
+                                            </div>
+                                        </section>
+                                        <section class="pt-auth-panel">
+                                            <div class="pt-auth-lockup">
+                                                <span class="pt-auth-emblem">
+                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                                </span>
+                                                <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                            </div>
+                                            <div class="pt-auth-card">
+                                                <div class="pt-auth-head">
+                                                    <h1>Welcome back</h1>
+                                                    <p>Log in to manage your game server</p>
+                                                </div>
+                                                <div class="pt-auth-body">
+                                                    <label class="block text-neutral-300 text-sm mb-2">Username or Email</label>
+                                                    <input class="text_input mb-4" value="john@example.com" />
+                                                    <div class="pt-field-head">
+                                                        <label class="block text-neutral-300 text-sm" style="margin-bottom:0">Password</label>
+                                                        <span class="pt-field-head-action"><a href="#">Forgot password?</a></span>
+                                                    </div>
+                                                    <input class="text_input" type="password" value="hunter22" />
+                                                    <button type="submit" class="pt-btn pt-btn-primary pt-btn-block">Log in</button>
+                                                </div>
+                                                <div class="pt-auth-footer">New to the panel? <a href="#register">Create an account</a></div>
+                                            </div>
+                                            <div class="pt-subuser-hint">
+                                                <span class="pt-subuser-hint-icon">&#xf0c0;</span>
+                                                <span>
+                                                    <strong>Want to manage a friend&rsquo;s server?</strong>
+                                                    <span>Ask the owner to invite your email from their Subscribers page</span>
+                                                </span>
+                                            </div>
+                                        </section>
                                     </div>
                                 </div>
                             </div>
@@ -782,44 +803,58 @@
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Register</h2>
                             <div class="overflow-hidden border border-neutral-600">
                                 <div class="pt-auth-page" style="min-height: 40rem">
-                                    <div class="pt-auth"><div class="pt-auth-card">
-                                        <div class="pt-auth-top">
-                                            <span class="pt-auth-emblem">
-                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="Pterodactyl" width="44" height="44" />
-                                            </span>
-                                            <h1>Pterodactyl</h1>
-                                        </div>
-                                        <div class="pt-auth-body">
-                                            <h2>Create your account</h2>
-                                            <p class="pt-auth-subtitle">Join Pterodactyl to deploy and manage your servers.</p>
-                                            <label class="block text-neutral-700 text-sm mb-2">Email</label>
-                                            <input class="text_input mb-4" value="john@example.com" />
-                                            <div style="display:flex; gap:1rem;">
-                                                <div style="flex:1; min-width:0;">
-                                                    <label class="block text-neutral-700 text-sm mb-2">First name</label>
-                                                    <input class="text_input" value="John" />
+                                    <div class="pt-auth">
+                                        <section class="pt-auth-hero">
+                                            <div class="pt-auth-hero-copy">
+                                                <h2 class="pt-auth-hero-title">
+                                                    <span>Your world,</span>
+                                                    <span>always within reach</span>
+                                                </h2>
+                                                <p class="pt-auth-hero-sub">Build, customize and manage your server from one place</p>
+                                            </div>
+                                        </section>
+                                        <section class="pt-auth-panel">
+                                            <div class="pt-auth-lockup">
+                                                <span class="pt-auth-emblem">
+                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                                </span>
+                                                <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                            </div>
+                                            <div class="pt-auth-card">
+                                                <div class="pt-auth-head">
+                                                    <h1>Create your account</h1>
+                                                    <p>Join Pterodactyl to deploy and manage your servers.</p>
                                                 </div>
-                                                <div style="flex:1; min-width:0;">
-                                                    <label class="block text-neutral-700 text-sm mb-2">Last name</label>
-                                                    <input class="text_input" value="Doe" />
+                                                <div class="pt-auth-body">
+                                                    <label class="block text-neutral-300 text-sm mb-2">Email</label>
+                                                    <input class="text_input mb-4" value="john@example.com" />
+                                                    <div style="display:flex; gap:1rem;">
+                                                        <div style="flex:1; min-width:0;">
+                                                            <label class="block text-neutral-300 text-sm mb-2">First name</label>
+                                                            <input class="text_input" value="John" />
+                                                        </div>
+                                                        <div style="flex:1; min-width:0;">
+                                                            <label class="block text-neutral-300 text-sm mb-2">Last name</label>
+                                                            <input class="text_input" value="Doe" />
+                                                        </div>
+                                                    </div>
+                                                    <div style="margin-top:1rem;">
+                                                        <label class="block text-neutral-300 text-sm mb-2">Username</label>
+                                                        <input class="text_input" value="john" />
+                                                    </div>
+                                                    <div style="margin-top:1rem;">
+                                                        <label class="block text-neutral-300 text-sm mb-2">Password</label>
+                                                        <input class="text_input" type="password" value="hunter22" />
+                                                    </div>
+                                                    <div style="margin-top:1rem;">
+                                                        <label class="block text-neutral-300 text-sm mb-2">Confirm password</label>
+                                                        <input class="text_input" type="password" value="hunter22" />
+                                                    </div>
+                                                    <button type="submit" class="pt-btn pt-btn-primary pt-btn-block">Create account</button>
                                                 </div>
+                                                <div class="pt-auth-footer">Already have an account? <a href="#">Sign in</a></div>
                                             </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-neutral-700 text-sm mb-2">Username</label>
-                                                <input class="text_input" value="john" />
-                                            </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-neutral-700 text-sm mb-2">Password</label>
-                                                <input class="text_input" type="password" value="hunter22" />
-                                            </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-neutral-700 text-sm mb-2">Confirm password</label>
-                                                <input class="text_input" type="password" value="hunter22" />
-                                            </div>
-                                            <button type="submit" class="pt-btn pt-btn-primary pt-btn-block mt-5">Create account</button>
-                                        </div>
-                                        <div class="pt-auth-footer">Already have an account? <a href="#">Sign in</a></div>
-                                    </div>
+                                        </section>
                                     </div>
                                 </div>
                             </div>

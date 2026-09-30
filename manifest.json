@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.9.2",
+    "version": "1.10.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -11,6 +11,11 @@
             "path": "resources/scripts/components/elements/DropdownMenu.tsx",
             "action": "replace",
             "note": "Dropdown positioning and surface. The stock panel rendered `absolute` inside a plain wrapper and nudged it with `left = viewportX - width`, which is only correct when the wrapper sits at the viewport origin - inside a .file_row it was pushed off to the right, and the row clipped it, so the per-file actions never appeared. Now `position: fixed` with the vertical placement taken from the toggle rect and clamped to the viewport, repositioned on scroll/resize. Surface uses the theme tokens instead of bg-white. Same props, named export and triggerMenu ref API as stock"
+        },
+        {
+            "path": "resources/scripts/components/elements/Field.tsx",
+            "action": "replace",
+            "note": "Stock Field plus an optional labelAction rendered on the label row beside the label. The stock component puts the label on its own line with the input after it, so a \"Forgot password?\" link had to live in a separate block below the field; the reference puts it beside the label, which needs the label row to be a flex container and cannot be done from the stylesheet because the link is not a sibling of the label. Additive - with no labelAction the markup is byte-for-byte stock, so the other ~200 call sites in the panel are untouched"
         },
         {
             "path": "resources/scripts/components/server/files/FileDropdownMenu.tsx",
@@ -45,7 +50,7 @@
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, compact auth card, the round small loading ring, and a [data-pt-theme] block for the amber palette (flat: no gradients, no glow, no frosted blur, and rounded) - the default black palette is the :root block itself - shell/auth/dashboard/console/file-manager styles. Also owns focus rings for every theme control: outline:none on :focus so a tap does not leave the UA ring, and a gold ring on :focus-visible so keyboard focus is still visible. The neutral ramp is split at 500/600 - 50-500 are text steps and 600-900 are surface steps - because stock uses text-neutral-500 for muted text and bg-neutral-600 for row fills"
+            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, the round small loading ring, and a [data-pt-theme] block for the amber palette - the default black palette is the :root block itself. Owns focus rings for every theme control (none on :focus, a gold ring on :focus-visible). The neutral ramp is split at 500/600 - 50-500 text, 600-900 surface. The auth screens are a 50/50 split: .pt-auth-hero owns the admin auth image with a two-stop vertical scrim so the marketing line at its foot stays legible, .pt-auth-panel owns the vertical rule and the centring. The responsive overrides are declared after every base rule on purpose - a media query adds no specificity, so declaring one first lets the base rule overwrite it"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -90,12 +95,12 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "Login card: centred container, logo chip header, title/subtitle slot, the quick-link buttons above the card, and the conditional Register link footer"
+            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image and the two-tone marketing line, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. Carries the hero copy as fixed constants - it is the theme marketing line, not a panel setting - while the site name comes from brandName() on the lockup"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Login form + success flash after registration (?registered=1). The \"Forgot password?\" link steps neutral-400 to neutral-300 on hover, not 500 to 600 - 600 is a surface step in this theme, so a 600 hover would darken the text as the pointer arrived"
+            "note": "Login form + success flash after registration (?registered=1). Copy matches the reference (\"Welcome back\" / \"Log in to manage your game server\", \"Log in\"), except the field stays \"Username or Email\" because the endpoint accepts either. The \"Forgot password?\" link moved onto the Password label row via Field labelAction, and the subuser hint is enabled here"
         },
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",

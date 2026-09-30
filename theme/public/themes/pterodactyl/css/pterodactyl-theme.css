@@ -536,8 +536,7 @@
  * `background-position: center / background-size: cover` so any aspect ratio
  * fills the viewport; the attachment is fixed so the photo does not scroll
  * away under the content. */
-.pt-shell::after,
-.pt-auth-page::after {
+.pt-shell::after {
     content: '';
     position: fixed;
     inset: 0;
@@ -554,16 +553,12 @@
     background-attachment: fixed;
 }
 
-/* The auth screens get their own overlay pair, because the admin can tune each
- * area separately - the login card's text is the smallest on the panel and
- * usually wants more scrim than the dashboard. */
-.pt-auth-page::after {
-    background-image: linear-gradient(
-            rgb(var(--pt-bg-overlay-rgb-auth) / var(--pt-bg-overlay-strength-auth)),
-            rgb(var(--pt-bg-overlay-rgb-auth) / var(--pt-bg-overlay-strength-auth))
-        ),
-        var(--pt-bg-auth-image, none);
-}
+/* The auth screens used to carry their own ::after for the admin's "Login &
+   register" image, tunable with a separate scrim because the login text is the
+   smallest on the panel. That layer is gone: the image now belongs to the hero
+   half of the split, not to the whole page, and a full-bleed photo on a split
+   screen puts artwork behind the form. The scrim variables are still the ones
+   Site Settings writes - they are just consumed by .pt-auth-hero now. */
 
 /* Fixed aurora field behind every screen. Frosted surfaces need something to
  * refract, and a flat page colour makes backdrop-filter invisible - these wide,
@@ -573,8 +568,7 @@
  *
  * Sits above the image layer (z-index 1 vs 0) so the brand colour survives
  * whatever photo is underneath it. */
-.pt-shell::before,
-.pt-auth-page::before {
+.pt-shell::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -582,6 +576,13 @@
     pointer-events: none;
     background-image: var(--pt-aurora);
 }
+
+/* The auth page is a split, so the aurora is scoped to the hero half rather than
+   the page. The panel side is meant to read as a flat near-black field behind a
+   card - a field of blooms behind it just muddies the form, and the card is not
+   frosted so there is nothing to refract anyway. It is baked into the hero's own
+   background stack rather than kept as a ::before, so the hero needs no extra
+   positioned layer. */
 
 .pt-shell {
     position: relative;
@@ -1147,122 +1148,278 @@
  * through LoginFormContainer; brand and emblem come from lib/brand.ts.
  */
 
+/* The auth page is a 50/50 split: hero on the left, form panel on the right.
+   It is a flex ROW and nothing is centred on the page any more - the panel does
+   its own centring, so the two halves stay independent and the rule between
+   them is just a border on the panel. */
 .pt-auth-page {
     position: relative;
     display: flex;
+    min-height: 100vh;
+    background-color: rgb(var(--pt-gray-900));
+}
+
+/* ------------------------------------------------------------------- hero --
+ * The left half. The admin's "Login & register" image is this element's own
+ * background rather than a fixed ::after on the page, because it now belongs to
+ * this half only - a full-bleed photo across a split screen puts artwork behind
+ * the form, which is exactly what the split is there to avoid.
+ *
+ * The scrim is a two-stop vertical gradient rather than the dashboard's flat
+ * fill: the marketing line sits at the BOTTOM of this half, so the bottom needs
+ * to be dark for the text while the top stays open for the artwork. */
+.pt-auth-hero {
+    position: relative;
+    display: flex;
+    flex: 1 1 50%;
+    align-items: flex-end;
+    overflow: hidden;
+    background-color: rgb(var(--pt-gray-800));
+    background-image: var(--pt-aurora),
+        linear-gradient(
+            to top,
+            rgb(var(--pt-bg-overlay-rgb-auth, 0 0 0) / var(--pt-bg-overlay-strength-auth, 0.78)),
+            rgb(var(--pt-bg-overlay-rgb-auth, 0 0 0) / calc(var(--pt-bg-overlay-strength-auth, 0.78) * 0.35)) 55%,
+            transparent 100%
+        ),
+        var(--pt-bg-auth-image, none);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* Below the split threshold there is no room for two halves, and the hero would
+   push the form below the fold on a phone. It collapses away entirely and the
+   panel takes the full width - the card already carries a title, so the
+   marketing line is not the only label on the screen.
+   The rules themselves are further down, after the base .pt-auth-panel block:
+   a media query adds no specificity, so declaring it here would let the base
+   rule below simply overwrite it. */
+
+.pt-auth-hero-copy {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 34rem;
+    padding: 3rem 3.25rem;
+}
+
+.pt-auth-hero-title {
+    margin: 0 0 0.85rem;
+    font-family: var(--pt-font-heading);
+    /* Capped so "always within reach" stays on ONE line at every desktop width.
+       At 3.5rem it needed ~570px and the 34rem copy column is 544px, so the
+       second line wrapped and the hero read as three lines instead of the two in
+       the reference. 2.75rem fits it with room to spare. */
+    font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: rgb(var(--pt-gray-50));
+}
+
+.pt-auth-hero-title span {
+    display: block;
+}
+
+/* The first line takes the accent so the two-tone line in the reference reads,
+   and so the accent appears above the fold on a panel with no photo at all. */
+.pt-auth-hero-title span:first-child {
+    color: rgb(var(--pt-gold-400));
+}
+
+.pt-auth-hero-sub {
+    margin: 0;
+    max-width: 30rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: rgb(var(--pt-gray-300));
+}
+
+/* ----------------------------------------------------------------- panel --
+ * The right half. Owns the vertical rule, the centring and the page's padding,
+ * so the hero can bleed to the viewport edge untouched. */
+.pt-auth-panel {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 1 1 50%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 2rem 1rem;
+    gap: 1.1rem;
+    min-width: 0;
+    padding: 2.5rem 2rem;
+    border-left: 1px solid rgb(var(--pt-gray-600) / 0.8);
     background-color: rgb(var(--pt-gray-800));
-    background-image: radial-gradient(900px 480px at 50% -12%, rgb(var(--pt-violet-500) / 0.18), transparent 65%),
-        radial-gradient(700px 420px at 88% 108%, rgb(var(--pt-gold-500) / 0.06), transparent 60%);
 }
 
-/* Width AND auto margins, in addition to the flex centring above - the card
-   stays dead-centre on every desktop no matter how the flexbox resolves. Lifted
-   above the image (z-index 0) and the aurora (1). */
-/* The auth card was 420px wide with 2.25rem of top padding, which made a short
- * form - "email, password, one button" - look like a settings panel. 360px with
- * tighter padding is enough for the longest label on the register form while
- * reading as a login box. */
-.pt-auth {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 360px;
-    margin: 0 auto;
-}
-
-.pt-auth-card {
-    width: 100%;
-    max-width: 360px;
-    border-radius: 0;
-    background-color: rgb(var(--pt-gray-700));
-    border: 1px solid rgb(var(--pt-gray-600) / 0.55);
-    box-shadow: 0 32px 64px -24px rgb(0 0 0 / 0.65), 0 2px 10px rgb(0 0 0 / 0.35);
-    overflow: hidden;
-}
-
-.pt-auth-top {
-    padding: 1.5rem 1.5rem 0;
-    text-align: center;
+/* Brand lockup: the mark and the site name on one line, above the card. This
+   replaces the old white chip centred over the card - a white box read as a
+   sticker on a black screen, and it forced the logo to be light-on-dark. The
+   backing is now a dim surface so a dark uploaded icon still separates from the
+   panel while a light one still reads. */
+.pt-auth-lockup {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.35rem;
 }
 
 .pt-auth-emblem {
-    display: block;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin: 0 auto 0.7rem;
-    padding: 3px;
-    border-radius: 0;
-    background-color: #ffffff;
-    box-shadow: 0 12px 26px -12px rgb(0 0 0 / 0.7);
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 4px;
+    border: 1px solid var(--pt-glass-border);
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.8);
 }
 
 .pt-auth-emblem img {
     display: block;
     width: 100%;
     height: 100%;
+    object-fit: contain;
 }
 
-.pt-auth-top h1 {
+.pt-auth-lockup-name {
     font-family: var(--pt-font-heading);
-    font-size: 0.78rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-gray-300));
-    margin-bottom: 0;
-}
-
-.pt-auth-top p {
-    font-size: 0.8rem;
-    opacity: 0.9;
-}
-
-.pt-auth-body {
-    padding: 1.15rem 1.5rem 1.4rem;
-    color: rgb(var(--pt-gray-200));
-}
-
-.pt-auth-body h2 {
-    font-family: var(--pt-font-heading);
-    font-size: 1.4rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
     color: rgb(var(--pt-gray-50));
 }
 
-.pt-auth-subtitle {
-    margin-bottom: 1.4rem;
+/* The card. Rounded and bordered rather than square, because on this screen the
+   card is the only object with an edge and the reference treatment reads as a
+   panel, not a slab. */
+.pt-auth-card {
+    width: 100%;
+    max-width: min(28rem, 100%);
+    border: 1px solid rgb(var(--pt-gray-600) / 0.9);
+    border-radius: var(--pt-glass-radius-lg);
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: 0 32px 64px -28px rgb(0 0 0 / 0.75), 0 2px 10px rgb(0 0 0 / 0.4);
+    overflow: hidden;
+}
+
+/* Header band, a shade lighter than the body with a hairline between them, so
+   the title/subtitle pair reads as its own block. */
+.pt-auth-head {
+    padding: 1.35rem 1.6rem 1.2rem;
+    border-bottom: 1px solid rgb(var(--pt-gray-600) / 0.7);
+    background-color: rgb(var(--pt-gray-600) / 0.35);
+}
+
+.pt-auth-head h1 {
+    margin: 0 0 0.2rem;
+    font-family: var(--pt-font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: rgb(var(--pt-gray-50));
+}
+
+.pt-auth-head p {
+    margin: 0;
     font-size: 0.85rem;
     line-height: 1.5;
+    color: rgb(var(--pt-gray-300));
+}
+
+/* The "manage a friend's server" nudge under the card. */
+.pt-subuser-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: min(28rem, 100%);
     color: rgb(var(--pt-gray-400));
 }
 
+.pt-subuser-hint-icon {
+    flex: none;
+    margin-top: 0.1rem;
+    font-size: 1.05rem;
+    color: rgb(var(--pt-gray-500));
+}
+
+.pt-subuser-hint strong {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgb(var(--pt-gray-100));
+}
+
+.pt-subuser-hint span span {
+    display: block;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+/* The split container itself. A flex row so the two halves are siblings and can
+   be sized independently; the panel's `flex: 1 1 50%` does the work, and this
+   only has to not constrain it.
+
+   `min-width: 0` is load-bearing. A flex item defaults to `min-width: auto`,
+   which refuses to shrink below its content's min-content width - and the card's
+   max-width plus the panel's padding is wider than a phone, so without this the
+   whole page overflowed sideways on mobile instead of the card shrinking. */
+.pt-auth {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+}
+
+.pt-auth-body {
+    padding: 1.35rem 1.6rem 1.5rem;
+    color: rgb(var(--pt-gray-200));
+}
+
 /* Field labels: twin.macro inlines colours inside styled-components, so the
-   Label element carries no utility class to target - style it on the element. */
+   Label element carries no utility class to target - style it on the element.
+   The reference puts "Password" and "Forgot password?" on ONE line, which the
+   stock Field component cannot do (it renders label then input as siblings), so
+   the row is built with a negative top margin pulling the link up beside the
+   label rather than by restructuring the component. */
 .pt-auth label {
     display: block;
-    margin-bottom: 0.4rem;
-    color: rgb(var(--pt-gray-300));
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    margin-bottom: 0.45rem;
+    color: rgb(var(--pt-gray-200));
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0;
     text-transform: none;
 }
 
+/* Rounded, and a shade lighter than the card so the field is a distinct object
+   rather than a hole in it. */
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    border-radius: 0;
-    border: 1px solid rgb(var(--pt-gray-600) / 0.7);
-    background-color: rgb(var(--pt-gray-900) / 0.85);
-    color: rgb(var(--pt-gray-100));
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: var(--pt-glass-radius-sm);
+    border: 1px solid rgb(var(--pt-gray-600));
+    background-color: rgb(var(--pt-gray-600) / 0.5);
+    color: rgb(var(--pt-gray-50));
+    font-size: 0.9rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.pt-auth textarea {
+    min-height: 5rem;
+    resize: vertical;
 }
 
 .pt-auth input::placeholder,
@@ -1270,60 +1427,161 @@
     color: rgb(var(--pt-gray-500));
 }
 
+/* Focus is the gold border plus a soft ring, which is what the reference shows
+   on the focused email field. */
 .pt-auth input:not([type='checkbox']):not([type='radio']):focus,
 .pt-auth textarea:focus,
 .pt-auth select:focus {
-    border-color: rgb(var(--pt-navy-300));
-    box-shadow: 0 0 0 3px rgb(var(--pt-navy-300) / 0.25);
+    outline: none;
+    border-color: rgb(var(--pt-gold-400));
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: 0 0 0 3px rgb(var(--pt-gold-400) / 0.22);
 }
 
+/* The password field carries a reveal toggle inside it, so the right padding has
+   to leave room for the button the component renders. */
+.pt-auth input[type='password'],
+.pt-auth input[data-has-toggle] {
+    padding-right: 2.6rem;
+}
+
+/* The label row, used only when a Field is given a `labelAction` (the "Forgot
+   password?" link beside "Password"). Scoped to .pt-auth so the ~200 Field call
+   sites elsewhere in the panel keep the stock single-column label. */
+.pt-auth .pt-field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+}
+
+.pt-auth .pt-field-head label {
+    margin-bottom: 0;
+}
+
+.pt-auth .pt-field-head-action {
+    flex: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pt-auth .pt-field-head-action a {
+    color: rgb(var(--pt-gold-400));
+    text-decoration: none;
+}
+
+.pt-auth .pt-field-head-action a:hover {
+    color: rgb(var(--pt-gold-300));
+    text-decoration: underline;
+}
+
+/* Full-width gold call to action, rounded rather than square - the one element on
+   the screen that is allowed to be loud. */
 .pt-auth button[type='submit'] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     min-height: 2.75rem;
-    margin-top: 0.35rem;
-    border-radius: 0;
+    margin-top: 1.1rem;
+    padding: 0.6rem 1.25rem;
+    border: 0;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-gold-500));
+    color: rgb(var(--pt-gray-900));
+    font-size: 0.9rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    box-shadow: 0 10px 22px -12px rgb(0 0 0 / 0.7);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    box-shadow: 0 10px 22px -14px rgb(0 0 0 / 0.8);
     transition: filter 0.15s ease, transform 0.1s ease;
 }
 
-.pt-auth button[type='submit']:hover {
+/* The stock Button sets its own background through a twin.macro class baked at
+   build time, which wins on specificity over the rule above, so the gold has to
+   be asserted here rather than left to the cascade. */
+.pt-auth button[type='submit']:not(:disabled) {
+    background-color: rgb(var(--pt-gold-500));
+    color: rgb(var(--pt-gray-900));
+}
+
+.pt-auth button[type='submit']:hover:not(:disabled) {
     filter: brightness(1.08);
 }
 
-.pt-auth button[type='submit']:active {
+.pt-auth button[type='submit']:active:not(:disabled) {
     transform: translateY(1px);
 }
 
+.pt-auth button[type='submit']:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .pt-auth a {
-    color: rgb(var(--pt-navy-300));
+    color: rgb(var(--pt-gold-400));
     font-weight: 600;
     text-decoration: none;
 }
 
 .pt-auth a:hover {
-    color: rgb(var(--pt-navy-300));
+    color: rgb(var(--pt-gold-300));
     text-decoration: underline;
 }
 
 .pt-auth-footer {
-    padding: 0.7rem 1.25rem;
-    border-top: 1px solid rgb(var(--pt-gray-600) / 0.5);
-    background-color: rgb(var(--pt-gray-900) / 0.45);
+    padding: 0.9rem 1.6rem;
+    border-top: 1px solid rgb(var(--pt-gray-600) / 0.7);
+    background-color: rgb(var(--pt-gray-800) / 0.5);
     text-align: center;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     color: rgb(var(--pt-gray-400));
 }
 
+.pt-auth-footer a {
+    font-weight: 700;
+}
+
+/* ------------------------------------------------------------- responsive --
+ * Deliberately after every base rule above. A media query carries no
+ * specificity of its own, so a responsive override declared before the rule it
+ * is meant to override is simply ignored - which is what happened here: the
+ * panel kept `flex: 1 1 50%` and its desktop padding on a phone. */
+@media (max-width: 1023px) {
+    .pt-auth-hero {
+        display: none;
+    }
+
+    .pt-auth-panel {
+        flex: 1 1 100%;
+        border-left: 0;
+        padding: 2rem 1.25rem;
+    }
+
+    /* The lockup and card no longer share a row with anything, so they can sit
+       closer together and the screen loses less height to gaps. */
+    .pt-auth-panel {
+        gap: 0.9rem;
+    }
+}
+
+/* Very short viewports (a laptop with the browser chrome open) cannot fit the
+   lockup, the card and the hint at 100vh. Let the page scroll instead of
+   squeezing the card. */
+@media (min-width: 1024px) and (max-height: 760px) {
+    .pt-auth-panel {
+        justify-content: flex-start;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+}
+
 /* ------------------------------------------------- auth quick links + crumbs -- */
-/* The breadcrumb is page chrome, not part of the centred auth column: it is
- * pinned to the viewport's top-left corner. .pt-auth-page is `position: relative`
- * and fills the screen, so absolute positioning here anchors to the page rather
- * than to the 360px column, and the card stays exactly where it was. */
+/* The breadcrumb is page chrome, not part of the form panel: it is pinned to the
+ * viewport's top-left corner, over the hero half. .pt-auth-page is
+ * `position: relative` and fills the screen, so absolute positioning here
+ * anchors to the page rather than to the panel, and the split stays intact. */
 .pt-crumbs {
     position: absolute;
     top: 1rem;
@@ -1933,7 +2191,19 @@
 .pt-burger,
 .pt-logout-btn,
 .pt-drawer-close,
-.pt-avatar-btn {
+.pt-avatar-btn,
+.pt-auth-emblem,
+.pt-auth button[type='submit'] {
+    border-radius: var(--pt-glass-radius-sm) !important;
+}
+
+/* The auth form controls are the panel's own Input/Field components, which the
+   `*` reset would flatten, so they are opted in here rather than in the amber
+   block - the reference rounds its fields on BOTH palettes, so this is not an
+   amber-only treatment. */
+.pt-auth input:not([type='checkbox']):not([type='radio']),
+.pt-auth textarea,
+.pt-auth select {
     border-radius: var(--pt-glass-radius-sm) !important;
 }
 
@@ -2460,9 +2730,10 @@
     border-radius: 8px !important;
 }
 
-[data-pt-theme='amber'] .pt-auth button[type='submit'] {
-    border-radius: 999px !important;
-}
+/* The auth submit button is a rounded rect on BOTH palettes now, not a pill on
+   amber only. The split-screen login replaced the old single card, and the
+   reference button is a rounded rect - a 999px pill on a 44px-tall button reads
+   as a toggle, not a call to action. */
 
 /* --------------------------------------------------------- accessibility -- */
 /* Users who ask for less transparency get opaque surfaces. The blur is the

@@ -413,13 +413,14 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace |
-| `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace |
+| `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the split-screen shell (see *Auth layout* below) |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
 | `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
 | `components/elements/DropdownMenu.tsx` | replace - viewport-clamped `position: fixed` panel (see *File actions menu* below) |
+| `components/elements/Field.tsx` | replace - adds an optional `labelAction` on the label row |
 | `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
 | `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,FileDropdownMenu,MassActionsBar,style.module.css}` | replace |
 
@@ -841,9 +842,50 @@ relation will see the wrong thing.
     are gone from the call sites.
   - The ring colour follows `--pt-gold-500`, the same accent as the rest of the
     theme, rather than the stock white. `isBlue` still works.
-- **File actions menu** - the theme ships its own
-  `components/elements/DropdownMenu.tsx` because the three-dot button on a file
-  row did nothing at all, for two reasons that compounded:
+- **Auth layout (split screen)** - every auth screen (login, register, forgot,
+  reset, 2FA) is a 50/50 split, matching the design the theme was built to.
+  `LoginFormContainer` is the shared shell:
+  - `.pt-auth-hero` (left) carries the admin's **Login & register** background
+    image. That layer used to be a `position: fixed` `::after` on the whole page;
+    it now belongs to the hero half only, because a full-bleed photo across a
+    split screen puts artwork behind the form. The scrim is a two-stop vertical
+    gradient rather than a flat fill, because the marketing line sits at the
+    **foot** of the hero - the bottom has to be dark for the text while the top
+    stays open for the artwork. Upload your illustration through
+    **Site Settings → Login & register background**; it is positioned and scaled
+    to fill the hero.
+  - `.pt-auth-panel` (right) owns the vertical rule, the centring and the page
+    padding, so the hero can bleed to the viewport edge untouched. The brand
+    lockup (mark + site name) sits above the card. The mark's backing is a dim
+    surface rather than the old white chip - a white box read as a sticker on a
+    black screen, and it forced light-on-dark - but a backing is kept at all so
+    a dark uploaded icon still separates from the panel.
+  - The card carries a header band (a shade lighter, hairline under it) with the
+    title and subtitle, then the body, then the footer. Register / Forgot /
+    Reset / Checkpoint pass their own title and subtitle, so every screen gets
+    the layout without extra work.
+  - The gold full-width submit, the rounded fields and the gold focus ring are
+    on **both** palettes. The amber-only `999px` pill override was removed: a pill
+    on a 44px button reads as a toggle, not a call to action.
+  - `components/elements/Field.tsx` gains an optional `labelAction` so
+    "Forgot password?" can sit on the **Password label row** rather than in a
+    block below the field. The stock component puts the label on its own line
+    with the input after it, so this cannot be done from the stylesheet - the
+    link is not a sibling of the label. It is additive: with no `labelAction`
+    the markup is byte-for-byte stock, so the other ~200 `Field` call sites in
+    the panel are untouched.
+  - Below 1024px the hero collapses away entirely and the panel takes the full
+    width. `.pt-auth` needs `min-width: 0` for this: a flex item defaults to
+    `min-width: auto` and refuses to shrink below its content, so without it the
+    card's max-width plus the panel padding pushed the page sideways on a phone.
+    The responsive overrides are declared **after** every base rule on purpose -
+    a media query adds no specificity, so one declared first is simply
+    overwritten by the base rule below it.
+  - reCAPTCHA stays disabled (see *reCAPTCHA* below), so no widget renders. The
+    field label stays **Username or Email** rather than the reference's "Email
+    address", because the login endpoint accepts either and a narrower label
+    would be wrong for anyone signing in with their username.
+- **File actions menu** - the theme ships its own `components/elements/DropdownMenu.tsx` because the three-dot button on a file row did nothing at all, for two reasons that compounded:
   - The stock panel rendered the panel `position: absolute` inside a plain
     wrapper and nudged it with `left = viewportX - width`. That arithmetic is
     only correct when the wrapper happens to sit at the viewport origin; inside

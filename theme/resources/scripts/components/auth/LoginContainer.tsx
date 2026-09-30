@@ -10,7 +10,6 @@ import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
-import { brandName } from '@/lib/brand';
 
 interface Values {
     username: string;
@@ -89,17 +88,27 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
                     title={'Welcome back'}
-                    subtitle={`Sign in with your ${brandName()} account to manage your servers.`}
+                    subtitle={'Log in to manage your game server'}
+                    showSubuserHint
                 >
+                    {/* Deliberately "Username or Email", not the reference's
+                        "Email address": the panel's login endpoint accepts
+                        either, and a narrower label would be wrong for anyone
+                        signing in with their username. */}
                     <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
-                    <div css={tw`mt-6`}>
-                        <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
+                    <div css={tw`mt-5`}>
+                        <Field
+                            light
+                            type={'password'}
+                            label={'Password'}
+                            name={'password'}
+                            disabled={isSubmitting}
+                            labelAction={<Link to={'/auth/password'}>Forgot password?</Link>}
+                        />
                     </div>
-                    <div css={tw`mt-6`}>
-                        <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
-                            Sign in
-                        </Button>
-                    </div>
+                    <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
+                        Log in
+                    </Button>
                     {recaptchaEnabled && (
                         <Reaptcha
                             ref={ref}
@@ -115,14 +124,6 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             }}
                         />
                     )}
-                    <div css={tw`mt-6 text-center`}>
-                        <Link
-                            to={'/auth/password'}
-                            css={tw`text-xs text-neutral-400 tracking-wide no-underline uppercase hover:text-neutral-300`}
-                        >
-                            Forgot password?
-                        </Link>
-                    </div>
                 </LoginFormContainer>
             )}
         </Formik>

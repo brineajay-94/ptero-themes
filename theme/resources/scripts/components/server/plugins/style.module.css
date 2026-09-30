@@ -107,7 +107,13 @@
 
 /* --------------------------------------------------------------- results -- */
 
-.grid {
+/* Not `.grid`: a rule named after a utility it applies is a circular dependency
+ * to Tailwind, and it fails the PostCSS build with
+ *   "You cannot `@apply` the `grid` utility here because it creates a circular
+ *    dependency"
+ * tsc never sees it, because the panel transpiles with babel rather than tsc -
+ * only `yarn build:production` catches it. */
+.results {
     @apply grid gap-3;
     grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
 }

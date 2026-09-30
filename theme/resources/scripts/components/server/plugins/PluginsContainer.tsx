@@ -401,7 +401,7 @@ export default () => {
                                             {results.total === 1 ? 'result' : 'results'}
                                         </span>
                                     </div>
-                                    <div className={style.grid}>{results.hits.map(renderProject)}</div>
+                                    <div className={style.results}>{results.hits.map(renderProject)}</div>
                                 </>
                             )}
                         </>

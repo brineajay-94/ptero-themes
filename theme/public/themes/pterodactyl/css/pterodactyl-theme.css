@@ -836,6 +836,44 @@
     }
 }
 
+/* Phone: the quick links move out of the centre and into the right corner.
+ *
+ * The three-column grid is what centres them on desktop - column 3 is an empty
+ * balancing cell (`.pt-topbar-tail`, aria-hidden) whose only job is to make
+ * column 2 sit at 50%. That trick costs a lot on a phone: the title is what
+ * identifies the page, and reserving an empty column beside it pushes the title
+ * left of centre while the icons float in the middle with dead space to their
+ * right. Two columns instead - title takes `1fr`, links take `auto` - puts the
+ * icons flush right, which is the conventional mobile header shape.
+ *
+ * `minmax(0, 1fr)` rather than a bare `1fr` for the first column, and that is
+ * not stylistic. A `1fr` track is really `minmax(auto, 1fr)`, whose `auto`
+ * minimum is the content's min-content size - and the title is `white-space:
+ * nowrap`. The column therefore refuses to shrink, the row overflows the
+ * viewport and the links are pushed off the right edge entirely. `minmax(0, 1fr)`
+ * lets the track collapse so the title's own `text-overflow: ellipsis` can do
+ * its job.
+ *
+ * `display: none` on the tail is load-bearing rather than cosmetic. It is the
+ * third grid item, so leaving it in a two-column grid wraps it onto an implicit
+ * second row and silently doubles the topbar's height.
+ *
+ * Above 640px nothing changes: the grid stays 1fr auto 1fr and the cluster
+ * stays centred. */
+@media (max-width: 640px) {
+    .pt-topbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .pt-topbar-tail {
+        display: none;
+    }
+
+    .pt-topbar-links {
+        justify-content: flex-end;
+    }
+}
+
 .pt-topbar-title {
     flex: 1 1 auto;
     min-width: 0;

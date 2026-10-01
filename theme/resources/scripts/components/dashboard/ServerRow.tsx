@@ -4,13 +4,27 @@ import { faServer, faStop, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServerResourceUsage, { ServerPowerState } from '@/api/server/getServerResourceUsage';
-import sendPowerAction from '@/api/server/sendPowerAction';
+import http from '@/api/http';
 
 /** What the card shows about power, which is not the same as the API's states. */
 type CardPower = 'running' | 'stopped' | 'busy' | 'offline';
 
 const busy = (server: Server) =>
     server.status === 'installing' || server.status === 'restoring_backup' || !!server.isTransferring;
+
+/**
+ * Start or stop a server.
+ *
+ * Deliberately the shared `http` client rather than a per-server API module. The
+ * panel's own `api/server/sendPowerAction` is not present on every version in
+ * this theme's supported range, and importing it made the production build fail
+ * outright with "Module not found" - a hard error at build time, not a runtime
+ * one. `http` is imported by AppShell and ServerRouter already, so it resolves
+ * wherever the theme works at all, and the client power endpoint
+ * (`POST /api/client/servers/{uuid}/power` with a `signal`) is the most stable
+ * part of the client API.
+ */
+const sendPower = (uuid: string, signal: 'start' | 'stop') => http.post(`/api/client/servers/${uuid}/power`, { signal });
 
 /**
  * One server, as a card in the reference's two-column grid.
@@ -76,7 +90,7 @@ const ServerRow = ({ server, className }: { server: Server; className?: string }
             setPending(true);
             setPower(next);
 
-            sendPowerAction(server.uuid, next === 'running' ? 'start' : 'stop')
+            sendPower(server.uuid, next === 'running' ? 'start' : 'stop')
                 .then(() => getServerResourceUsage(server.uuid).then((data) => setPower(data.status === 'running' ? 'running' : 'stopped')))
                 .catch((error) => {
                     console.error(error);

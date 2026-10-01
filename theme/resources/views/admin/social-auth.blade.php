@@ -21,16 +21,33 @@
                     @csrf
                     <div class="box-body">
 
-                        <div class="callout callout-warning">
-                            <h4>You need an application with each provider first</h4>
-                            <p style="margin-bottom: 8px;">
-                                These are OAuth2 <em>client</em> credentials for an application you own. Create one at
-                                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>
-                                or the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>,
-                                then paste the id and secret below and register the callback URL shown for that provider.
-                                A callback URL that does not match exactly is the most common reason a provider refuses a sign-in.
-                            </p>
-                        </div>
+                        @php
+                            // Only shown while there is genuinely nothing set up.
+                            // A permanent warning box above a working configuration
+                            // reads as "this is broken", which is the wrong message
+                            // once a provider is saved and READY.
+                            $nothingConfigured = true;
+                            foreach ($providers as $candidate) {
+                                if ($candidate['client_id'] !== '' || $candidate['has_secret']) {
+                                    $nothingConfigured = false;
+
+                                    break;
+                                }
+                            }
+                        @endphp
+
+                        @if ($nothingConfigured)
+                            <div class="callout callout-warning">
+                                <h4>You need an application with each provider first</h4>
+                                <p style="margin-bottom: 8px;">
+                                    These are OAuth2 <em>client</em> credentials for an application you own. Create one at
+                                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>
+                                    or the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>,
+                                    then paste the id and secret below and register the callback URL shown for that provider.
+                                    A callback URL that does not match exactly is the most common reason a provider refuses a sign-in.
+                                </p>
+                            </div>
+                        @endif
 
                         @foreach ($providers as $key => $provider)
                             <div class="box" style="margin-bottom: 16px;">

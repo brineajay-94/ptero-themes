@@ -88,7 +88,7 @@ class SocialAuthController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'google.enabled' => 'nullable|boolean',
             'google.client_id' => 'nullable|string|max:255',
             'google.client_secret' => 'nullable|string|max:512',
@@ -102,7 +102,24 @@ class SocialAuthController extends Controller
         foreach (['google', 'discord'] as $provider) {
             $this->settings->set('Brine::social_' . $provider . '_enabled', $request->boolean($provider . '.enabled') ? '1' : '0');
 
-            $clientId = $validated[$provider . '.client_id'] ?? null;
+            // Read the values back off the REQUEST, not off $validated.
+            //
+            // This is the bug that made the page look like it was saving and was
+            // not: `$request->validate()` does NOT return the dotted keys it was
+            // given. Laravel's `validated()` walks its own rule keys and re-inserts
+            // each value with `Arr::set()`, so a rule written `google.client_id`
+            // comes back as `$validated['google']['client_id']` - nested. Looking
+            // up `$validated['google.client_id']` therefore always misses, the
+            // `?? null` swallows it, and neither the client id nor the secret was
+            // ever written. The switch still saved, because that line reads
+            // $request directly, which is exactly why the symptom was "Discord:
+            // ON, NOT READY" rather than an outright failure.
+            //
+            // `input()` takes the same dotted path the form field names use and
+            // the same accessor `boolean()` above already relies on, so the two
+            // cannot drift. Validation above is still what guarantees the value
+            // is a string within the length limit before it is stored.
+            $clientId = $request->input($provider . '.client_id');
             if (is_string($clientId) && trim($clientId) !== '') {
                 $this->settings->set('Brine::social_' . $provider . '_client_id', trim($clientId));
             }
@@ -110,7 +127,7 @@ class SocialAuthController extends Controller
             // A blank secret field means "unchanged", not "erase it". Erasing is
             // done with the explicit clear button below, because this is the one
             // field the admin cannot see the current value of.
-            $secret = $validated[$provider . '.client_secret'] ?? null;
+            $secret = $request->input($provider . '.client_secret');
             if (is_string($secret) && trim($secret) !== '') {
                 $this->settings->set(
                     'Brine::social_' . $provider . '_client_secret',

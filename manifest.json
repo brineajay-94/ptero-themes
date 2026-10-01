@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.14.0",
+    "version": "1.14.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -260,7 +260,7 @@
         {
             "path": "app/Http/Controllers/Admin/SocialAuthController.php",
             "action": "create",
-            "note": "Admin -> Social Login: the OAuth2 client id and secret for Google and Discord, plus a per-provider switch and a clear-secret action. The secret is never rendered back - a blank field means keep the current one, since that is the one field the admin cannot read - and erasure needs its own endpoint because 'blank means unchanged' would otherwise make it unreachable. Enabling a provider with no credentials is allowed and shows as NEEDS CREDENTIALS, which is useful when the application is still being set up in another tab, and renders no button on the login screen until it is complete"
+            "note": "Admin -> Social Login: the OAuth2 client id and secret for Google and Discord, plus a per-provider switch and a clear-secret action. The secret is never rendered back - a blank field means keep the current one, since that is the one field the admin cannot read - and erasure needs its own endpoint because 'blank means unchanged' would otherwise make it unreachable. Enabling a provider with no credentials is allowed and shows as NEEDS CREDENTIALS, which is useful when the application is still being set up in another tab, and renders no button on the login screen until it is complete. The submitted values are read with the request's input() accessor and NOT out of validate(): Laravel's validated() re-inserts each value with Arr::set(), so a dotted rule comes back NESTED as ['google']['client_id'], and reading the dotted key on the returned array always missed - the client id and secret were silently never written while the switch, which reads the request directly, saved fine. That produced a page that looked like it saved, reported 'ON, NOT READY', and dropped the credentials on reload"
         },
         {
             "path": "resources/views/admin/social-auth.blade.php",

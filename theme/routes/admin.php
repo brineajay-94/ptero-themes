@@ -245,15 +245,11 @@ Route::group(['prefix' => 'site-settings'], function () {
     Route::post('/background/{slot}', [Admin\SiteSettingsController::class, 'updateBackground'])
         ->where('slot', 'auth|dashboard')
         ->name('admin.site-settings.background');
-    Route::post('/illustration', [Admin\SiteSettingsController::class, 'updateIllustration'])
-        ->name('admin.site-settings.illustration');
     Route::post('/links', [Admin\SiteSettingsController::class, 'updateLinks'])->name('admin.site-settings.links');
     Route::post('/theme', [Admin\SiteSettingsController::class, 'updateTheme'])->name('admin.site-settings.theme');
     Route::delete('/background/{slot}', [Admin\SiteSettingsController::class, 'clearBackground'])
         ->where('slot', 'auth|dashboard')
         ->name('admin.site-settings.background.clear');
-    Route::delete('/illustration', [Admin\SiteSettingsController::class, 'clearIllustration'])
-        ->name('admin.site-settings.illustration.clear');
 });
 
 /*

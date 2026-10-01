@@ -78,11 +78,6 @@ class AssetComposer
                 'auth' => $this->background('auth'),
                 'dashboard' => $this->background('dashboard'),
             ],
-            // brine-theme: the hero illustration (Admin -> Site Settings -> Hero
-            // illustration). null when none is set or it is switched off. It is
-            // composited by the browser *over* the auth background, not instead
-            // of it, so the two are separate settings.
-            'illustration' => $this->illustration(),
             // brine-theme: the scrim each background sits under, set in Admin ->
             // Site Settings. `rgb` is the channel triplet the stylesheet feeds to
             // `rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength))`,
@@ -228,27 +223,6 @@ class AssetComposer
         // same reason: without it, swapping a background left the previous one
         // on screen.
         return $this->uploadedImage('backgrounds', 'bg-' . $slot);
-    }
-
-    /**
-     * The hero illustration, or null when none is set or it is switched off.
-     *
-     * Same cache-buster treatment as the icon: the stored file always has the
-     * same name, so without the mtime the browser would keep showing the
-     * previous illustration after a replacement.
-     */
-    private function illustration(): ?string
-    {
-        if ($this->settings->get('Brine::auth_illustration_enabled') !== '1') {
-            return null;
-        }
-
-        $url = $this->settings->get('Brine::auth_illustration_url');
-        if (is_string($url) && self::isSafeImageUrl(trim($url))) {
-            return trim($url);
-        }
-
-        return $this->uploadedImage('images', 'auth-illustration');
     }
 
     /**

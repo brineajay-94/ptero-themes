@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Prologue\Alerts\AlertsMessageBag;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
-use Pterodactyl\Support\IllustrationProcessor;
 
 /**
  * Site Settings - the one admin page for the theme's own branding.
@@ -45,32 +44,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
 
     private const ICON_MAX_KB = 4096;
     private const BACKGROUND_MAX_KB = 8192;
-
-    /**
-     * The hero illustration accepts more formats than the icon because it is
-     * re-encoded to PNG on the way in - IllustrationProcessor needs to be able to
-     * *read* whatever the admin has to hand, and the white background is keyed
-     * out server-side.
-     *
-     * SVG is the one exception to the re-encode, for the same reason the icon
-     * takes it: GD cannot decode a vector, and it does not need to - a vector
-     * illustration is resolution independent and carries its own transparency. An
-     * uploaded SVG is stored exactly as it arrived and composited directly. The
-     * trade is stated in the admin UI: an SVG is *not* keyed, so a solid white
-     * background drawn inside it will show as a white plate.
-     *
-     * A pasted https:// link is also accepted and used verbatim, for the same
-     * reason: nothing about a remote file can be keyed without fetching and
-     * re-encoding it.
-     */
-    private const ILLUSTRATION_TYPES = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'];
-
-    /**
-     * Illustrations are large - the reference artwork is a 1536x1024 render - so
-     * this is generous on purpose. The processed result is usually much smaller
-     * than the upload, because the keyed-out background compresses to nothing.
-     */
-    private const ILLUSTRATION_MAX_KB = 12288;
 
     /**
      * Default scrim strength per slot, as a percentage. The auth screens get
@@ -288,15 +261,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
             'themes' => self::THEMES,
             'theme' => $this->themeVariant(),
             'upload_ceiling_kb' => $this->uploadCeilingKb(),
-            'illustration' => [
-                'enabled' => $this->bool('Brine::auth_illustration_enabled'),
-                'image' => $this->illustrationImage(),
-                'url' => (string) $this->settings->get('Brine::auth_illustration_url', ''),
-                'has_file' => $this->illustrationFile() !== null,
-            ],
-            // GD is what makes the white background transparent, so the page has
-            // to know whether to promise that or not.
-            'gd_available' => function_exists('imagecreatefrompng') && function_exists('imagepng'),
             'backgrounds' => [
                 'auth' => [
                     'enabled' => $this->bool('Brine::bg_auth_enabled'),
@@ -676,193 +640,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         return redirect()->route('admin.site-settings');
     }
 
-    /**
-     * Save the hero illustration for the auth screens.
-     *
-     * Separate from the background slot on purpose. The background is a
-     * full-bleed photo behind the whole hero; the illustration is a discrete
-     * object that floats in the upper half of it, in front of that photo. An
-     * admin may want either, both or neither, and they need independent
-     * switches - the two composite on top of each other rather than replace
-     * one another.
-     *
-     * The upload is run through IllustrationProcessor before it is stored. That
-     * is not cosmetic: illustration artwork is drawn on white, and this hero is
-     * #141417, so an unprocessed upload renders as a white rectangle pasted on a
-     * dark page. CSS cannot rescue it - `screen` leaves white as white, and
-     * `multiply` keys the background out but takes the dark parts of the
-     * artwork with it. The processor keys the white to transparency, keeps the
-     * genuinely light pixels that belong to the drawing, and crops to the
-     * result.
-     */
-    public function updateIllustration(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'illustration' => 'nullable|file|mimes:' . implode(',', self::ILLUSTRATION_TYPES) . '|max:' . self::ILLUSTRATION_MAX_KB,
-            'illustration_url' => 'nullable|string|max:2048',
-            'illustration_enabled' => 'nullable|boolean',
-        ]);
-
-        $enabled = $request->boolean('illustration_enabled');
-
-        // A pasted link wins over an upload, matching the icon and the
-        // backgrounds, and drops the stored file so it cannot come back.
-        $url = trim((string) $request->input('illustration_url', ''));
-        if ($url !== '') {
-            if ($this->safeImageUrl($url) === null) {
-                $this->alert->danger('The illustration link was rejected - use a direct https:// link to a .png, .jpg, .jpeg, .gif, .webp or .svg file.')->flash();
-
-                return redirect()->route('admin.site-settings');
-            }
-
-            $this->settings->set('Brine::auth_illustration_url', $url);
-            $this->deleteStem($this->imageDirectory(), 'auth-illustration');
-            $this->settings->set('Brine::auth_illustration_enabled', $enabled ? '1' : '0');
-
-            $this->alert->success($enabled ? 'Illustration link saved.' : 'Illustration link saved, but it is switched off.')->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        $upload = $request->file('illustration');
-        if ($upload === null) {
-            $this->settings->set('Brine::auth_illustration_enabled', $enabled ? '1' : '0');
-            $this->alert->success('Illustration setting saved.')->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        $rejected = $this->uploadRejected('illustration');
-        if ($rejected !== null) {
-            $this->alert->danger($rejected)->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        if (!$upload->isValid()) {
-            $this->alert->danger('The illustration upload was incomplete and was not saved. Try picking the file again.')->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        $directory = $this->imageDirectory();
-        if (($problem = $this->ensureWritable($directory)) !== null) {
-            $this->alert->danger($problem)->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        // Land the new illustration under a temporary name and only retire the
-        // old one once the new one is known to be good.
-        //
-        // This used to forget the stored link and delete the existing
-        // illustration *before* processing the upload, so every failure below - a
-        // format GD cannot decode, an image that keys away to nothing, a write
-        // error - destroyed an illustration that was working and left the admin
-        // with none at all. A failed upload now costs nothing. Both the link and
-        // the old file are cleared after the new file has landed.
-        //
-        // The temporary name deliberately does not begin with the
-        // `auth-illustration` stem, because deleteStem() globs
-        // `auth-illustration.*` and would otherwise delete the file it is in the
-        // middle of installing.
-        $temporary = $directory . '/.brine-illustration-' . bin2hex(random_bytes(6));
-
-        // An SVG is stored exactly as it arrived: see ILLUSTRATION_TYPES.
-        $isSvg = strtolower($upload->getClientOriginalExtension()) === 'svg';
-
-        if ($isSvg) {
-            $temporary .= '.svg';
-
-            try {
-                $upload->move($directory, basename($temporary));
-            } catch (\Throwable $e) {
-                Log::error('brine-theme: illustration upload failed: ' . $e->getMessage());
-                $this->alert->danger('Saving the illustration failed: ' . $e->getMessage() . ' Your existing illustration was left untouched.')->flash();
-
-                return redirect()->route('admin.site-settings');
-            }
-        } else {
-            // Always PNG, not the upload's own extension: the output has to carry
-            // an alpha channel, which is the whole point of keying the background.
-            $temporary .= '.png';
-            $processed = IllustrationProcessor::key($upload->getRealPath(), $temporary);
-
-            if (!($processed['written'] ?? false)) {
-                @unlink($temporary);
-                $this->alert->danger(
-                    'The illustration could not be prepared: ' . ($processed['message'] ?? 'unknown error')
-                    . ' Your existing illustration was left untouched.'
-                )->flash();
-
-                return redirect()->route('admin.site-settings');
-            }
-        }
-
-        // Verify by name, like the other uploads do. A leftover from an earlier
-        // attempt must never be allowed to stand in for a write that did not
-        // happen.
-        if (!is_file($temporary) || filesize($temporary) === 0) {
-            @unlink($temporary);
-            $this->alert->danger('The illustration did not land in <code>public/themes/pterodactyl/images/</code> - check permissions on <code>public/themes</code>. Your existing illustration was left untouched.')->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        // Replace in this order. rename() over the destination is atomic, so the
-        // stored illustration is only ever swapped for a file already known to be
-        // good, and if the rename fails the old one is still in place. The stale
-        // siblings - the previous upload's other extension - are swept afterwards,
-        // skipping the file just installed.
-        $target = $directory . '/auth-illustration' . ($isSvg ? '.svg' : '.png');
-
-        if (!@rename($temporary, $target)) {
-            @unlink($temporary);
-            $this->alert->danger('The new illustration could not replace the old one on disk. Your existing illustration was left untouched.')->flash();
-
-            return redirect()->route('admin.site-settings');
-        }
-
-        $this->deleteStemExcept($directory, 'auth-illustration', basename($target));
-
-        // The file wins over a pasted link, so the link is dropped only now - once
-        // the file it was shadowing is definitely on disk. An earlier version
-        // cleared it up front, which meant a failed upload lost both.
-        $this->settings->forget('Brine::auth_illustration_url');
-        $this->settings->set('Brine::auth_illustration_enabled', $enabled ? '1' : '0');
-
-        if ($isSvg) {
-            $this->alert->success(
-                'Illustration saved as SVG and used exactly as drawn. Its white background was <strong>not</strong> removed - '
-                . 'SVGs are never keyed - so if the drawing has a solid white backdrop you will see it. Check the preview above.'
-            )->flash();
-        } else {
-            $this->alert->success(
-                sprintf(
-                    'Illustration saved - its white background was made transparent and the image cropped to %dx%d. It now sits over the login background on the left of the auth screens.',
-                    $processed['width'] ?? 0,
-                    $processed['height'] ?? 0
-                )
-            )->flash();
-        }
-
-        return redirect()->route('admin.site-settings');
-    }
-
-    /**
-     * Drop the illustration: both the stored file and the pasted link.
-     */
-    public function clearIllustration(): RedirectResponse
-    {
-        $this->deleteStem($this->imageDirectory(), 'auth-illustration');
-        $this->settings->forget('Brine::auth_illustration_url');
-        $this->settings->set('Brine::auth_illustration_enabled', '0');
-
-        $this->alert->success('Illustration cleared.')->flash();
-
-        return redirect()->route('admin.site-settings');
-    }
-
     // ------------------------------------------------------------------ slots --
 
     /**
@@ -990,28 +767,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         return $this->firstFile($this->backgroundDirectory(), 'bg-' . $slot . '.*');
     }
 
-    private function illustrationFile(): ?string
-    {
-        return $this->firstFile($this->imageDirectory(), 'auth-illustration.*');
-    }
-
-    /** The illustration to show, or null when none is set or it is switched off. */
-    private function illustrationImage(): ?string
-    {
-        if (!$this->bool('Brine::auth_illustration_enabled')) {
-            return null;
-        }
-
-        $url = $this->settings->get('Brine::auth_illustration_url');
-        if (is_string($url) && trim($url) !== '' && $this->safeImageUrl(trim($url)) !== null) {
-            return trim($url);
-        }
-
-        $file = $this->illustrationFile();
-
-        return $file === null ? null : '/themes/pterodactyl/images/' . $file;
-    }
-
     private function backgroundImage(string $slot): ?string
     {
         $url = $this->settings->get('Brine::bg_' . $slot . '_url');
@@ -1109,39 +864,6 @@ class SiteSettingsController extends \Pterodactyl\Http\Controllers\Controller
         }
 
         foreach ($found as $path) {
-            if (is_file($path) && @unlink($path)) {
-                $removed++;
-            }
-        }
-
-        return $removed;
-    }
-
-    /**
-     * deleteStem() for the case where one of the matches is the file you just
-     * installed and must survive.
-     *
-     * The illustration needs this: it is renamed into place *first*, so a failed
-     * rename cannot destroy the working file, and the previous upload's stale
-     * siblings are swept afterwards. Sweeping first and renaming second would
-     * reintroduce the gap, and sweeping with the plain deleteStem() would delete
-     * the file that was just installed.
-     *
-     * @return int how many files were removed
-     */
-    private function deleteStemExcept(string $directory, string $stem, string $keep): int
-    {
-        $removed = 0;
-        $found = glob($directory . '/' . $stem . '.*');
-
-        if (!is_array($found)) {
-            return 0;
-        }
-
-        foreach ($found as $path) {
-            if (basename($path) === $keep) {
-                continue;
-            }
             if (is_file($path) && @unlink($path)) {
                 $removed++;
             }

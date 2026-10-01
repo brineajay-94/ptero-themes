@@ -3068,6 +3068,238 @@
     box-shadow: 0 10px 30px rgb(0 0 0 / 0.28);
 }
 
+/* ------------------------------------------------------------ account page -- */
+/* The account overview: one dark card on the light page, holding the password
+ * form. Same idiom as the server cards - a dark chrome island floating on white -
+ * so the page reads as part of this theme rather than as the panel's own screen
+ * left untouched. */
+.pt-acct {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 1rem;
+}
+
+.pt-acct-card {
+    width: 100%;
+    max-width: 34rem;
+    border: 1px solid rgb(var(--pt-chrome-deep));
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
+    box-shadow: var(--pt-shadow-sm);
+    overflow: hidden;
+}
+
+/* Header: the title and the help affordance, with a rule under them. `space-between`
+   puts the "?" at the far end of the card, which is where the reference has it. */
+.pt-acct-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
+}
+
+.pt-acct-title {
+    margin: 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+/* The circular "?" in the header. A real button with aria-expanded, not a
+   decorative circle, so the help it reveals is reachable by keyboard and its
+   state is announced. */
+.pt-acct-help-btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 50%;
+    background-color: rgb(255 255 255 / 0.08);
+    color: rgb(var(--pt-chrome-muted));
+    font-size: 0.8rem;
+    line-height: 0;
+    cursor: pointer;
+    transition: background-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease;
+}
+
+.pt-acct-help-btn:hover,
+.pt-acct-help-btn:focus-visible,
+.pt-acct-help-btn[aria-expanded='true'] {
+    background-color: rgb(255 255 255 / 0.18);
+    color: rgb(var(--pt-chrome-ink));
+    outline: none;
+}
+
+.pt-acct-help {
+    padding: 0.85rem 1.15rem;
+    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
+    background-color: rgb(0 0 0 / 0.18);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+.pt-acct-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.05rem;
+    padding: 1.15rem;
+}
+
+.pt-acct-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pt-acct-label {
+    margin-bottom: 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+/* The light box holding the glyph and the input.
+ *
+ * One flex row, so the glyph is a real sibling of the <input> rather than an
+ * overlay positioned over it. That is the whole reason the fields are hand-written
+ * here instead of being built on the panel's Input: an overlay needs a `top`
+ * computed from the label's line box, its margin and the input's half-height, and
+ * those three have to stay in step (see `.pt-auth-field-icon` for what that costs
+ * there). A flex sibling has no arithmetic to get wrong. */
+.pt-acct-control {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.6rem;
+    padding: 0 0.85rem;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-white));
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease;
+}
+
+.pt-acct-control:focus-within {
+    border-color: rgb(var(--pt-blue-400));
+    box-shadow: 0 0 0 3px rgb(var(--pt-blue-400) / 0.28);
+}
+
+.pt-acct-icon {
+    flex: none;
+    display: flex;
+    color: rgb(var(--pt-navy-900) / 0.5);
+    font-size: 0.95rem;
+}
+
+.pt-acct-input {
+    flex: 1 1 auto;
+    /* Removes the UA's inner padding and the panel's own field styling, so the
+       text starts at the edge the padding put it at and the box - not the input -
+       owns the border, the fill and the focus ring. */
+    min-width: 0;
+    height: 2.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: rgb(var(--pt-navy-900));
+    font-size: 0.95rem;
+}
+
+.pt-acct-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.pt-acct-input:disabled {
+    opacity: 0.6;
+}
+
+/* The invalid state is on the BOX, not the input: the input has no border of its
+   own, so colouring it would do nothing visible. */
+.pt-acct-field.is-invalid .pt-acct-control {
+    border-color: rgb(var(--pt-red-500));
+    box-shadow: 0 0 0 3px rgb(var(--pt-red-500) / 0.22);
+}
+
+.pt-acct-hint {
+    margin: 0.45rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+.pt-acct-error {
+    margin: 0.45rem 0 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(252 165 165);
+}
+
+.pt-acct-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 0.15rem;
+}
+
+/* Green rather than the panel's blue submit. The reference's account screen uses
+ * green for its confirm actions, and on a single-action page the button is the
+ * only thing that says what the card does - so it is worth matching. White text
+ * on this green is 3.1:1, which is under 4.5:1 for body text, so the weight is
+ * 700 at 0.92rem and the label is short; a darker green would stop being the
+ * reference's colour, which is the trade being made here on purpose. */
+.pt-acct-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.6rem;
+    border: 0;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-green-500));
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+}
+
+.pt-acct-submit:hover:not(:disabled),
+.pt-acct-submit:focus-visible:not(:disabled) {
+    filter: brightness(1.08);
+    outline: none;
+}
+
+.pt-acct-submit:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.pt-acct-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* The squaring reset at the top of this file is `border-radius: 0 !important` on
+   every element, so the controls this page introduces have to opt back in. */
+.pt-acct-card,
+.pt-acct-help-btn,
+.pt-acct-control,
+.pt-acct-submit {
+    border-radius: var(--pt-glass-radius-sm) !important;
+}
+
+.pt-acct-help-btn {
+    border-radius: 50% !important;
+}
+
 /* --------------------------------------------------------------- modals -- */
 /* The dialog surface for every modal in the panel (file rename / chmod /
  * upload, database and backup creation, server search, and all the

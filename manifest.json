@@ -85,7 +85,7 @@
         {
             "path": "resources/scripts/routers/DashboardRouter.tsx",
             "action": "replace",
-            "note": "Wraps the dashboard in AppShell and drops the legacy SubNavigation"
+            "note": "Wraps the dashboard in AppShell, drops the legacy SubNavigation, and routes /account to the theme's own AccountOverviewContainer. The panel's routes.account list is NOT overridden wholesale - it is also what the drawer's navigation reads, so replacing it would change that list too. Instead the empty-path entry (the overview) is filtered OUT of the map and routed explicitly. Filtering rather than relying on route order: the map's overview entry also resolves to /account, so two routes for one URL is a thing that breaks the moment the order changes; removing the duplicate leaves exactly one"
         },
         {
             "path": "resources/scripts/routers/ServerRouter.tsx",
@@ -131,6 +131,16 @@
             "path": "resources/scripts/components/auth/ResetPasswordContainer.tsx",
             "action": "replace",
             "note": "Same treatment for the password recovery screen, including the same corrected muted-link hover direction"
+        },
+        {
+            "path": "resources/scripts/components/account/AccountOverviewContainer.tsx",
+            "action": "create",
+            "note": "The account page (/account), reduced to the password form and rebuilt in the theme: a dark chrome card on the light page, matching the server-card idiom, with a header (title + a real ? toggle that reveals a help panel), three labelled fields and a green confirm. The markup is hand-written rather than built on the panel's Field/Input because the reference puts the glyph INSIDE a light box; Input wraps the <input> in its own div, so the box cannot be one flex row containing glyph and field and the glyph would have to be positioned over it with top:50% arithmetic - the same fragility the auth screens carry in .pt-auth-field-icon. Here the glyph is a flex sibling, so there is nothing to keep in step. Labels are real <label for>, so the association is structural. Posts to the panel's own /api/client/account/password, so the current password is verified and the new one hashed by the panel - no custom auth. The other account screens (profile, email, 2FA) are dropped from this page but still reachable: the drawer's navigation list is not filtered and DashboardRouter still renders the panel's /account/* sub-routes"
+        },
+        {
+            "path": "resources/scripts/api/client/account.ts",
+            "action": "create",
+            "note": "POST /api/client/account/password. A client route behind the sanctum session guard rather than a web one, so it needs no sanctum/csrf-cookie priming (that is what api/auth/register.ts does, and only because its endpoint is a web route). Goes through the panel's shared http instance to keep the session cookie, the X-XSRF header and the panel's error shape"
         },
         {
             "path": "resources/scripts/components/dashboard/DashboardContainer.tsx",

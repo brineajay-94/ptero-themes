@@ -128,6 +128,30 @@ What it changes on top of the stock panel:
   light surface for the same reason: both marks are invisible on the dark page.
   They sit side by side and stack full-width below 420px, where two columns would
   leave "Continue with Discord" too narrow to fit on one line.
+- **Account page** — `/account` is reduced to **the password form** and rebuilt in
+  the theme. Stock Pterodactyl puts profile, password, email and two-step
+  verification there as three side-by-side cards; this keeps the password form —
+  Current Password, New Password (with the length-and-uniqueness hint), Confirm
+  New Password, and an **Update Password** button — as a single dark chrome card on
+  the light page, the same dark-island idiom as the server cards. The header
+  carries the title and a **?** that reveals a help panel; it is a real button
+  with `aria-expanded`, not a decorative circle. The confirm is **green**, matching
+  the reference's account screen rather than the panel's blue submit.
+
+  It posts to the panel's own `/api/client/account/password`, so the current
+  password is verified and the new one hashed by the panel's normal code — a
+  reskin, not a reimplementation of authentication. The other account screens are
+  dropped from this page but still **reachable**: the drawer's navigation list is
+  untouched and the `/account/*` sub-routes still render the panel's components.
+
+  The markup is hand-written rather than built on the panel's `Field`/`Input`,
+  because the reference puts a glyph *inside* a light-filled box. `Input` wraps
+  the `<input>` in its own div, so the box cannot be one flex row holding glyph
+  and field, and the glyph would have to be positioned over it — the same
+  fragility `.pt-auth-field-icon` carries on the auth screens, where its `top` is
+  computed from the label's line box, its margin and the input's half-height. Here
+  the glyph is a real flex sibling, so there is no arithmetic to keep in step, and
+  the labels are real `<label for>` rather than positional associations.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.

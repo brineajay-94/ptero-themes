@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useLocation } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
 import ServerRow from '@/components/dashboard/ServerRow';
@@ -84,10 +82,6 @@ export default () => {
                         </label>
                     )}
                 </div>
-                <Link to={'/'} className={'pt-dash-create'}>
-                    <FontAwesomeIcon icon={faPlus} aria-hidden={'true'} />
-                    <span>Create</span>
-                </Link>
             </div>
 
             {!servers ? (

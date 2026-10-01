@@ -1090,7 +1090,14 @@
      * have to stay legible and visible - keep their full size, and a long name
      * costs a few characters rather than costing the control. Same trade the
      * page title already makes, which is why `.pt-topbar-where strong` carries
-     * the same three properties. */
+     * the same three properties.
+     *
+     * KEPT even though the reported case turned out to be a five-character name
+     * ("admin"), which made this look unnecessary. It is a bound, and an
+     * unbounded `nowrap` string in a `flex: none` group is exactly how the
+     * sign-out button lost its width in the first place - the same class of bug
+     * with the opposite sign, so it belongs here whether or not this particular
+     * report needed it. 11rem is wide enough that no realistic name truncates. */
     max-width: 11rem;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1178,13 +1185,30 @@
     }
 }
 
-/* The avatar at the far right, as the reference's round account portrait. */
+/* The avatar at the far right, as the reference's round account portrait.
+ *
+ * `min-width` and `min-height` are stated here as well as width/height, and that
+ * is the fix for the avatar being squeezed and covering the "Logout" label.
+ *
+ * There are two rules sizing `.pt-avatar-btn` in this file: this one (2.5rem) and
+ * a lower one further down for the drawer (2.25rem, which also sets
+ * `min-width: 2.25rem`). This selector has the higher specificity, so width and
+ * height came from here - but `min-width` is a SEPARATE property, and nothing at
+ * this specificity set it. So the box was laid out 2.5rem wide with only a 2.25rem
+ * floor, which left it free to be compressed to that floor by a constrained
+ * parent, at which point `overflow: hidden` clipped the round portrait and the
+ * leftover box was drawn over the sign-out label beside it.
+ *
+ * Stating the minimum here too means the pair cannot disagree: the avatar is 2.5rem
+ * and stays 2.5rem, and the lead column is what absorbs any shortfall instead. */
 .pt-topbar .pt-avatar-btn {
     display: grid;
     place-items: center;
     flex: none;
     width: 2.5rem;
     height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
     border: 1px solid rgb(255 255 255 / 0.22);
     border-radius: 999px;
     overflow: hidden;
@@ -2453,28 +2477,14 @@
     color: rgb(var(--pt-gray-500));
 }
 
-.pt-dash-create {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1.15rem;
-    border-radius: var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-blue-500));
-    color: rgb(var(--pt-white));
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: var(--pt-shadow-sm);
-    transition: background-color var(--pt-dur-base) ease;
-}
-
-.pt-dash-create:hover,
-.pt-dash-create:focus-visible {
-    background-color: rgb(var(--pt-blue-400));
-    color: rgb(var(--pt-white));
-    outline: none;
-    text-decoration: none;
-}
+/* .pt-dash-create is gone with the button it styled.
+ *
+ * The button linked to `/`, which is the servers list it already sits on - so it
+ * was a control that went nowhere. Removed rather than pointed somewhere: this
+ * panel has no server-creation flow for a non-admin to reach from here, and
+ * inventing a destination would be worse than not having the button. The rules
+ * are removed with it so the stylesheet carries nothing for a class that no
+ * longer exists. */
 
 .pt-dash-grid {
     display: grid;

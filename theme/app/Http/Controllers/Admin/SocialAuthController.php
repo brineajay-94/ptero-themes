@@ -172,15 +172,20 @@ class SocialAuthController extends Controller
                 'has_secret_reads_back' => $this->social->hasSecret($provider),
             ]);
 
-            $status = $this->social->isUsable($provider);
+            // Plain words, not markup.
+            //
+            // This message goes through Prologue Alerts, which renders it as text -
+            // the `<span class="label ...">` versions of these three states appeared
+            // in the flash as literal tags, which is both ugly and, worse, made the
+            // flash look like a rendering fault rather than a report about the save.
             $messages[] = $this->social->label($provider) . ': ' . ($status
-                ? '<span class="label label-success">READY</span>'
+                ? 'ready'
                 : ($request->boolean($provider . '.enabled')
-                    ? '<span class="label label-warning">NEEDS CLIENT ID AND SECRET</span>'
-                    : '<span class="label label-default">DISABLED</span>'));
+                    ? 'enabled but incomplete'
+                    : 'off'));
         }
 
-        $this->alert->success('Social login settings saved. ' . implode(' &nbsp;|&nbsp; ', $messages))->flash();
+        $this->alert->success('Social login settings saved - ' . implode(', ', $messages) . '.')->flash();
 
         return redirect()->route('admin.social-auth');
     }

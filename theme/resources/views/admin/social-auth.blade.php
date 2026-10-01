@@ -11,6 +11,21 @@
 @endsection
 
 @section('content')
+    {{-- The theme version, read from the file the installer just copied. A theme
+         that replaces panel PHP will be run from opcache after an update far more
+         often than not, and the symptom of a stale build is "my fix did nothing"
+         with nothing on screen to say so. This answers that in one glance: if this
+         number is not the one you just installed, reload the PHP worker pool
+         (`systemctl reload php-fpm`) rather than re-debugging working code.
+
+         `filemtime` rather than the string, because the string can only change if
+         the file did - and a hardcoded version here would be a second place to
+         forget to bump. The mtime is what actually differs. --}}
+    <p class="help-block" style="margin-bottom: 10px;">
+        Theme file installed
+        <code>{{ date('Y-m-d H:i', @filemtime(__DIR__ . '/../../../../app/Http/Controllers/Admin/SocialAuthController.php') ?: 0) }}</code>
+    </p>
+
     <div class="row">
         <div class="col-md-8">
             <div class="box">

@@ -1041,7 +1041,13 @@
 .pt-topbar-account {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    /* The gap between the sign-out button and the avatar.
+     *
+     * It was 0.5rem, which read as a collision rather than a gap: the button's
+     * label sits directly under a 2.5rem round portrait, and at 8px the "t" of
+     * "Logout" looked attached to the avatar's edge. 0.8rem is enough to separate
+     * them without the group starting to look like two unrelated controls. */
+    gap: 0.8rem;
     flex: none;
     margin-left: 0.15rem;
 }
@@ -1069,6 +1075,26 @@
     font-size: 0.82rem;
     font-weight: 600;
     color: rgb(var(--pt-chrome-ink));
+    /* The username truncates, and this is the fix for the avatar sitting ON TOP of
+     * the sign-out label rather than beside it.
+     *
+     * The account group is `flex: none`, so it is measured at min-content - and
+     * min-content for a `white-space: nowrap` string is the whole string. A long
+     * username ("silentbrineexe") therefore made the group wider than the space
+     * the topbar had, and since the avatar cannot shrink, the overflow was taken
+     * out of the spacing between them: the "Logout" label ended up underneath the
+     * round portrait, with the portrait's 2.5rem box drawn over the text.
+     *
+     * Capping the width and giving the name its own ellipsis means the name gives
+     * ground instead. The sign-out button and the avatar - the two things that
+     * have to stay legible and visible - keep their full size, and a long name
+     * costs a few characters rather than costing the control. Same trade the
+     * page title already makes, which is why `.pt-topbar-where strong` carries
+     * the same three properties. */
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .pt-topbar .pt-logout-btn {

@@ -56,7 +56,13 @@
                         </a>
                         <div class="pt-topbar-account">
                             <div class="pt-topbar-user">
-                                <span class="pt-topbar-username">jdoe</span>
+                                {{-- A deliberately long name. The username is capped
+                                     and ellipsised, and this is the case that cap
+                                     exists for: with a short name like "jdoe" the
+                                     avatar-overlaps-the-sign-out-label bug is
+                                     invisible, so a preview using one would not
+                                     have caught it. --}}
+                                <span class="pt-topbar-username">silentbrineexe</span>
                                 <button type="button" class="pt-logout-btn">
                                     <span data-icon="sign-out-alt" data-icon-size="0.8rem"></span>
                                     <span>Logout</span>

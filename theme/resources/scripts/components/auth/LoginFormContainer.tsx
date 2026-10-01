@@ -6,7 +6,6 @@ import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
 import { brandName, logoUrl, registrationEnabled } from '@/lib/brand';
-import { AuthLinks } from '@/components/QuickLinks';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
     title?: string;
@@ -57,20 +56,26 @@ const OrDivider = () => (
     </div>
 );
 
-// The Home / Login breadcrumb is NOT rendered here: it is page chrome, pinned to
-// the viewport's top-left corner by the stylesheet, so AuthenticationRouter owns
-// it.
+// Page chrome, not the form: the Home / Login breadcrumb is pinned to the
+// viewport's top-left corner by the stylesheet, so AuthenticationRouter owns it.
+// That corner is the top-left of the page as the reference has it - the logo does
+// NOT sit there.
 //
-// The layout is a single centred column: the brand lockup sits at the top of the
-// page, and the heading, the sign-up call to action and the form stack beneath
-// it. There is no second half and no hero - the previous 50/50 split existed to
-// give the illustration room, and with it gone a second column would only push
-// the form off a laptop screen.
+// The layout is a single flat column, per the reference: an emblem centred above
+// the heading, then the sign-up call to action, then the form directly on the
+// page. There is no card. The reference's form has no panel behind it, and
+// inventing one put a second border between the visitor and the fields they came
+// to fill.
 //
-// The lockup and the CTA are rendered per-screen rather than baked in, because
-// what belongs at the top depends on where you already are: Login leads with
-// sign-up, but Register's own footer already says "already have an account", so
-// repeating the CTA there would be noise.
+// The emblem is deliberately just the mark. The brand name used to sit beside it,
+// which is right when the name is the only thing identifying the panel - but the
+// heading now reads "Welcome to <brand>", so the pair said the same word twice on
+// one screen, stacked a few centimetres apart.
+//
+// The CTA is rendered per-screen rather than baked in, because what belongs at
+// the top depends on where you already are: Login leads with sign-up, but
+// Register's own footer already says "already have an account", so repeating the
+// CTA there would be noise.
 export default forwardRef<HTMLFormElement, Props>(
     (
         { title, subtitle, footer, showSignUpCta = true, ...props },
@@ -87,10 +92,7 @@ export default forwardRef<HTMLFormElement, Props>(
                     <span className={'pt-auth-emblem'}>
                         <img src={logoUrl() || '/themes/pterodactyl/images/logo.svg'} alt={''} />
                     </span>
-                    <span className={'pt-auth-lockup-name'}>{brandName()}</span>
                 </div>
-
-                <AuthLinks />
 
                 <div className={'pt-auth-column'}>
                     <div className={'pt-auth-heading'}>
@@ -105,29 +107,29 @@ export default forwardRef<HTMLFormElement, Props>(
                         </>
                     )}
 
-                    <div className={'pt-auth-card'}>
-                        <div className={'pt-auth-body'}>
-                            <FlashMessageRender css={tw`mb-4`} />
-                            <Form {...props} ref={ref}>
-                                {props.children}
-                            </Form>
-                        </div>
-                        <div className={'pt-auth-footer'}>
-                            {footer !== undefined ? (
-                                footer
-                            ) : registrationEnabled() ? (
-                                <span>
-                                    New to the panel? <Link to={'/auth/register'}>Create an account</Link>
-                                </span>
-                            ) : (
-                                <span>
-                                    &copy; {new Date().getFullYear()} {brandName()}. All rights reserved.
-                                </span>
-                            )}
-                        </div>
+                    <FlashMessageRender css={tw`mb-4`} />
+                    <Form {...props} ref={ref}>
+                        {props.children}
+                    </Form>
+
+                    {/* No card, so no divider rule above this either - it would read
+                        as the top edge of a panel that is not there. Register still
+                        passes its own footer, which is the one screen that needs the
+                        way back; everywhere else the sign-up CTA above already says
+                        it, and the default is just the copyright. */}
+                    <div className={'pt-auth-footer'}>
+                        {footer !== undefined ? (
+                            footer
+                        ) : (
+                            <span>
+                                &copy; {new Date().getFullYear()} {brandName()}. All rights reserved.
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
         );
+    }
+);
     }
 );

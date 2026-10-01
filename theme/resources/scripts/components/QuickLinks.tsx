@@ -60,30 +60,18 @@ const Glyph: React.FC<{ slot: QuickLinkSlot }> = ({ slot }) => {
  * The admin's quick links, resolved once. Each entry is null when that link is
  * switched off, which is what makes the toggle in Admin -> Site Settings -> Links
  * hide the button rather than just disabling it.
+ *
+ * The auth screens used to render their own row of these under the brand
+ * lockup. It is gone: the reference puts nothing but the logo in the top-left,
+ * the sign-up button is already the loudest thing on the page, and a row of
+ * "Home / Discord / Status" pills above it competed with both. Home is still one
+ * click away on every auth screen - it is the breadcrumb AuthenticationRouter
+ * pins to the top-left corner - so nothing became unreachable.
  */
-const resolve = (area: 'auth' | 'bar'): { slot: QuickLinkSlot; href: string }[] => {
-    const slots: QuickLinkSlot[] = area === 'auth' ? ['home', 'discord', 'status'] : ['discord', 'status'];
-
-    return slots
+const resolve = (): { slot: QuickLinkSlot; href: string }[] =>
+    (['discord', 'status'] as QuickLinkSlot[])
         .map((slot) => ({ slot, href: linkHref(slot) }))
         .filter((link): link is { slot: QuickLinkSlot; href: string } => link.href !== null);
-};
-
-export const AuthLinks: React.FC = () => {
-    const links = resolve('auth');
-    if (links.length === 0) return null;
-
-    return (
-        <nav className={'pt-links'} aria-label={'Quick links'}>
-            {links.map(({ slot, href }) => (
-                <a key={slot} className={'pt-link'} href={href} target={'_blank'} rel={'noopener noreferrer'}>
-                    <Glyph slot={slot} />
-                    <span>{LABELS[slot]}</span>
-                </a>
-            ))}
-        </nav>
-    );
-};
 
 /**
  * The centred topbar cluster: Home, then whichever of Discord and Status the
@@ -96,7 +84,7 @@ export const AuthLinks: React.FC = () => {
  * of silently sending people to the dashboard.
  */
 export const TopbarLinkCluster: React.FC = () => {
-    const links = resolve('bar');
+    const links = resolve();
     const home = linkHref('home');
     if (home === null && links.length === 0) return null;
 

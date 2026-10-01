@@ -17,13 +17,16 @@ What it changes on top of the stock panel:
   with no component edits. Every pairing is measured: stock muted ink clears
   4.5:1 on both the page and a card, and the blue fill clears 4.57:1 with white
   text.
-- **Glass** — the topbar, mobile drawer and login card are genuinely
+- **Glass** — the topbar and mobile drawer are genuinely
   frosted (`backdrop-filter: blur + saturate`). Cards and the console header use
   the same material vocabulary — hairline border, top inner highlight, tinted fill —
   but deliberately **without** a blur: one
   `backdrop-filter` per row of a scrolling server list is the single most
   expensive thing you can put on a panel. Corners are rounded again on the
   frosted surfaces only; dense, unstyled areas stay square.
+  The **auth screens are excluded entirely** — the form sits directly on the dark
+  page, so there is nothing behind a panel for a blur to sample, and the light
+  input fills are the contrast anchor for the form.
   The recipe is retuned for light, where a white tint on a white card would be
   nothing at all.
   Users who ask for less transparency (`prefers-reduced-transparency`) or run
@@ -39,16 +42,23 @@ What it changes on top of the stock panel:
   show-all-servers switch and a **Create** button, then a two-column grid of dark
   server cards carrying a pink accent bar, the name, the uuid, the egg and a round
   power button (pink to stop, blue to start).
-- **Login** — a modern floating auth card, centred both ways on the page: soft
-  accent glow on the dark backdrop, a white logo chip instead of the old
-  coloured masthead, an uppercase brand eyebrow, a strong "Welcome back" title,
-  dark inputs with a navy focus ring and a full-width accent button (checkpoint,
-  forgot and reset screens follow the same treatment).
+- **Login** — a flat column on a **dark** page, matching the reference's
+  arrangement rather than the dashboard's light one: the emblem centred above a
+  "Welcome to {brand}" heading, a full-width sign-up button, an "or" rule, then
+  one small "Login" label above a **single row** holding username, password and
+  the submit button side by side, with "Forgot password?" underneath. The inputs
+  are light boxes with dark text on the dark page; the row stacks below 700px.
+  There is **no card** — the reference has no panel behind the form. Checkpoint,
+  forgot, reset and register follow the same flat treatment.
+- **Top-left corner** — the auth screens pin a `Home / {screen}` breadcrumb to
+  the viewport's top-left. The emblem is deliberately *not* there; it moved to the
+  centre above the heading, and lost its brand-name text because the heading
+  already names the brand.
 - **Registration** — a public sign-up page (`/auth/register`) with email, first
-  and last name, username, password and confirm-password. It appears behind a
-  "Don't have an account? Register here" link on the login card only when the
-  admin enables it; accounts are created directly by the panel's own user
-  service (hashed password, welcome e-mail, activity log) — no API key.
+  and last name, username, password and confirm-password. It appears behind the
+  login page's sign-up button only when the admin enables it; accounts are created
+  directly by the panel's own user service (hashed password, welcome e-mail,
+  activity log) — no API key.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -91,12 +101,14 @@ What it changes on top of the stock panel:
   The page is responsive: the blocks stack full-width on a phone, the preview
   sits beside its controls on desktop, and the range input stays full-width so
   it is usable on touch.
-- **Quick links** — the enabled links appear as buttons above the login and
-  register forms. A `Home / Login` (or `Home / Register`) breadcrumb sits in the
-  page's top-left corner, pinned to the viewport rather than to the card.
-  **Discord** and **Status** also appear as icons in the dashboard topbar, next
-  to a **Home** button. Disabling a link in the admin removes the button
-  entirely. The Discord glyph is the real brand mark, inlined as SVG — the panel
+- **Quick links** — **Home** appears in the auth screens as a `Home / Login`
+  (or `Home / {screen}`) breadcrumb pinned to the viewport's top-left corner.
+  **Home**, **Discord** and **Status** also appear as icons in the dashboard
+  topbar. Disabling a link in the admin removes the link entirely. The auth
+  screens used to render their own row of pill buttons for these above the form;
+  that row is gone — the breadcrumb already carries Home, the sign-up button is
+  the loudest thing on the page, and a row of pills competed with both.
+  The Discord glyph is the real brand mark, inlined as SVG — the panel
   only ships FontAwesome's *solid* set, so the Discord icon is not available as
   a dependency and the theme does not add one just for it.
 
@@ -117,7 +129,8 @@ What it changes on top of the stock panel:
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   icon uploaded on the Site Settings page (falling back to the theme emblem) - the
   stock `/favicons` folder is removed on install and restored on uninstall.
-- The **brand name** (topbar brand, page-title line, login card, footer) is read from
+- The **brand name** (topbar brand, page-title line, the auth heading and footer)
+  is read from
   the panel's own name setting - `config('app.name')`, exposed to the client as
   `window.SiteConfiguration.name` via `resources/scripts/lib/brand.ts`. Nothing is
   hardcoded, so renaming the panel rebrands the theme automatically.
@@ -484,7 +497,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace |
-| `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the split-screen shell (see *Auth layout* below) |
+| `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |

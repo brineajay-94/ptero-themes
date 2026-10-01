@@ -6,10 +6,12 @@ import { useStoreState } from 'easy-peasy';
 import { Formik, FormikHelpers } from 'formik';
 import { object, string } from 'yup';
 import Field from '@/components/elements/Field';
-import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
+import { brandName } from '@/lib/brand';
 
 interface Values {
     username: string;
@@ -86,29 +88,61 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Welcome back'} subtitle={'Log in to manage your game server'}>
-                    {/* Deliberately "Username or Email", not the reference's
-                        "Email address": the panel's login endpoint accepts
-                        either, and a narrower label would be wrong for anyone
-                        signing in with their username. */}
-                    <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
-                    <div css={tw`mt-4`}>
-                        <Field
-                            light
-                            type={'password'}
-                            label={'Password'}
-                            name={'password'}
-                            disabled={isSubmitting}
-                        />
+                <LoginFormContainer title={`Welcome to ${brandName()}`}>
+                    {/* The reference puts ONE small label above the whole row rather
+                        * than a label per field, and gives both fields a placeholder
+                        * instead. The per-field labels are still rendered - clipped, not
+                        * display:none, so they stay in the accessibility tree and a
+                        * screen reader still hears which box is which - because a
+                        * placeholder is not a label and disappears the moment you type. */}
+                    <div className={'pt-auth-section-label'}>Login</div>
+
+                    <div className={'pt-auth-inline'}>
+                        <div className={'pt-auth-inline-field'}>
+                            <span className={'pt-auth-inline-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faUser} />
+                            </span>
+                            {/* Deliberately "Username or Email", not the reference's
+                                "Email address": the panel's login endpoint accepts
+                                either, and a narrower label would be wrong for anyone
+                                signing in with their username. The placeholder keeps the
+                                reference's shorter "Username". */}
+                            <Field
+                                light
+                                type={'text'}
+                                label={'Username or Email'}
+                                placeholder={'Username'}
+                                name={'username'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className={'pt-auth-inline-field'}>
+                            <span className={'pt-auth-inline-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faLock} />
+                            </span>
+                            <Field
+                                light
+                                type={'password'}
+                                label={'Password'}
+                                placeholder={'Password'}
+                                name={'password'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        {/* Third item in the row, not a block under it. */}
+                        <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
+                            Log in
+                        </Button>
                     </div>
-                    <div css={tw`mt-3`}>
+
+                    <div className={'pt-auth-aside'}>
                         <Link className={'pt-auth-aside-link'} to={'/auth/password'}>
                             Forgot password?
                         </Link>
                     </div>
-                    <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
-                        Log in
-                    </Button>
+
                     {recaptchaEnabled && (
                         <Reaptcha
                             ref={ref}

@@ -65,7 +65,7 @@
         {
             "path": "resources/scripts/components/QuickLinks.tsx",
             "action": "create",
-            "note": "Admin-configured Home/Discord/Status links: <AuthLinks> row above the auth card, <TopbarLinkCluster> centred pills in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons"
+            "note": "Admin-configured Home/Discord/Status links: <TopbarLinkCluster> centred pills in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons. <AuthLinks> and its row of pills were removed - the auth screens now put the emblem centred above the heading and nothing in the top-left except the Home / <screen> breadcrumb that AuthenticationRouter pins there, which is where Home already lived"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",
@@ -100,12 +100,12 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "The auth shell shared by every auth screen: a single centred column with the brand lockup at the top, then the heading, the sign-up call to action and the form card. This replaced a 50/50 split whose left half existed to carry a hero illustration - with the illustration gone the second column only pushed the form off a laptop screen. The sign-up CTA renders only when registration is actually enabled, so it can never link to a route the admin has closed, and showSignUpCta=false turns it off on the register screen where the footer already offers the same link"
+            "note": "The auth shell shared by every auth screen: a single flat column on a dark page - emblem centred above the heading, then the sign-up call to action, then the form directly on the page with no card. This replaced a 50/50 split whose left half existed to carry a hero illustration, and then replaced the white form card, which the reference has no equivalent of. The logo moved off the top-left corner (where the breadcrumb lives) and lost its brand-name text, since the heading already reads \"Welcome to <brand>\". The sign-up CTA renders only when registration is actually enabled, so it can never link to a route the admin has closed, and showSignUpCta=false turns it off on the register screen where the footer already offers the same link"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Login form + success flash after registration (?registered=1). Copy matches the reference (\"Welcome back\" / \"Log in to manage your game server\", \"Log in\"), except the field stays \"Username or Email\" because the endpoint accepts either. The \"Forgot password?\" link moved onto the Password label row via Field labelAction. The \"Want to manage a friend's server?\" subuser nudge was removed from the login page (component, prop, caller, CSS and preview all dropped together)"
+            "note": "Login form + success flash after registration (?registered=1). Matches the reference's arrangement: \"Welcome to <brand>\" heading, full-width sign-up CTA, \"or\", then one small \"Login\" label above a single row holding username, password and the submit button side by side, with \"Forgot password?\" under the row. The per-field labels are still rendered but clipped (not display:none) so they stay in the accessibility tree - a placeholder is not a label. The field stays \"Username or Email\" because the endpoint accepts either. Two things from the reference are deliberately absent: the row of social buttons, because the panel has no social login and a dead Google button is worse than none, and the card the form used to sit in. The \"Want to manage a friend's server?\" subuser nudge was removed earlier (component, prop, caller, CSS and preview all dropped together)"
         },
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",

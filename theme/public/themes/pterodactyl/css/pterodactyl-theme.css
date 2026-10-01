@@ -1857,14 +1857,40 @@
  * not recomputed per breakpoint. */
 .pt-auth-field-icon {
     position: absolute;
-    top: 2.05rem;
+    /*
+     * Centred on the INPUT, which is not the same as centring on `.pt-auth-field` -
+     * that wrapper also contains the label, so its centre is the midpoint of
+     * label + box and the glyph lands between them.
+     *
+     * `display: contents` on Field's wrapper would let a grid put the glyph and
+     * the input in one row and centre it with `align-self`, with no arithmetic at
+     * all. It is not available here: the panel's own Input component (which the
+     * theme does not ship) wraps the <input> in a further div, so flattening one
+     * level lands on that div instead and the input stays boxed on its own.
+     *
+     * So the offset is spelled out, from three values this stylesheet fixes:
+     *   label line box   0.82rem * 1.2 (line-height set below)  = 0.984rem
+     *   label margin-bottom                                        = 0.45rem
+     *   half the input          2.75rem / 2                        = 1.375rem
+     * The label's line-height is set explicitly rather than inherited so the
+     * first term does not depend on the panel's body line-height, and the label
+     * is nowrap so the box cannot become two lines and invalidate the sum.
+     */
+    top: calc(0.984rem + 0.45rem + 1.375rem);
     left: 0.9rem;
     z-index: 1;
     display: flex;
     transform: translateY(-50%);
     pointer-events: none;
     font-size: 0.95rem;
-    color: rgb(255 255 255 / 0.5);
+    color: rgb(255 255 255 / 0.55);
+}
+
+/* Inside the login row the label is clipped, which takes it out of flow - so the
+ * input starts at the top of the wrapper and the whole label term above is zero.
+ * Half of the row's 2.9rem box is the whole offset. */
+.pt-auth-inline .pt-auth-field-icon {
+    top: 1.45rem;
 }
 
 .pt-auth-field input {
@@ -1930,6 +1956,14 @@
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
+    /* Both of these are load-bearing, not cosmetic. `line-height` fixes the label
+     * box height so `.pt-auth-field-icon`'s offset arithmetic stays correct
+     * instead of depending on the panel's inherited body line-height, and
+     * `nowrap` keeps that box one line tall. Every auth label is short enough
+     * ("Confirm password" is the longest at ~8rem) to fit the narrowest field it
+     * appears in. Do not remove either without recomputing that offset. */
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 /* The required-field marker. Accent-coloured and aria-hidden - a screen reader

@@ -1,183 +1,127 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEthernet, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faServer, faStop, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
-import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
-import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
-import tw from 'twin.macro';
-import isEqual from 'react-fast-compare';
+import getServerResourceUsage, { ServerPowerState } from '@/api/server/getServerResourceUsage';
+import sendPowerAction from '@/api/server/sendPowerAction';
 
-const isAlarmState = (current: number, limit: number): boolean => limit > 0 && current / (limit * 1024 * 1024) >= 0.9;
+/** What the card shows about power, which is not the same as the API's states. */
+type CardPower = 'running' | 'stopped' | 'busy' | 'offline';
 
-type StatusKind = 'online' | 'offline' | 'busy' | 'neutral';
+const busy = (server: Server) =>
+    server.status === 'installing' || server.status === 'restoring_backup' || !!server.isTransferring;
 
-const Stat = ({
-    label,
-    value,
-    limit,
-    percent,
-    alarm,
-}: {
-    label: string;
-    value: string;
-    limit: string;
-    percent: number | null;
-    alarm: boolean;
-}) => (
-    <div className={'pt-stat'}>
-        <div className={'pt-stat-label'}>{label}</div>
-        <div className={'pt-stat-value'}>{value}</div>
-        <div className={'pt-stat-limit'}>of {limit}</div>
-        {percent !== null && (
-            <div className={`pt-bar${alarm ? ' is-alarm' : ''}`}>
-                <i style={{ width: `${Math.max(2, Math.min(100, percent))}%` }} />
-            </div>
-        )}
-    </div>
-);
-
+/**
+ * One server, as a card in the reference's two-column grid.
+ *
+ * This replaced a full-width row carrying live CPU / memory / disk bars. The
+ * reference's card is much quieter - name, uuid, egg, and a power button - and
+ * those bars were why a scrolling list of these was expensive to render as well
+ * as why it read as a data table rather than a list of servers. The numbers are
+ * still available one click away on the server's own page.
+ *
+ * The card is a single <Link>, as the row was. The power button is inside it, so
+ * it stops propagation - otherwise clicking it would navigate as well as fire.
+ */
 const ServerRow = ({ server, className }: { server: Server; className?: string }) => {
     const interval = useRef<ReturnType<typeof setInterval>>(null) as React.MutableRefObject<
         ReturnType<typeof setInterval>
     >;
-    const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
-    const [stats, setStats] = useState<ServerStats | null>(null);
+    const [power, setPower] = useState<CardPower>(() => (busy(server) ? 'busy' : 'offline'));
+    const [pending, setPending] = useState(false);
 
-    const getStats = () =>
-        getServerResourceUsage(server.uuid)
-            .then((data) => setStats(data))
-            .catch((error) => console.error(error));
-
-    useEffect(() => {
-        setIsSuspended(stats?.isSuspended || server.status === 'suspended');
-    }, [stats?.isSuspended, server.status]);
+    // Suspended and node-maintenance servers have no live stats to poll, and
+    // asking anyway just fills the panel log with errors.
+    const pollable = server.status !== 'suspended' && !server.isNodeUnderMaintenance;
 
     useEffect(() => {
-        if (isSuspended || server.isNodeUnderMaintenance) return;
+        if (!pollable) {
+            setPower(busy(server) ? 'busy' : 'offline');
 
-        getStats().then(() => {
-            interval.current = setInterval(() => getStats(), 30000);
+            return;
+        }
+
+        let cancelled = false;
+        const read = () =>
+            getServerResourceUsage(server.uuid)
+                .then((data: { status: ServerPowerState }) => {
+                    if (cancelled || pending) return;
+                    setPower(data.status === 'running' ? 'running' : 'stopped');
+                })
+                .catch((error) => console.error(error));
+
+        read().then(() => {
+            interval.current = setInterval(read, 30000);
         });
 
         return () => {
+            cancelled = true;
             interval.current && clearInterval(interval.current);
         };
-    }, [isSuspended, server.isNodeUnderMaintenance]);
+        // `pending` is deliberately absent: including it would tear down and
+        // rebuild the 30s timer on every press of the button.
+    }, [pollable, server.status, server.isNodeUnderMaintenance, server.isTransferring]);
 
-    const alarms = { cpu: false, memory: false, disk: false };
-    if (stats) {
-        alarms.cpu = server.limits.cpu === 0 ? false : stats.cpuUsagePercent >= server.limits.cpu * 0.9;
-        alarms.memory = isAlarmState(stats.memoryUsageInBytes, server.limits.memory);
-        alarms.disk = server.limits.disk === 0 ? false : isAlarmState(stats.diskUsageInBytes, server.limits.disk);
-    }
+    // Flip locally the moment the press lands rather than waiting up to 30s for
+    // the poll, then let the poll correct it if the daemon disagrees.
+    const toggle = useCallback(
+        (event: React.MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
 
-    const diskLimit = server.limits.disk !== 0 ? bytesToString(mbToBytes(server.limits.disk)) : 'Unlimited';
-    const memoryLimit = server.limits.memory !== 0 ? bytesToString(mbToBytes(server.limits.memory)) : 'Unlimited';
-    const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
+            if (pending || power === 'busy' || power === 'offline') return;
 
-    let statusLabel = 'Connecting';
-    let statusKind: StatusKind = 'neutral';
-    let statusColor = 'rgb(var(--pt-gray-500))';
+            const next: CardPower = power === 'running' ? 'stopped' : 'running';
+            setPending(true);
+            setPower(next);
 
-    if (isSuspended) {
-        statusLabel = server.status === 'suspended' ? 'Suspended' : 'Connection Error';
-        statusKind = 'offline';
-        statusColor = 'rgb(var(--pt-red-500))';
-    } else if (server.isNodeUnderMaintenance) {
-        statusLabel = 'Maintenance';
-        statusKind = 'busy';
-        statusColor = 'rgb(var(--pt-yellow-500))';
-    } else if (server.isTransferring || server.status) {
-        statusLabel = server.isTransferring
-            ? 'Transferring'
-            : server.status === 'installing'
-            ? 'Installing'
-            : server.status === 'restoring_backup'
-            ? 'Restoring'
-            : 'Unavailable';
-        statusKind = 'busy';
-        statusColor = 'rgb(var(--pt-yellow-500))';
-    } else if (stats) {
-        const running: ServerPowerState = stats.status;
-        statusLabel = running === 'running' ? 'Running' : 'Stopped';
-        statusKind = running === 'running' ? 'online' : 'offline';
-        statusColor = running === 'running' ? 'rgb(var(--pt-green-500))' : 'rgb(var(--pt-red-500))';
-    }
+            sendPowerAction(server.uuid, next === 'running' ? 'start' : 'stop')
+                .then(() => getServerResourceUsage(server.uuid).then((data) => setPower(data.status === 'running' ? 'running' : 'stopped')))
+                .catch((error) => {
+                    console.error(error);
+                    // Roll the optimistic flip back - the daemon refused it.
+                    setPower(power === 'running' ? 'running' : 'stopped');
+                })
+                .finally(() => setPending(false));
+        },
+        [pending, power, server.uuid]
+    );
 
-    const ready = !!stats && !isSuspended && !server.isNodeUnderMaintenance && !server.isTransferring && !server.status;
+    // The egg's user-visible name. Not every panel build includes it on the
+    // servers list, hence the fallbacks rather than assuming it is always there.
+    const source = server as unknown as { eggName?: string; egg?: string };
+    const egg = source.eggName || source.egg;
 
-    const cpuPercent =
-        ready && stats && server.limits.cpu > 0 ? (stats.cpuUsagePercent / server.limits.cpu) * 100 : null;
-    const memPercent =
-        ready && stats && server.limits.memory > 0
-            ? (stats.memoryUsageInBytes / mbToBytes(server.limits.memory)) * 100
-            : null;
-    const diskPercent =
-        ready && stats && server.limits.disk > 0
-            ? (stats.diskUsageInBytes / mbToBytes(server.limits.disk)) * 100
-            : null;
+    const canToggle = power === 'running' || power === 'stopped';
+    const label =
+        power === 'running' ? 'Stop this server' : power === 'stopped' ? 'Start this server' : 'Power state unavailable';
 
     return (
-        <Link
-            to={`/server/${server.id}`}
-            className={`pt-server-card ${className || ''}`}
-            style={{ ['--pt-status' as string]: statusColor }}
-        >
-            <div className={'pt-server-tile'}>
-                <FontAwesomeIcon icon={faServer} />
-            </div>
+        <Link to={`/server/${server.id}`} className={`pt-server-card ${className || ''}`} data-power={power}>
+            <span className={'pt-server-accent'} aria-hidden={'true'} />
 
-            <div className={'min-w-0'}>
-                <p className={'pt-server-name'}>{server.name}</p>
-                {!!server.description && <p className={'pt-server-desc'}>{server.description}</p>}
-                <div className={'pt-server-meta'}>
-                    <span className={`pt-chip pt-chip--${statusKind}`}>{statusLabel}</span>
-                    {server.allocations
-                        .filter((allocation) => allocation.isDefault)
-                        .map((allocation) => (
-                            <span
-                                key={allocation.ip + allocation.port.toString()}
-                                className={'pt-chip pt-chip--allocation'}
-                            >
-                                <FontAwesomeIcon icon={faEthernet} css={tw`mr-1 opacity-70`} />
-                                {allocation.alias || ip(allocation.ip)}:{allocation.port}
-                            </span>
-                        ))}
-                </div>
-            </div>
+            <span className={'pt-server-body'}>
+                <span className={'pt-server-name'}>{server.name}</span>
+                <span className={'pt-server-uuid'}>{server.uuid}</span>
+                <span className={'pt-server-egg'}>
+                    <FontAwesomeIcon icon={faServer} aria-hidden={'true'} />
+                    {egg || 'No egg assigned'}
+                </span>
+            </span>
 
-            <div className={'pt-server-stats'}>
-                {!ready ? (
-                    <span className={'pt-stat-label'}>Awaiting live stats</span>
-                ) : (
-                    <>
-                        <Stat
-                            label={'CPU'}
-                            value={`${stats!.cpuUsagePercent.toFixed(2)}%`}
-                            limit={cpuLimit}
-                            percent={cpuPercent}
-                            alarm={alarms.cpu}
-                        />
-                        <Stat
-                            label={'Memory'}
-                            value={bytesToString(stats!.memoryUsageInBytes)}
-                            limit={memoryLimit}
-                            percent={memPercent}
-                            alarm={alarms.memory}
-                        />
-                        <Stat
-                            label={'Disk'}
-                            value={bytesToString(stats!.diskUsageInBytes)}
-                            limit={diskLimit}
-                            percent={diskPercent}
-                            alarm={alarms.disk}
-                        />
-                    </>
-                )}
-            </div>
+            <button
+                type={'button'}
+                className={'pt-server-power'}
+                onClick={toggle}
+                disabled={!canToggle || pending}
+                aria-label={label}
+                title={label}
+            >
+                <FontAwesomeIcon icon={power === 'running' ? faStop : faPlay} aria-hidden={'true'} />
+            </button>
         </Link>
     );
 };
 
-export default memo(ServerRow, isEqual);
+export default memo(ServerRow);

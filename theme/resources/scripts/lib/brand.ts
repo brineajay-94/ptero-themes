@@ -4,7 +4,6 @@ interface BrandWindow extends Window {
         logo?: string | null;
         registration?: { enabled?: boolean };
         backgrounds?: { auth?: string | null; dashboard?: string | null };
-        illustration?: string | null;
         overlay?: {
             auth?: { rgb?: string; strength?: string };
             dashboard?: { rgb?: string; strength?: string };
@@ -31,23 +30,6 @@ export const brandName = (): string => {
  * custom logo has been uploaded yet - callers fall back to the theme emblem.
  */
 export const logoUrl = (): string | null => (window as BrandWindow).SiteConfiguration?.logo || null;
-
-/**
- * The hero illustration for the auth screens, or null when the admin has not
- * set one or has switched it off.
- *
- * A separate setting from the auth background: the background is a full-bleed
- * photo behind the whole hero, the illustration floats in the upper half of it
- * on top. They composite, so either, both or neither can be in play.
- *
- * Server-side uploads have already had their white background keyed to
- * transparency and been cropped (see IllustrationProcessor), so what arrives
- * here composites cleanly on the dark hero. A pasted https:// link is used
- * verbatim, which is why an admin who links one needs it to be transparent
- * already.
- */
-export const illustrationUrl = (): string | null =>
-    (window as BrandWindow).SiteConfiguration?.illustration || null;
 
 /**
  * True when the admin has enabled public registration (Admin -> Registration).

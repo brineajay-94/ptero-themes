@@ -96,15 +96,19 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                         either, and a narrower label would be wrong for anyone
                         signing in with their username. */}
                     <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
-                    <div css={tw`mt-5`}>
+                    <div css={tw`mt-4`}>
                         <Field
                             light
                             type={'password'}
                             label={'Password'}
                             name={'password'}
                             disabled={isSubmitting}
-                            labelAction={<Link to={'/auth/password'}>Forgot password?</Link>}
                         />
+                    </div>
+                    <div css={tw`mt-3`}>
+                        <Link className={'pt-auth-aside-link'} to={'/auth/password'}>
+                            Forgot password?
+                        </Link>
                     </div>
                     <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
                         Log in

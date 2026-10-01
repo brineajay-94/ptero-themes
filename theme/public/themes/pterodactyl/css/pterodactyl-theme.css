@@ -62,95 +62,142 @@
  * alternative; there is no separate "default" slug any more - `:root` *is* the
  * default, so a panel with nothing stored renders these tokens).
  *
- *   page #0b0b0d · surface #141417 · raised #060608 · border #1c1c20
- *   text #f5f5f7 · muted #94949c · accent #c8ccd0 · glow #5c6064
- *   success #22c55e · danger #ef4444 · warning #f59e0b
+ *   page #0b0b0d Ãƒâ€šÃ‚Â· surface #141417 Ãƒâ€šÃ‚Â· raised #060608 Ãƒâ€šÃ‚Â· border #1c1c20
+ *   text #f5f5f7 Ãƒâ€šÃ‚Â· muted #94949c Ãƒâ€šÃ‚Â· accent #c8ccd0 Ãƒâ€šÃ‚Â· glow #5c6064
+ *   success #22c55e Ãƒâ€šÃ‚Â· danger #ef4444 Ãƒâ€šÃ‚Â· warning #f59e0b
  */
 :root {
     --pt-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --pt-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-    /* Primary - buttons, links, active rows, focus rings. Neutral, not blue.
+    /* Primary - buttons, links, active rows, focus rings.
      *
-     * The step each value lands on is chosen by what the stock panel does with
-     * it, measured rather than guessed. Across the panel's own markup:
+     * The roles are unchanged from the dark palette and only the polarity
+     * flipped, so the same step still does the same job - it is just dark now
+     * instead of light. Across the panel's own markup:
      *
      *   text-(blue|primary|cyan|gold)-*  ->  steps 50-500, never 600
      *   bg-(blue|primary)-500/600        ->  6 fill uses, 600 is the common one
      *
-     * So 600 is a FILL step and cannot be the light accent: painting it light
-     * turned every stock `bg-primary-600` tile (server/console/StatBlock paints
-     * its icon with it) into a near-white slab. The light accent therefore lives
-     * at 300/400, which is what the text utilities actually reach for, and 600
-     * drops to a muted fill that a light glyph reads against.
+     * So 600 is still a FILL step and still cannot be the accent colour: painting
+     * it as the accent turned every stock `bg-primary-600` tile (server/console/
+     * StatBlock paints its icon with it) into a pale slab. The accent therefore
+     * lives at 300/400, which is what the text utilities reach for, and 600 is a
+     * muted fill a light glyph reads against.
      *
-     * 300/400 light  - links, icons, hairlines, filled buttons (dark label)
-     * 500 mid        - progress fills, subtle chips, gradient ingredients
-     * 600 muted fill - stock bg-primary-600 tiles
-     * 700 deep       - opaque surface washes, dark dividers
-     * 800/900        - the dark surfaces chrome is built from */
-    --pt-navy-50: 248 250 252;
-    --pt-navy-100: 233 237 241;
-    --pt-navy-200: 216 220 224;
-    --pt-navy-300: 200 204 208; /* #c8ccd0 the light accent, 12.2:1 on the page */
-    --pt-navy-400: 174 178 182; /* #aeb2b6 hairlines, borders, section rules */
-    --pt-navy-500: 140 144 148; /* #8c9094 mid - progress, chips, gradients */
-    --pt-navy-600: 78 82 86; /* #4e5256 muted fill - stock bg-primary-600 */
-    --pt-navy-700: 44 47 50; /* #2c2f32 opaque washes, dark dividers */
-    --pt-navy-800: 26 26 30; /* active nav row, top depth wash */
-    --pt-navy-900: 13 13 15; /* sidebar, topbar, brand */
+     *   300/400 dark  - links, icons, hairlines, filled buttons (light label)
+     *   500 mid       - progress fills, subtle chips, gradient ingredients
+     *   600 light fill- stock bg-primary-600 tiles
+     *   700 deeper    - opaque washes, borders
+     *   800/900       - the pale chrome fills a dark island is built from
+     *
+     * A filled button now takes a LIGHT label, the mirror of the dark palette's
+     * near-black one - the same pairing every light theme uses. */
+    --pt-navy-50: 252 252 253;
+    --pt-navy-100: 240 241 244;
+    --pt-navy-200: 214 217 223;
+    --pt-navy-300: 41 119 203; /* the accent - #2977cb, 4.57:1 with white */
+    --pt-navy-400: 30 88 150; /* #1e5896 links, hairlines, hover */
+    --pt-navy-500: 86 93 105; /* mid - progress, chips, gradients */
+    --pt-navy-600: 240 241 244; /* light fill - stock bg-primary-600 */
+    --pt-navy-700: 223 227 232; /* opaque washes, borders */
+    --pt-navy-800: 45 55 72; /* the dark chrome islands are built from this */
+    --pt-navy-900: 36 44 58;
 
     /* Accent alias: the reference uses blue for every accent, so the gold ramp
-     * tracks navy step for step - which for this palette means neutral too. */
-    --pt-gold-50: 248 250 252;
-    --pt-gold-100: 233 237 241;
-    --pt-gold-200: 216 220 224;
-    --pt-gold-300: 200 204 208;
-    --pt-gold-400: 174 178 182;
-    --pt-gold-500: 140 144 148;
-    --pt-gold-600: 78 82 86;
-    --pt-gold-700: 44 47 50;
-    --pt-gold-800: 26 26 30;
-    --pt-gold-900: 13 13 15;
+     * tracks navy step for step - which for this palette means blue too. */
+    --pt-gold-50: 252 252 253;
+    --pt-gold-100: 240 241 244;
+    --pt-gold-200: 214 217 223;
+    --pt-gold-300: 41 119 203;
+    --pt-gold-400: 30 88 150;
+    --pt-gold-500: 86 93 105;
+    --pt-gold-600: 240 241 244;
+    --pt-gold-700: 223 227 232;
+    --pt-gold-800: 45 55 72;
+    --pt-gold-900: 36 44 58;
 
-    /* Surfaces and text (dark only, no mirror).
+    /* Surfaces and text.
      *
-     * The ramp is split in two at 500/600, and the split is not cosmetic:
+     * This palette is LIGHT: a near-white page with dark chrome islands. The ramp
+     * keeps the ROLES it had when it was dark - 50-500 are ink steps, 600-900 are
+     * surface steps - and only the polarity flips. That is deliberate and load
+     * bearing: ~200 stock Tailwind call sites (`text-neutral-300`,
+     * `bg-neutral-700`) resolve through these tokens, so preserving the roles is
+     * what re-skins the console, file manager and admin pages without touching a
+     * single component.
      *
-     *   50 - 500  TEXT steps. Stock Pterodactyl uses `text-neutral-500` for every
-     *           piece of small muted text in the panel - the auth "Forgot
-     *           password?" link, pagination footers, and the meta line on every
-     *           subuser / database / schedule / backup row (22 uses). It has to
-     *           be a readable colour, so 500 clears 4.5:1 on every surface here
-     *           (4.69:1 on a card, 5.01:1 on the page).
-     *   600 - 900 SURFACE steps. `bg-neutral-600` is a row fill in 12 places and
-     *           `border-neutral-600` a divider in 5, so these stay dark. 500 to
-     *           600 is therefore a deliberate cliff, not a missing step.
+     *   50 - 500  INK, dark. Stock Pterodactyl uses `text-neutral-500` for all its
+     *           small muted text (22 uses), so 500 clears 4.5:1 on the page AND on
+     *           a card - 4.65:1 and 5.13:1. 400 carries more headroom (4.70/5.18)
+     *           because solving both to the same threshold collapses them into one
+     *           value and the ramp stops having steps.
+     *   600 - 900  SURFACE, light. 600 is a row fill and a border, 700 a card,
+     *           800 the page, 900 raised chrome.
      *
-     * These used to run 500 = `38 38 42` and 600 = `28 28 32`, i.e. two dark
-     * surface steps, which put muted text at 1.22:1 on a card - effectively
-     * invisible. */
-    --pt-gray-50: 245 245 247;
-    --pt-gray-100: 214 214 219;
-    --pt-gray-200: 188 188 194;
-    --pt-gray-300: 162 162 169;
-    --pt-gray-400: 140 140 147; /* muted text, hairlines */
-    --pt-gray-500: 128 128 135; /* faintest text - text-neutral-500 */
-    --pt-gray-600: 28 28 32; /* SURFACE from here down: fills, borders, hover */
-    --pt-gray-700: 20 20 23; /* card, sidebar, header */
-    --pt-gray-800: 11 11 13; /* page */
-    --pt-gray-900: 6 6 8; /* raised chrome */
+     * Note 700 and 900 are both #fff: on a light page a raised surface is
+     * distinguished by its shadow and border, not by being a different fill. */
+    --pt-gray-50: 16 19 26;
+    --pt-gray-100: 34 38 46;
+    --pt-gray-200: 61 67 78;
+    --pt-gray-300: 86 93 105; /* body text - stock text-neutral-300 */
+    --pt-gray-400: 95 101 114; /* muted text, hairlines */
+    --pt-gray-500: 105 111 123; /* faintest stock text - text-neutral-500 */
+    --pt-gray-600: 223 227 232; /* SURFACE from here down: row fills, borders */
+    --pt-gray-700: 255 255 255; /* card */
+    --pt-gray-800: 242 244 246; /* page */
+    --pt-gray-900: 255 255 255; /* raised chrome, modal */
+
+    /* --------------------------------------------------- dark chrome islands --
+     * The reference is a WHITE page with DARK chrome: a slate topbar and slate
+     * server cards floating on it. That is deliberately non-monotonic - the cards
+     * are darker than the page they sit on - so these are their own tokens rather
+     * than a step of the ramp above.
+     *
+     * They carry their own ink steps too, for the same reason: the page ink is
+     * dark and would be unreadable here. Measured against the slate, not assumed:
+     * ink 11.99:1, muted 5.20:1, faint 4.40:1. */
+    --pt-chrome: 45 55 72; /* #2d3748 topbar + server cards */
+    --pt-chrome-deep: 36 44 58; /* pressed */
+    --pt-chrome-ink: 255 255 255; /* text on chrome */
+    --pt-chrome-muted: 165 172 182; /* muted text on chrome */
+    --pt-chrome-faint: 150 158 170; /* non-text on chrome: icons, dividers */
+
+    /* The card's left accent bar and its stop button. A filled control with an
+     * icon inside, so the ICON is what has to clear AA against the pink - 4.75:1
+     * with white. The pink itself is never the carrier of meaning. */
+    --pt-accent-pink: 219 39 82; /* #db2752 */
+    --pt-accent-pink-deep: 180 32 67;
 
     --pt-black: 0 0 0; /* console, true black */
     --pt-white: 255 255 255;
 
-    /* Cool grey glow field for the aurora and the auth page backdrop. Pure greys
-     * cannot carry much colour, so this stays restrained - but it is not off: at
-     * a lower alpha a black panel with no photo had nothing on screen but a flat
-     * slab, and the frosted surfaces had nothing to refract. */
-    --pt-violet-500: 95 98 103;
-    --pt-violet-400: 136 140 144;
-    --pt-cyan-500: 122 125 130;
+    /* ------------------------------------------------------ auth accent blue --
+     * The sign-up / login buttons only. The rest of the panel stays monochrome -
+     * this is one screen's accent, not a second brand palette, so it is scoped by
+     * the rules that use it rather than remapping navy/gold.
+     *
+     * 500 is the fill and it is white text on it, so the ramp runs *down* from
+     * there: hover and active are DARKER, which is why 400 and 600 are lower than
+     * 500. The usual lighter-on-hover ramp cannot be used here - the reference's
+     * own #2b7cd3 is already 4.26:1 against white, so anything lighter than it
+     * lands under 4.5:1 and the button label stops being readable.
+     *
+     * The measured ratios, since the numbers are the whole reason for the values:
+     * 500 4.57:1, 400 5.69:1, 600 7.26:1 - all against #fff, all AA. 500 is 96%
+     * of the reference blue, so it reads as the same colour. */
+    --pt-blue-400: 36 104 177;
+    --pt-blue-500: 41 119 203; /* #2977cb - the fill, near the reference's #2b7cd3 */
+    --pt-blue-600: 30 88 150; /* pressed */
+
+    /* Cool grey glow field for the aurora and the auth page backdrop. On a light
+     * page an aurora built from pale greys is invisible, so these are now DARK and
+     * very low alpha - the light-theme equivalent of what a coloured bloom does on
+     * black. They are kept off rather than turned up: a visible wash on a white
+     * page reads as dirt. */
+    --pt-violet-500: 30 41 59;
+    --pt-violet-400: 71 85 105;
+    --pt-cyan-500: 100 116 139;
 
     /* Discord's brand blurple, so the Discord quick link is recognisable at a
      * glance without pulling the brand icon set into the panel. */
@@ -158,41 +205,43 @@
 
     /* ------------------------------------------------------------ glass -- *
      * Frosted-surface recipe, applied selectively (see the glass section at
-     * the end of this file). Chrome surfaces - sidebar, topbar, drawer, auth
-     * card, hero, console head - get a real backdrop blur; the repeated server
-     * cards deliberately do NOT, because one backdrop-filter per card is the
-     * single most expensive thing you can put on a scrolling list. They read as
-     * glass from the tint, the hairline border and the top inner highlight.
+     * the end of this file). Chrome surfaces get a real backdrop blur; the
+     * repeated server cards deliberately do NOT, because one backdrop-filter per
+     * card is the single most expensive thing you can put on a scrolling list.
+     *
+     * The polarity is flipped from the dark palette's white overlays. A white
+     * tint on a white card is not glass, it is nothing - so on light surfaces the
+     * tint goes to a dark wash and the "border" becomes a dark hairline with a
+     * lighter inner highlight, which is how a light-theme edge is actually drawn.
      */
     --pt-glass-blur: 18px;
     --pt-glass-saturate: 165%;
-    --pt-glass-tint: 255 255 255 / 0.055;
-    --pt-glass-tint-strong: 255 255 255 / 0.085;
-    --pt-glass-border: 255 255 255 / 0.13;
-    --pt-glass-border-hover: 255 255 255 / 0.26;
-    --pt-glass-highlight: 255 255 255 / 0.14;
+    --pt-glass-tint: 15 23 42 / 0.03;
+    --pt-glass-tint-strong: 15 23 42 / 0.055;
+    --pt-glass-border: 15 23 42 / 0.12;
+    --pt-glass-border-hover: 15 23 42 / 0.24;
+    --pt-glass-highlight: 255 255 255 / 0.7;
     --pt-glass-radius: 14px;
     --pt-glass-radius-sm: 10px;
     --pt-glass-radius-lg: 20px;
-    /* Deeper than a mid-tone palette needs: on true black there is no luminance
-     * left for a shadow to borrow, so the elevation has to come from opacity. */
-    --pt-glass-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.85), 0 2px 8px rgb(0 0 0 / 0.5);
+    --pt-glass-shadow: var(--pt-shadow-lg);
 
     /* --------------------------------------------------------- elevation --
      * Three steps, used by everything that sits above the page. These existed
      * as fifteen-odd hand-written box-shadows, each with its own blur and
      * opacity, so no two raised surfaces in the panel cast the same shadow and
-     * the hierarchy was guesswork. On a true-black page there is no luminance
-     * for a shadow to borrow, so the only way to read elevation is opacity -
-     * which is exactly what a shared scale fixes.
+     * the hierarchy was guesswork.
      *
      *   sm  a hairline lift: rows, chips, small controls
      *   md  a card resting on the page
      *   lg  a panel over content: modals, dropdowns, the auth card
-     */
-    --pt-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --pt-shadow-md: 0 6px 18px rgb(0 0 0 / 0.28), 0 1px 2px rgb(0 0 0 / 0.3);
-    --pt-shadow-lg: 0 24px 48px -20px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
+     *
+     * Softer than the dark palette's. A black page has no luminance to spare, so
+     * elevation there had to come almost entirely from opacity; a light page casts
+     * a real shadow from real contrast, so the same opacities read as mud. */
+    --pt-shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+    --pt-shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+    --pt-shadow-lg: 0 18px 40px -12px rgb(15 23 42 / 0.18), 0 6px 14px -6px rgb(15 23 42 / 0.1);
 
     /* ------------------------------------------------------------ motion --
      * Durations named, so a hover on a nav item and a hover on a file row feel
@@ -227,10 +276,10 @@
         radial-gradient(36rem 28rem at 18% 96%, rgb(var(--pt-violet-400) / 0.1), transparent 64%);
 
     /* Page depth, painted on the container itself rather than on a pseudo
-     * element. This is what stops a panel with no background photo from
-     * reading as one flat slab: a soft lift under the topbar so the chrome
-     * separates from the content, and a barely-there grid that gives large
-     * empty areas some texture rather than dead colour.
+     * element. On a light page the job is the mirror of the dark palette's: keep
+     * a barely-there grid so large empty areas have some texture rather than dead
+     * colour, and a soft darkening under the topbar so the chrome separates from
+     * the content.
      *
      * It sits BELOW the photo on purpose. `.pt-shell::after` paints the
      * admin's image at z-index 0 over this, so when a photo is set it covers
@@ -238,15 +287,15 @@
      * nothing has to test whether a photo exists - the compositing already
      * does it. */
     --pt-page-depth:
-        linear-gradient(180deg, rgb(var(--pt-navy-800) / 0.5) 0%, rgb(var(--pt-navy-800) / 0) 26rem),
-        repeating-linear-gradient(0deg, rgb(255 255 255 / 0.013) 0 1px, transparent 1px 4rem),
-        repeating-linear-gradient(90deg, rgb(255 255 255 / 0.013) 0 1px, transparent 1px 4rem);
+        linear-gradient(180deg, rgb(15 23 42 / 0.05) 0%, rgb(15 23 42 / 0) 26rem),
+        repeating-linear-gradient(0deg, rgb(15 23 42 / 0.016) 0 1px, transparent 1px 4rem),
+        repeating-linear-gradient(90deg, rgb(15 23 42 / 0.016) 0 1px, transparent 1px 4rem);
 
-    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-500) / 0.2), rgb(var(--pt-violet-500) / 0.08));
-    --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-navy-800)), rgb(var(--pt-violet-500) / 0.5));
-    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-500) / 0.22), rgb(var(--pt-cyan-500) / 0.06));
-    --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-navy-800)), rgb(var(--pt-cyan-500) / 0.4));
-    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.14), transparent 68%);
+    --pt-frost-hero: linear-gradient(135deg, rgb(var(--pt-navy-500) / 0.06), rgb(var(--pt-violet-500) / 0.03));
+    --pt-frost-hero-solid: linear-gradient(135deg, rgb(var(--pt-navy-100)), rgb(var(--pt-violet-500) / 0.08));
+    --pt-frost-console: linear-gradient(120deg, rgb(var(--pt-navy-500) / 0.05), rgb(var(--pt-cyan-500) / 0.02));
+    --pt-frost-console-solid: linear-gradient(120deg, rgb(var(--pt-navy-100)), rgb(var(--pt-cyan-500) / 0.07));
+    --pt-frost-bloom: radial-gradient(circle, rgb(var(--pt-violet-500) / 0.07), transparent 68%);
     --pt-topbar-rule: linear-gradient(
         90deg,
         rgb(var(--pt-violet-400) / 0.4),
@@ -489,9 +538,6 @@
 .pt-server-card:focus,
 .pt-drawer-close:focus,
 .pt-console-actions button:focus,
-.pt-chip:focus {
-    outline: none;
-}
 
 .pt-burger:focus-visible,
 .pt-nav-item:focus-visible,
@@ -505,10 +551,6 @@
 .pt-server-card:focus-visible,
 .pt-drawer-close:focus-visible,
 .pt-console-actions button:focus-visible,
-.pt-chip:focus-visible {
-    outline: 2px solid rgb(var(--pt-gold-400)) !important;
-    outline-offset: 2px !important;
-}
 
 /* --------------------------------------------------------- semantic colour scales -- */
 /*
@@ -601,10 +643,10 @@
 
 /* The auth screens used to carry their own ::after for the admin's "Login &
    register" image, tunable with a separate scrim because the login text is the
-   smallest on the panel. That layer is gone: the image now belongs to the hero
-   half of the split, not to the whole page, and a full-bleed photo on a split
-   screen puts artwork behind the form. The scrim variables are still the ones
-   Site Settings writes - they are just consumed by .pt-auth-hero now. */
+   smallest on the panel. That layer is gone: the image is now the page's own
+   background on .pt-auth-page. The scrim variables are unchanged - Site
+   Settings still writes them - they are just consumed by the page rather than
+   by a hero half, which no longer exists. */
 
 /* Fixed aurora field behind every screen. Frosted surfaces need something to
  * refract, and a flat page colour makes backdrop-filter invisible - these wide,
@@ -649,29 +691,20 @@
     z-index: 2;
 }
 
+/* The fixed sidebar is gone - the reference is a topbar-only shell and the
+ * navigation moved into the topbar. The rules below are kept only for the
+ * DRAWER, which still renders the same Sidebar component on narrow screens, so
+ * the component's own styling has to survive. Nothing in the markup emits
+ * `.pt-sidebar` any more. */
 .pt-sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 40;
-    display: none;
+    display: flex;
     flex-direction: column;
     width: 15rem;
-    background-color: rgb(var(--pt-navy-800));
-    border-right: 1px solid rgb(var(--pt-navy-700));
+    height: 100%;
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
     overflow-y: auto;
     overscroll-behavior: contain;
-}
-
-@media (min-width: 1024px) {
-    .pt-sidebar {
-        display: flex;
-    }
-
-    .pt-shell-body {
-        margin-left: 15rem;
-    }
 }
 
 /* --------------------------------------------------------------- branding -- */
@@ -862,22 +895,209 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 0.6rem;
-    height: 3.5rem;
-    padding: 0 0.75rem;
-    background-color: rgb(var(--pt-navy-700));
-    border-bottom: 2px solid rgb(var(--pt-gold-400));
+    height: 4rem;
+    padding: 0 1.25rem;
+    /* One of the two dark chrome islands: the reference is a white page with a
+     * slate bar across the top, so the bar is dark on purpose and the rest of the
+     * panel is not. Its text therefore comes from --pt-chrome-ink, never from the
+     * page's ink steps, which are dark and unreadable here. */
+    background-color: rgb(var(--pt-chrome));
+    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
     box-shadow: var(--pt-shadow-sm);
+    color: rgb(var(--pt-chrome-ink));
 }
 
 .pt-topbar-lead {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.9rem;
     min-width: 0;
 }
 
-.pt-topbar-tail {
+/* The page title sits beside the brand rather than alone in the bar. The
+ * reference has no title at all, but on a server page it is the only thing saying
+ * which server you are in. */
+.pt-topbar-where {
+    display: none;
+    flex-direction: column;
     min-width: 0;
+    line-height: 1.25;
+}
+
+.pt-topbar-where strong {
+    overflow: hidden;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgb(var(--pt-chrome-ink));
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pt-topbar-where small {
+    overflow: hidden;
+    font-size: 0.72rem;
+    color: rgb(var(--pt-chrome-muted));
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+    .pt-topbar-where {
+        display: flex;
+    }
+}
+
+.pt-topbar-tail {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+/* Icon over label, the reference's navigation shape. Column layout so the label
+ * centres under the glyph, which is why this is not the drawer's row item. */
+.pt-topnav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    min-width: 3.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--pt-glass-radius-sm);
+    color: rgb(var(--pt-chrome-muted));
+    text-decoration: none;
+    transition: color var(--pt-dur-base) ease, background-color var(--pt-dur-base) ease;
+}
+
+.pt-topnav-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.pt-topnav-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.pt-topnav-item:hover,
+.pt-topnav-item:focus-visible {
+    background-color: rgb(255 255 255 / 0.1);
+    color: rgb(var(--pt-chrome-ink));
+    outline: none;
+}
+
+.pt-topnav-item.active {
+    color: rgb(var(--pt-chrome-ink));
+}
+
+/* The active item is marked with a blue bar rather than a fill, because a fill
+ * behind a stacked label reads as a button and this is navigation. */
+.pt-topnav-item.active .pt-topnav-icon {
+    color: rgb(var(--pt-navy-300));
+}
+
+/* Username with sign-out beneath it, as the reference stacks them. */
+.pt-topbar-user {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    padding: 0 0.35rem;
+    line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+    .pt-topbar-user {
+        display: flex;
+    }
+}
+
+.pt-topbar-username {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-topbar .pt-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: rgb(var(--pt-chrome-muted));
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--pt-dur-base) ease;
+}
+
+.pt-topbar .pt-logout-btn:hover,
+.pt-topbar .pt-logout-btn:focus-visible {
+    color: rgb(var(--pt-chrome-ink));
+    outline: none;
+}
+
+/* Brand lockup, the square mark plus the wordmark. The mark keeps a translucent
+ * white plate so a dark uploaded logo still separates from the dark bar. */
+.pt-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: rgb(var(--pt-chrome-ink));
+    text-decoration: none;
+}
+
+.pt-brand-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 3px;
+    border: 1px solid rgb(255 255 255 / 0.22);
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(255 255 255 / 0.1);
+}
+
+.pt-brand-mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.pt-brand-name {
+    font-family: var(--pt-font-heading);
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-chrome-ink));
+    white-space: nowrap;
+}
+
+/* The avatar at the far right, as the reference's round account portrait. */
+.pt-topbar .pt-avatar-btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgb(255 255 255 / 0.22);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.pt-topbar .pt-avatar-btn img,
+.pt-topbar .pt-avatar-btn svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* ------------------------------------------------------------ link cluster -- */
@@ -898,10 +1118,10 @@
     place-items: center;
     width: 2.15rem;
     height: 2.15rem;
-    border: 1px solid rgb(255 255 255 / 0.08);
+    border: 1px solid rgb(255 255 255 / 0.14);
     border-radius: 999px;
-    background-color: rgb(255 255 255 / 0.06);
-    color: rgb(var(--pt-gray-100));
+    background-color: rgb(255 255 255 / 0.08);
+    color: rgb(var(--pt-chrome-muted));
     font-size: 0.92rem;
     line-height: 0;
     text-decoration: none;
@@ -910,8 +1130,8 @@
 
 .pt-topbar-links > a:hover,
 .pt-topbar-links > a:focus-visible {
-    background-color: rgb(255 255 255 / 0.12);
-    border-color: var(--pt-glass-border-hover);
+    background-color: rgb(255 255 255 / 0.16);
+    border-color: rgb(255 255 255 / 0.3);
     color: #ffffff;
     outline: none;
     transform: translateY(-1px);
@@ -1203,11 +1423,8 @@
     .pt-burger,
     .pt-avatar-btn,
     .pt-logout-btn,
-    .pt-hero,
     .pt-server-card,
     .pt-console-head,
-    .pt-server-tile,
-    .pt-chip,
     .pt-crumb,
     .pt-link,
     .pt-auth button[type='submit'],
@@ -1223,39 +1440,24 @@
 
 /* ---------------------------------------------------------- auth screens -- */
 /*
- * Modern dark auth card: a floating, centred card on the #19152e page with a
- * soft accent glow, a logo chip instead of the old coloured masthead, a quiet
- * uppercase brand eyebrow, a strong title, dark inputs and an accent action.
+ * A single centred column: the brand lockup pinned to the top of the page, then
+ * the heading, the sign-up call to action, and the form stacked beneath it.
  * Every auth route (login / register / checkpoint / forgot / reset) renders
  * through LoginFormContainer; brand and emblem come from lib/brand.ts.
+ *
+ * This replaced a 50/50 split whose left half existed to carry a hero
+ * illustration. With the illustration gone the second column only pushed the
+ * form off a laptop screen, so the layout is now one column and the blue
+ * accent carries the emphasis the artwork used to.
  */
 
-/* The auth page is a 50/50 split: hero on the left, form panel on the right.
-   It is a flex ROW and nothing is centred on the page any more - the panel does
-   its own centring, so the two halves stay independent and the rule between
-   them is just a border on the panel. */
+/* The page. Owns the min-height and the admin's "Login & register" background
+   photo; it is no longer a flex row, so the column below centres itself. */
 .pt-auth-page {
     position: relative;
     display: flex;
+    justify-content: center;
     min-height: 100vh;
-    background-color: rgb(var(--pt-gray-900));
-}
-
-/* ------------------------------------------------------------------- hero --
- * The left half. The admin's "Login & register" image is this element's own
- * background rather than a fixed ::after on the page, because it now belongs to
- * this half only - a full-bleed photo across a split screen puts artwork behind
- * the form, which is exactly what the split is there to avoid.
- *
- * The scrim is a two-stop vertical gradient rather than the dashboard's flat
- * fill: the marketing line sits at the BOTTOM of this half, so the bottom needs
- * to be dark for the text while the top stays open for the artwork. */
-.pt-auth-hero {
-    position: relative;
-    display: flex;
-    flex: 1 1 50%;
-    align-items: flex-end;
-    overflow: hidden;
     background-color: rgb(var(--pt-gray-800));
     background-image: var(--pt-aurora),
         linear-gradient(
@@ -1270,140 +1472,40 @@
     background-repeat: no-repeat;
 }
 
-/* Below the split threshold there is no room for two halves, and the hero would
-   push the form below the fold on a phone. It collapses away entirely and the
-   panel takes the full width - the card already carries a title, so the
-   marketing line is not the only label on the screen.
-   The rules themselves are further down, after the base .pt-auth-panel block:
-   a media query adds no specificity, so declaring it here would let the base
-   rule below simply overwrite it. */
-
-/* The hero illustration and its bloom.
- *
- * Sits in the upper-centre of the hero, above the marketing line. `min(46rem,
- * 78%)` keeps it clear of both edges on a narrow hero without letting it
- * dominate a wide one, and the 68% height cap stops it colliding with the copy
- * on a short viewport.
- *
- * The bloom is a sibling of the image inside the wrapper rather than a
- * `background-image` on the hero: the React component hides the *wrapper* when
- * the file is missing, so an absent illustration takes its glow with it. Doing it
- * with `:has()` on the hero would not work - the element still matches the
- * selector after it has been hidden.
- *
- * The bloom matters more than it looks. The artwork is a lit object on a dark
- * page, and without something behind it the hard edge of its slab reads as a
- * cut-out; a wide, very low-opacity bloom in the artwork's own blue bridges it,
- * and the drop-shadow catches the underside so it reads as floating. */
-.pt-auth-hero-art {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 0;
-    width: min(46rem, 78%);
-    /* Height is a share of the hero, not a hardcoded aspect ratio: the artwork
-       is an admin-supplied file and its proportions are not ours to assume, so
-       the box has to work for whatever arrives. `object-fit: contain` then fits
-       the image inside it without cropping or distorting. */
-    height: 68%;
-    transform: translate(-50%, -62%);
-    pointer-events: none;
-    user-select: none;
-}
-
-.pt-auth-hero-art::before {
-    content: '';
-    position: absolute;
-    inset: -12% -8%;
-    background: radial-gradient(closest-side, rgb(88 140 255 / 0.17), transparent 72%);
-    pointer-events: none;
-}
-
-.pt-auth-hero-art img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 34px 48px rgb(0 0 0 / 0.55));
-}
-
-.pt-auth-hero-copy {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 34rem;
-    padding: 3rem 3.25rem;
-}
-
-.pt-auth-hero-title {
-    margin: 0 0 0.85rem;
-    font-family: var(--pt-font-heading);
-    /* Capped so "always within reach" stays on ONE line at every desktop width.
-       At 3.5rem it needed ~570px and the 34rem copy column is 544px, so the
-       second line wrapped and the hero read as three lines instead of the two in
-       the reference. 2.75rem fits it with room to spare. */
-    font-size: clamp(1.9rem, 3.2vw, 2.75rem);
-    font-weight: 800;
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-    color: rgb(var(--pt-gray-50));
-}
-
-.pt-auth-hero-title span {
-    display: block;
-}
-
-/* The first line takes the accent so the two-tone line in the reference reads,
-   and so the accent appears above the fold on a panel with no photo at all. */
-.pt-auth-hero-title span:first-child {
-    color: rgb(var(--pt-gold-400));
-}
-
-.pt-auth-hero-sub {
-    margin: 0;
-    max-width: 30rem;
-    font-size: 0.95rem;
-    line-height: 1.55;
-    color: rgb(var(--pt-gray-300));
-}
-
-/* ----------------------------------------------------------------- panel --
- * The right half. Owns the vertical rule, the centring and the page's padding,
- * so the hero can bleed to the viewport edge untouched. */
-.pt-auth-panel {
+/* The column that holds the lockup, the CTA and the card.
+   `width: 100%` plus `min-width: 0` matter: as a flex child of the page it
+   defaults to `min-width: auto` and refuses to shrink below the card's width,
+   which is wider than a phone. */
+.pt-auth {
     position: relative;
     z-index: 2;
     display: flex;
-    flex: 1 1 50%;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 1.1rem;
+    gap: 1.25rem;
+    width: 100%;
     min-width: 0;
-    padding: 2.5rem 2rem;
-    border-left: 1px solid rgb(var(--pt-gray-600) / 0.8);
-    background-color: rgb(var(--pt-gray-800));
+    padding: 3rem 1.5rem 3.5rem;
 }
 
-/* Brand lockup: the mark and the site name on one line, above the card. This
-   replaces the old white chip centred over the card - a white box read as a
-   sticker on a black screen, and it forced the logo to be light-on-dark. The
-   backing is now a dim surface so a dark uploaded icon still separates from the
-   panel while a light one still reads. */
+/* The brand lockup sits above the column, left-aligned to the column's own box
+   rather than the viewport edge, so it tracks the form on a wide screen. */
 .pt-auth-lockup {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    margin-bottom: 0.35rem;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: min(30rem, 100%);
 }
 
 .pt-auth-emblem {
     display: grid;
     place-items: center;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 4px;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 5px;
     border: 1px solid var(--pt-glass-border);
     border-radius: var(--pt-glass-radius-sm);
     background-color: rgb(var(--pt-gray-700));
@@ -1419,18 +1521,113 @@
 
 .pt-auth-lockup-name {
     font-family: var(--pt-font-heading);
-    font-size: 1.35rem;
+    font-size: 1.6rem;
     font-weight: 700;
     letter-spacing: -0.01em;
     color: rgb(var(--pt-gray-50));
 }
 
-/* The card. Rounded and bordered rather than square, because on this screen the
-   card is the only object with an edge and the reference treatment reads as a
-   panel, not a slab. */
+/* Everything under the lockup: the heading, the CTA and the card, all on the
+   column's width. */
+.pt-auth-column {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: min(30rem, 100%);
+    min-width: 0;
+}
+
+/* The heading is outside the card in the reference - "Welcome to X" sits on the
+   page above everything, not in a card header. */
+.pt-auth-heading {
+    margin-bottom: 1.35rem;
+    text-align: center;
+}
+
+.pt-auth-heading h1 {
+    margin: 0 0 0.4rem;
+    font-family: var(--pt-font-heading);
+    font-size: clamp(1.6rem, 4.5vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: rgb(var(--pt-gray-50));
+}
+
+.pt-auth-heading p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgb(var(--pt-gray-300));
+}
+
+/* The sign-up CTA: the loudest element on the screen, which is the point. It is
+   a link, not a button, so it must not inherit the generic `.pt-auth a` colour
+   or underline - it is a filled surface with a label inside it. */
+.pt-auth-signup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 3.25rem;
+    margin-bottom: 1.1rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-blue-500));
+    color: rgb(var(--pt-white));
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    box-shadow: var(--pt-shadow-sm);
+    transition: background-color var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+}
+
+.pt-auth-signup svg {
+    font-size: 1.1rem;
+}
+
+.pt-auth-signup:hover {
+    background-color: rgb(var(--pt-blue-400));
+    color: rgb(var(--pt-white));
+    text-decoration: none;
+}
+
+.pt-auth-signup:active {
+    background-color: rgb(var(--pt-blue-600));
+    transform: translateY(1px);
+}
+
+/* "or" between the two ways in. The rules are flex children rather than
+   borders on the divider itself so they can share the row and stay centred. */
+.pt-auth-or {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 1.1rem;
+}
+
+.pt-auth-or-rule {
+    flex: 1 1 auto;
+    height: 1px;
+    background-color: rgb(var(--pt-gray-600));
+}
+
+.pt-auth-or-word {
+    flex: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-gray-400));
+}
+
+/* The form card. Floats on the page rather than filling it, so the column's
+   background can be the page colour. */
 .pt-auth-card {
     width: 100%;
-    max-width: min(28rem, 100%);
     border: 1px solid rgb(var(--pt-gray-600) / 0.9);
     border-radius: var(--pt-glass-radius-lg);
     background-color: rgb(var(--pt-gray-700));
@@ -1438,29 +1635,9 @@
     overflow: hidden;
 }
 
-/* Header band, a shade lighter than the body with a hairline between them, so
-   the title/subtitle pair reads as its own block. */
-.pt-auth-head {
-    padding: 1.35rem 1.6rem 1.2rem;
-    border-bottom: 1px solid rgb(var(--pt-gray-600) / 0.7);
-    background-color: rgb(var(--pt-gray-600) / 0.35);
-}
-
-.pt-auth-head h1 {
-    margin: 0 0 0.2rem;
-    font-family: var(--pt-font-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-    color: rgb(var(--pt-gray-50));
-}
-
-.pt-auth-head p {
-    margin: 0;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: rgb(var(--pt-gray-300));
+.pt-auth-body {
+    padding: 1.35rem 1.6rem 1.5rem;
+    color: rgb(var(--pt-gray-200));
 }
 
 /* The "manage a friend's server" nudge under the card. */
@@ -1493,33 +1670,6 @@
     line-height: 1.45;
 }
 
-/* The split container itself. A flex row so the two halves are siblings and can
-   be sized independently; the panel's `flex: 1 1 50%` does the work, and this
-   only has to not constrain it.
-
-   `min-width: 0` is load-bearing. A flex item defaults to `min-width: auto`,
-   which refuses to shrink below its content's min-content width - and the card's
-   max-width plus the panel's padding is wider than a phone, so without this the
-   whole page overflowed sideways on mobile instead of the card shrinking.
-
-   No `min-height` here on purpose. `.pt-auth-page` already sets
-   `min-height: 100vh` and is a flex row, so this stretches to it for free. A
-   second `100vh` on the inner element meant the auth screen could only ever be
-   as tall as the viewport - which is right on the panel and wrong anywhere the
-   auth layout is embedded at a chosen height, including the preview harness. */
-.pt-auth {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex: 1 1 auto;
-    width: 100%;
-    min-width: 0;
-}
-
-.pt-auth-body {
-    padding: 1.35rem 1.6rem 1.5rem;
-    color: rgb(var(--pt-gray-200));
-}
 
 /* Field labels: twin.macro inlines colours inside styled-components, so the
    Label element carries no utility class to target - style it on the element.
@@ -1539,6 +1689,12 @@
 
 /* Rounded, and a shade lighter than the card so the field is a distinct object
    rather than a hole in it. */
+/* Inputs on a white card.
+ *
+ * The fill was a 50% wash of the row-fill step, which is right on a dark card
+ * and nearly invisible on a white one - a light field on a white card reads as
+ * no field at all. So the fill is the row step outright and the edge is a real
+ * border rather than a border plus a wash. */
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
@@ -1547,7 +1703,7 @@
     padding: 0.55rem 0.85rem;
     border-radius: var(--pt-glass-radius-sm);
     border: 1px solid rgb(var(--pt-gray-600));
-    background-color: rgb(var(--pt-gray-600) / 0.5);
+    background-color: rgb(var(--pt-gray-600) / 0.55);
     color: rgb(var(--pt-gray-50));
     font-size: 0.9rem;
     transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, background-color var(--pt-dur-base) ease;
@@ -1612,41 +1768,45 @@
     text-decoration: underline;
 }
 
-/* Full-width gold call to action, rounded rather than square - the one element on
-   the screen that is allowed to be loud. */
+/* Full-width call to action. Blue, matching the sign-up CTA above it - the two
+   are the same action on different screens, and gold here made the login button
+   quieter than the link that leads *away* from the form. White label rather than
+   the dark-on-light the monochrome buttons used: --pt-blue-500 clears 4.57:1
+   against white, and the dark ink on it would not. */
 .pt-auth button[type='submit'] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 2.75rem;
+    min-height: 2.9rem;
     margin-top: 1.1rem;
     padding: 0.6rem 1.25rem;
     border: 0;
     border-radius: var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-gold-500));
-    color: rgb(var(--pt-gray-900));
-    font-size: 0.9rem;
+    background-color: rgb(var(--pt-blue-500));
+    color: rgb(var(--pt-white));
+    font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     text-transform: none;
     box-shadow: var(--pt-shadow-sm);
-    transition: filter var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+    transition: background-color var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
 }
 
 /* The stock Button sets its own background through a twin.macro class baked at
-   build time, which wins on specificity over the rule above, so the gold has to
+   build time, which wins on specificity over the rule above, so the fill has to
    be asserted here rather than left to the cascade. */
 .pt-auth button[type='submit']:not(:disabled) {
-    background-color: rgb(var(--pt-gold-500));
-    color: rgb(var(--pt-gray-900));
+    background-color: rgb(var(--pt-blue-500));
+    color: rgb(var(--pt-white));
 }
 
 .pt-auth button[type='submit']:hover:not(:disabled) {
-    filter: brightness(1.08);
+    background-color: rgb(var(--pt-blue-400));
 }
 
 .pt-auth button[type='submit']:active:not(:disabled) {
+    background-color: rgb(var(--pt-blue-600));
     transform: translateY(1px);
 }
 
@@ -1655,6 +1815,8 @@
     cursor: not-allowed;
 }
 
+/* Links on the auth screens. Gold stays the link colour throughout the panel;
+   only the filled buttons are blue, so a link never reads as a button. */
 .pt-auth a {
     color: rgb(var(--pt-gold-400));
     font-weight: 600;
@@ -1664,6 +1826,14 @@
 .pt-auth a:hover {
     color: rgb(var(--pt-gold-300));
     text-decoration: underline;
+}
+
+/* "Forgot password?" - the reference puts it under the password field rather
+   than beside the label, so it is its own link rather than a Field
+   labelAction. */
+.pt-auth-aside-link {
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .pt-auth-footer {
@@ -1685,39 +1855,29 @@
  * is meant to override is simply ignored - which is what happened here: the
  * panel kept `flex: 1 1 50%` and its desktop padding on a phone. */
 @media (max-width: 1023px) {
-    .pt-auth-hero {
-        display: none;
-    }
-
-    .pt-auth-panel {
-        flex: 1 1 100%;
-        border-left: 0;
-        padding: 2rem 1.25rem;
-    }
-
-    /* The lockup and card no longer share a row with anything, so they can sit
-       closer together and the screen loses less height to gaps. */
-    .pt-auth-panel {
-        gap: 0.9rem;
+    /* The column is the page's only child now, so the padding is all that has
+       to give - and a phone gets less of it so the form is not pushed down by
+       margins alone. */
+    .pt-auth {
+        padding: 2rem 1.25rem 2.5rem;
     }
 }
 
 /* Very short viewports (a laptop with the browser chrome open) cannot fit the
-   lockup, the card and the hint at 100vh. Let the page scroll instead of
-   squeezing the card. */
+   lockup, the heading, the CTA and the card at 100vh. Let the page scroll
+   instead of squeezing the card. */
 @media (min-width: 1024px) and (max-height: 760px) {
-    .pt-auth-panel {
-        justify-content: flex-start;
-        padding-top: 2rem;
+    .pt-auth {
+        padding-top: 1.75rem;
         padding-bottom: 2rem;
     }
 }
 
 /* ------------------------------------------------- auth quick links + crumbs -- */
-/* The breadcrumb is page chrome, not part of the form panel: it is pinned to the
- * viewport's top-left corner, over the hero half. .pt-auth-page is
- * `position: relative` and fills the screen, so absolute positioning here
- * anchors to the page rather than to the panel, and the split stays intact. */
+/* The breadcrumb is page chrome, not part of the form: it is pinned to the
+ * viewport's top-left corner. .pt-auth-page is `position: relative` and fills the
+ * screen, so absolute positioning here anchors to the page rather than to the
+ * column. */
 .pt-crumbs {
     position: absolute;
     top: 1rem;
@@ -1802,61 +1962,62 @@
     flex: 0 1 auto;
 }
 
-/* ------------------------------------------------------------- dashboard -- */
+/* ------------------------------------------------------------ server cards */
 
-.pt-hero {
-    position: relative;
-    margin-bottom: 1.25rem;
-    padding: 1.5rem 1.35rem 1.6rem;
-    border-radius: 0;
-    border-bottom: 3px solid rgb(var(--pt-gold-400));
-    background-image: linear-gradient(135deg, rgb(var(--pt-navy-800)), rgb(var(--pt-navy-900)));
-    box-shadow: var(--pt-shadow-md);
-    overflow: hidden;
+/* ------------------------------------------------------------- dashboard --
+ * A centred column with a big blue title and a two-column grid of dark cards,
+ * per the reference. The cards are the second dark chrome island: they sit on a
+ * near-white page, so their ink comes from --pt-chrome-* and never from the page
+ * ramp. */
+.pt-dash {
+    max-width: 70rem;
+    margin: 0 auto;
 }
 
-.pt-hero::after {
-    content: '';
-    position: absolute;
-    top: -70px;
-    right: -50px;
-    width: 230px;
-    height: 230px;
-    border: 26px solid rgb(var(--pt-gold-400) / 0.14);
-    border-radius: 0;
-    pointer-events: none;
+.pt-dash-head {
+    margin-bottom: 1.75rem;
+    text-align: center;
 }
 
-.pt-hero > * {
-    position: relative;
-    z-index: 1;
-}
-
-.pt-hero-eyebrow {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-gold-300));
-}
-
-.pt-hero h1 {
-    margin-top: 0.35rem;
+/* --pt-blue-600 rather than 500: 500 is 4.14:1 on the page and this is body-size
+ * text, so it needs the step that clears 4.5:1 (6.59:1). */
+.pt-dash-title {
+    margin: 0;
     font-family: var(--pt-font-heading);
-    font-size: clamp(1.4rem, 3vw, 1.9rem);
-    font-weight: 700;
-    line-height: 1.15;
-    color: #ffffff;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: rgb(var(--pt-blue-600));
 }
 
-.pt-hero-sub {
-    margin-top: 0.4rem;
-    max-width: 46rem;
-    font-size: 0.85rem;
-    line-height: 1.55;
-    color: rgb(var(--pt-navy-200));
+.pt-dash-greeting {
+    margin: 0.4rem 0 0;
+    font-size: 0.9rem;
+    color: rgb(var(--pt-gray-500));
 }
 
+.pt-dash-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Grows to take the slack, so the Create button is pushed right without the row
+ * needing `justify-content: flex-end` and a separate margin on the button. */
+.pt-dash-bar-lead {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+/* The section heading used by the pages that are not the dashboard - Plugins and
+ * the server sub-pages. Kept because those still render it; the dashboard's own
+ * heading is .pt-dash-title. The rule after it is the accent underline, which has
+ * to run to the edge of the column rather than the width of the words. */
 .pt-section-title {
     display: flex;
     align-items: center;
@@ -1872,62 +2033,106 @@
     content: '';
     flex: 1 1 auto;
     height: 2px;
-    background-image: linear-gradient(90deg, rgb(var(--pt-gold-400) / 0.7), transparent);
+    background-image: linear-gradient(90deg, rgb(var(--pt-navy-300) / 0.55), transparent);
 }
 
-/* ------------------------------------------------------------ server cards */
+.pt-dash-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: rgb(var(--pt-gray-500));
+}
 
+.pt-dash-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.15rem;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-blue-500));
+    color: rgb(var(--pt-white));
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: var(--pt-shadow-sm);
+    transition: background-color var(--pt-dur-base) ease;
+}
+
+.pt-dash-create:hover,
+.pt-dash-create:focus-visible {
+    background-color: rgb(var(--pt-blue-400));
+    color: rgb(var(--pt-white));
+    outline: none;
+    text-decoration: none;
+}
+
+.pt-dash-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 767px) {
+    .pt-dash-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ------------------------------------------------------------ server card --
+ * A dark card on the light page. `display: flex` rather than the row's grid
+ * because there is no icon tile and no stat column any more - just the accent
+ * bar, the body, and the power button. */
 .pt-server-card {
     position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.6rem;
-    padding: 0.95rem 1.1rem;
-    border: 1px solid var(--pt-hairline);
-    border-radius: 0;
-    background-color: rgb(var(--pt-gray-700));
-    color: inherit;
+    display: flex;
+    align-items: stretch;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem 0.9rem 1.1rem;
+    border: 1px solid rgb(var(--pt-chrome-deep));
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
     text-decoration: none;
     overflow: hidden;
-    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
+    transition: box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
 }
 
-.pt-server-card::before {
-    content: '';
+/* The pink left edge. Always pink, not power-coloured: the reference's bar is a
+ * brand edge on every card, and tying it to power would make a stopped server
+ * look like an error. */
+.pt-server-accent {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    width: 3px;
-    background-color: var(--pt-status, rgb(var(--pt-gray-500)));
+    width: 4px;
+    background-color: rgb(var(--pt-accent-pink));
 }
 
 .pt-server-card:hover,
 .pt-server-card:focus-visible {
-    border-color: rgb(var(--pt-gold-400));
-    box-shadow: var(--pt-shadow-md);
-    transform: translateY(-1px);
+    box-shadow: var(--pt-shadow-lg);
+    transform: translateY(-2px);
     outline: none;
 }
 
-/* Stat / address / resource icon chips.
- *
- * These were a solid accent fill, which in a monochrome palette reads as a
- * bright grey block punched out of every card - the loudest thing on the page.
- * They are now a quiet inset: a low-alpha neutral tint, a hairline edge and a
- * light glyph. The tile keeps its rhythm without competing with the data. */
-.pt-server-tile {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0;
-    background-color: rgb(var(--pt-navy-500) / 0.16);
-    border: 1px solid var(--pt-glass-border);
-    color: rgb(var(--pt-gray-100));
-    font-size: 1.1rem;
+.pt-server-card.is-empty {
+    cursor: default;
+    grid-column: 1 / -1;
+}
+
+.pt-server-card.is-empty:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+.pt-server-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
 }
 
 .pt-server-name {
@@ -1935,150 +2140,68 @@
     font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.25;
-    color: rgb(var(--pt-gray-100));
+    color: rgb(var(--pt-chrome-ink));
     word-break: break-word;
 }
 
-.pt-server-desc {
-    margin-top: 0.1rem;
-    font-size: 0.78rem;
-    line-height: 1.45;
-    color: rgb(var(--pt-gray-300));
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.pt-server-uuid {
+    font-size: 0.7rem;
+    line-height: 1.3;
+    color: rgb(var(--pt-chrome-muted));
+    /* A uuid is 36 characters and the card is half a wide grid column. Truncating
+     * the middle keeps the identifying ends readable. */
     overflow: hidden;
-}
-
-.pt-server-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.pt-server-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: flex-end;
-}
-
-.pt-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.15rem 0.55rem;
-    border: 1px solid transparent;
-    border-radius: 0;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.pt-chip--online {
-    background-color: rgb(var(--pt-green-600) / 0.16);
-    border-color: rgb(var(--pt-green-600) / 0.45);
-    color: rgb(var(--pt-green-400));
+.pt-server-egg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: rgb(var(--pt-chrome-ink));
 }
 
-.pt-chip--offline {
-    background-color: rgb(var(--pt-red-600) / 0.16);
-    border-color: rgb(var(--pt-red-600) / 0.45);
-    color: rgb(var(--pt-red-400));
+/* The round power button on the card's right edge. Pink to stop, blue to start,
+ * matching the reference; both carry a white glyph at 4.75:1. */
+.pt-server-power {
+    display: grid;
+    place-items: center;
+    flex: none;
+    align-self: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 999px;
+    background-color: rgb(var(--pt-accent-pink));
+    color: rgb(var(--pt-white));
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
 }
 
-.pt-chip--busy {
-    background-color: rgb(var(--pt-yellow-500) / 0.16);
-    border-color: rgb(var(--pt-yellow-500) / 0.45);
-    color: rgb(var(--pt-yellow-500));
+.pt-server-card[data-power='stopped'] .pt-server-power {
+    background-color: rgb(var(--pt-blue-500));
 }
 
-.pt-chip--neutral {
-    /* 0.28 was tuned when gray-500 was a dark surface step. It is a text step
-     * now, so at the old alpha this tint washed out behind the gray-200 label;
-     * 0.14 keeps the chip readable as a chip without competing with the text. */
-    background-color: rgb(var(--pt-gray-500) / 0.14);
-    border-color: var(--pt-hairline);
-    color: rgb(var(--pt-gray-200));
+.pt-server-power:hover:not(:disabled) {
+    background-color: rgb(var(--pt-accent-pink-deep));
+    transform: scale(1.06);
 }
 
-.pt-chip--allocation {
-    background-color: rgb(var(--pt-navy-500) / 0.2);
-    border-color: rgb(var(--pt-navy-400) / 0.5);
-    color: rgb(var(--pt-navy-300));
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    letter-spacing: 0;
-    text-transform: none;
-    font-size: 0.7rem;
+.pt-server-card[data-power='stopped'] .pt-server-power:hover:not(:disabled) {
+    background-color: rgb(var(--pt-blue-400));
 }
 
-/*
- * Status chips tint with the semantic ramps, which do not flip with the theme.
- * Their bright 400-step text reads fine over a dark card but drops to ~1.4:1
- * over the same tint on white, so darken the label in light only.
- */
-.pt-stat {
-    min-width: 5rem;
-    max-width: 8rem;
+.pt-server-power:disabled {
+    background-color: rgb(var(--pt-chrome-faint) / 0.35);
+    color: rgb(var(--pt-chrome-muted));
+    cursor: not-allowed;
 }
 
-.pt-stat-label {
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-gray-300));
-}
-
-.pt-stat-value {
-    margin-top: 0.1rem;
-    font-family: var(--pt-font-heading);
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: rgb(var(--pt-gray-100));
-}
-
-.pt-stat-limit {
-    font-size: 0.65rem;
-    color: rgb(var(--pt-gray-300));
-}
-
-.pt-bar {
-    height: 0.3rem;
-    margin-top: 0.35rem;
-    border-radius: 0;
-    background-color: rgb(var(--pt-gray-500) / 0.55);
-    overflow: hidden;
-}
-
-.pt-bar > i {
-    display: block;
-    height: 100%;
-    border-radius: 0;
-    background-image: linear-gradient(90deg, rgb(var(--pt-navy-400)), rgb(var(--pt-gold-500)));
-    transition: width var(--pt-dur-slow) ease;
-}
-
-.pt-bar.is-alarm > i {
-    background-image: linear-gradient(90deg, rgb(var(--pt-red-500)), rgb(var(--pt-red-400)));
-}
-
-@media (max-width: 640px) {
-    .pt-server-card {
-        grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .pt-server-stats {
-        grid-column: 1 / -1;
-        justify-content: flex-start;
-        gap: 0.85rem;
-        padding-left: 3.75rem;
-    }
-}
 
 /* -------------------------------------------------------- page footer ------ */
 
@@ -2126,6 +2249,11 @@
 
 /* --------------------------------------------------------------- console -- */
 
+/* The console header is the third dark chrome island, like the topbar and the
+ * server cards: slate fill with light text. Its gradient used to run between two
+ * dark navy steps, which read as a card; on the light ramp the same two tokens
+ * are #dfe3e8 and #242c3a, so the gradient would have gone light-to-dark behind a
+ * white h1 and made the title unreadable at one end. It is a flat slate now. */
 .pt-console-head {
     display: flex;
     flex-wrap: wrap;
@@ -2135,10 +2263,64 @@
     margin-bottom: 1rem;
     padding: 1.05rem 1.25rem;
     border-radius: 0;
-    border-bottom: 3px solid rgb(var(--pt-gold-400));
-    background-image: linear-gradient(120deg, rgb(var(--pt-navy-700)), rgb(var(--pt-navy-900)));
+    border-bottom: 3px solid rgb(var(--pt-navy-300));
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
     box-shadow: var(--pt-shadow-md);
     overflow: hidden;
+}
+
+/* The eyebrow above the console title. Not to be confused with the dashboard's
+ * old greeting block, which is gone - this one is the server console's own page
+ * label and still rendered by ServerConsoleContainer. */
+.pt-hero-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+/* Status chips. Also still rendered - by ServerConsoleContainer, beside the
+ * console description - so these survived the dashboard rebuild even though the
+ * dashboard's own chips went away with the resource bars. Tinted rather than
+ * filled, and rounded, so they read as labels on the dark console header. */
+.pt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.5;
+}
+
+.pt-chip--online {
+    background-color: rgb(var(--pt-green-600) / 0.2);
+    border-color: rgb(var(--pt-green-600) / 0.5);
+    color: rgb(var(--pt-green-500));
+}
+
+.pt-chip--offline {
+    background-color: rgb(var(--pt-red-600) / 0.2);
+    border-color: rgb(var(--pt-red-600) / 0.5);
+    color: rgb(var(--pt-red-500));
+}
+
+.pt-chip--busy {
+    background-color: rgb(var(--pt-yellow-600) / 0.2);
+    border-color: rgb(var(--pt-yellow-600) / 0.5);
+    color: rgb(var(--pt-yellow-500));
+}
+
+.pt-chip--neutral {
+    background-color: rgb(255 255 255 / 0.1);
+    border-color: rgb(255 255 255 / 0.2);
+    color: rgb(var(--pt-chrome-muted));
 }
 
 .pt-console-head h1 {
@@ -2280,7 +2462,7 @@
  * genuinely blurred):
  *     .pt-sidebar  .pt-topbar  .pt-drawer-panel  .pt-auth-card
  * What only *looks* frosted (tint + hairline + top highlight, no blur):
- *     .pt-server-card  .pt-hero  .pt-console-head  and the small controls
+ *     .pt-server-card  .pt-console-head  and the small controls
  *
  * The split is deliberate. backdrop-filter forces the compositor to re-sample
  * and re-blur everything behind the element on every frame, so putting one on
@@ -2300,7 +2482,6 @@
 .pt-topbar,
 .pt-drawer-panel,
 .pt-auth-card,
-.pt-hero,
 .pt-console-head,
 .pt-server-card,
 .pt-nav-item,
@@ -2308,27 +2489,23 @@
 .pt-avatar-btn,
 .pt-logout-btn,
 .pt-drawer-close,
-.pt-chip,
-.pt-server-tile,
 .fm-path,
 .fm-mass {
     border-radius: var(--pt-glass-radius) !important;
 }
 
-.pt-hero,
 .pt-auth-card,
 .pt-console-head {
     border-radius: var(--pt-glass-radius-lg) !important;
 }
 
 .pt-nav-item,
-.pt-chip,
-.pt-server-tile,
 .pt-burger,
 .pt-logout-btn,
 .pt-drawer-close,
 .pt-avatar-btn,
 .pt-auth-emblem,
+.pt-auth-signup,
 .pt-auth button[type='submit'] {
     border-radius: var(--pt-glass-radius-sm) !important;
 }
@@ -2343,9 +2520,6 @@
     border-radius: var(--pt-glass-radius-sm) !important;
 }
 
-.pt-chip {
-    border-radius: 999px !important;
-}
 
 /* The loading ring is the one element that has to be a true circle. The stock
  * Spinner is a div with `border-radius: 50%`, which the universal reset above
@@ -2541,7 +2715,6 @@
 
 /* ------------------------------------------------- hero / console (tinted) -- */
 
-.pt-hero,
 .pt-console-head {
     border: 1px solid var(--pt-glass-border);
     border-bottom-width: 1px;
@@ -2551,11 +2724,6 @@
 
 /* The decorative corner ring becomes a soft violet bloom instead of a hard
    bordered square, which is what the frosted card is echoing. */
-.pt-hero::after {
-    border: 0;
-    border-radius: 50% !important;
-    background-image: var(--pt-frost-bloom);
-}
 
 .pt-console-head {
     background-image: var(--pt-frost-console);
@@ -2588,20 +2756,8 @@
     opacity: 0.85;
 }
 
-.pt-server-tile {
-    background-image: none;
-    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
-}
 
-.pt-bar {
-    border-radius: 999px !important;
-    background-color: rgb(var(--pt-gray-900) / 0.55);
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
-}
 
-.pt-bar > i {
-    border-radius: 999px !important;
-}
 
 /* ------------------------------------------------------------- controls -- */
 /* Small controls get the tint + highlight so they read as part of the same
@@ -2633,19 +2789,8 @@
 
 /* Chips are already translucent; rounding them is what makes them read as
    pills rather than labels. */
-.pt-chip {
-    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
-}
 
-.pt-chip--online {
-    background-color: rgb(var(--pt-green-600) / 0.2);
-    border-color: rgb(var(--pt-green-600) / 0.5);
-}
 
-.pt-chip--offline {
-    background-color: rgb(var(--pt-red-600) / 0.2);
-    border-color: rgb(var(--pt-red-600) / 0.5);
-}
 
 /* File manager chrome follows the same material; the rows themselves stay
    solid so long path lists and file names keep their contrast. */
@@ -2733,16 +2878,12 @@
 }
 
 /* Cards: solid, border-defined, 1px shadow. */
-[data-pt-theme='amber'] .pt-hero,
 [data-pt-theme='amber'] .pt-console-head {
     background-image: none;
     background-color: rgb(var(--pt-gray-700));
     box-shadow: var(--pt-glass-shadow);
 }
 
-[data-pt-theme='amber'] .pt-hero::after {
-    display: none;
-}
 
 [data-pt-theme='amber'] .pt-server-card {
     background-color: rgb(var(--pt-gray-700));
@@ -2762,11 +2903,6 @@
     opacity: 1;
 }
 
-[data-pt-theme='amber'] .pt-server-tile {
-    background-image: none;
-    background-color: rgb(var(--pt-navy-800));
-    box-shadow: none;
-}
 
 /* Auth card. */
 [data-pt-theme='amber'] .pt-auth-card {
@@ -2821,14 +2957,7 @@
     color: #ffffff;
 }
 
-[data-pt-theme='amber'] .pt-chip {
-    box-shadow: none;
-}
 
-[data-pt-theme='amber'] .pt-bar {
-    background-color: rgb(var(--pt-gray-900));
-    box-shadow: none;
-}
 
 /* File manager chrome. */
 [data-pt-theme='amber'] .fm-path {
@@ -2879,7 +3008,6 @@
     .pt-topbar,
     .pt-drawer-panel,
     .pt-auth-card,
-    .pt-hero,
     .pt-console-head,
     .pt-server-card,
     .pt-brand,
@@ -2903,7 +3031,6 @@
         background-color: rgb(var(--pt-gray-700));
     }
 
-    .pt-hero,
     .pt-console-head {
         background-image: var(--pt-frost-hero-solid);
     }
@@ -2916,7 +3043,6 @@
     .pt-topbar,
     .pt-drawer-panel,
     .pt-auth-card,
-    .pt-hero,
     .pt-console-head,
     .pt-server-card {
         -webkit-backdrop-filter: none;

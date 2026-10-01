@@ -13,137 +13,33 @@
 
     <body class="bg-neutral-800 text-neutral-200">
         <div class="pt-shell">
-            <!-- Sidebar.tsx ---------------------------------------------------->
-            <aside class="pt-sidebar">
-                <a href="#" class="pt-brand">
-                    <span class="pt-brand-mark">P</span>
-                    <span class="min-w-0">
-                        <span class="pt-brand-name block truncate">Pterodactyl</span>
-                        <span class="pt-brand-sub">Panel</span>
-                    </span>
-                </a>
-
-                <nav class="pt-nav">
-                    <div class="pt-nav-section">Overview</div>
-                    <a href="#" class="pt-nav-item active">
-                        <span class="pt-nav-ico" data-icon="layer-group" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Dashboard</span>
-                    </a>
-
-                    <div class="pt-nav-section">Account</div>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="user-circle" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Account</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="key" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">API Credentials</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="key" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">SSH Keys</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Activity</span>
-                    </a>
-
-                    <div class="pt-nav-section">Server</div>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="terminal" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Console</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="folder" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Files</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="database" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Databases</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="calendar-alt" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Schedules</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="users" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Users</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="archive" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Backups</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="network-wired" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Network</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="sliders-h" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Startup</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="cog" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Settings</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="history" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Activity</span>
-                    </a>
-                    <!-- The theme's own jar routes. Shown per server based on what
-                         it can actually hold: plugins/ means Plugins, mods/ means
-                         Mods, and a hybrid with both gets both. -->
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="puzzle-piece" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Plugins</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="cubes" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Mods</span>
-                    </a>
-                    <a href="#" class="pt-nav-item">
-                        <span class="pt-nav-ico" data-icon="shield-alt" data-icon-size="1rem"></span>
-                        <span class="flex-1 truncate">Admin Area</span>
-                    </a>
-                </nav>
-
-                <div class="pt-sidebar-foot">
-                    <div class="flex items-center gap-3">
-                        <span class="pt-avatar-btn" style="cursor: default">
-                            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
-                        </span>
-                        <span class="min-w-0 flex-1">
-                            <strong class="truncate">jdoe</strong>
-                            <span class="truncate block">Pterodactyl Panel</span>
-                        </span>
-                        <button type="button" class="pt-logout-btn" title="Sign Out" aria-label="Sign Out">
-                            <span data-icon="sign-out-alt" data-icon-size="0.9rem"></span>
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
             <div class="pt-shell-body">
                 <!-- NavigationBar.tsx ------------------------------------------>
                 <!--
-                    Mirrors the real component exactly: a three-column grid of
-                    pt-topbar-lead (burger + title), the pt-topbar-links cluster,
-                    and an empty pt-topbar-tail for balance. The previous version
-                    of this preview still showed the old search / dashboard /
-                    admin / avatar / sign-out row, which the component removed -
-                    so the audit this file was used for was reading markup that no
-                    longer exists. The cluster is the admin's Home / Discord /
-                    Status quick links from QuickLinks.tsx, each hidden when the
-                    admin switches that link off.
+                    Mirrors the real component: a three-column grid of
+                    pt-topbar-lead (burger, brand lockup, page title), the
+                    pt-topbar-links cluster, and pt-topbar-tail carrying the
+                    icon-over-label navigation, the username with its logout
+                    button, and the avatar. There is no pt-sidebar any more - the
+                    reference shell is a topbar only - so the preview no longer
+                    renders one either, or the audit this file was used for would
+                    be reading markup that does not exist.
                 -->
                 <header class="pt-topbar">
                     <div class="pt-topbar-lead">
                         <button type="button" class="pt-burger" id="ptPreviewBurger" aria-label="Open navigation menu">
                             <span data-icon="bars" data-icon-size="1.1rem"></span>
                         </button>
-                        <div class="pt-topbar-title">
-                            Dashboard
+                        <a href="#" class="pt-brand">
+                            <span class="pt-brand-mark">
+                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="">
+                            </span>
+                            <span class="pt-brand-name">Pterodactyl</span>
+                        </a>
+                        <span class="pt-topbar-where">
+                            <strong>Dashboard</strong>
                             <small>Pterodactyl</small>
-                        </div>
+                        </span>
                     </div>
 
                     <nav class="pt-topbar-links" aria-label="Quick links">
@@ -160,7 +56,26 @@
                         </a>
                     </nav>
 
-                    <div class="pt-topbar-tail" aria-hidden="true"></div>
+                    <div class="pt-topbar-tail">
+                        <a href="#" class="pt-topnav-item active">
+                            <span class="pt-topnav-icon" data-icon="server"></span>
+                            <span class="pt-topnav-label">Servers</span>
+                        </a>
+                        <a href="#" class="pt-topnav-item">
+                            <span class="pt-topnav-icon" data-icon="user-circle"></span>
+                            <span class="pt-topnav-label">Account</span>
+                        </a>
+                        <div class="pt-topbar-user">
+                            <span class="pt-topbar-username">jdoe</span>
+                            <button type="button" class="pt-logout-btn">
+                                <span data-icon="sign-out-alt" data-icon-size="0.8rem"></span>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                        <span class="pt-avatar-btn" style="cursor: default">
+                            <span class="flex items-center justify-center w-full h-full rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
+                        </span>
+                    </div>
                 </header>
 
                 <main class="pt-shell-main">
@@ -178,112 +93,100 @@
                             </div>
                         </section>
 
-                        <!-- DashboardContainer: hero -------------------------->
-                        <section class="pt-hero">
-                            <p class="pt-hero-eyebrow">Pterodactyl</p>
-                            <h1>Welcome back, John</h1>
-                            <p class="pt-hero-sub">
-                                Spin up, manage and monitor every server you own - files, backups, databases and
-                                schedules all live in one place.
-                            </p>
-                        </section>
+                        <!-- DashboardContainer: head + Create row ----------->
+                        <div class="pt-dash-head">
+                            <h1 class="pt-dash-title">Servers</h1>
+                            <p class="pt-dash-greeting">Welcome back, John</p>
+                        </div>
+
+                        <div class="pt-dash-bar">
+                            <div class="pt-dash-bar-lead">
+                                <span class="pt-dash-filter">Showing your servers</span>
+                            </div>
+                            <a href="#" class="pt-dash-create">
+                                <span data-icon="plus" data-icon-size="0.95rem"></span>
+                                <span>Create</span>
+                            </a>
+                        </div>
 
                         <!-- alert/Alert.tsx ----------------------------------->
-                        <section class="space-y-3">
+                        <div class="space-y-3">
                             <div class="pt-alert pt-alert-danger">
-                                <span class="mr-2 text-red-400" data-icon="shield-alt" data-icon-size="1.5rem"></span>
+                                <span class="mr-2 text-red-500" data-icon="shield-alt" data-icon-size="1.5rem"></span>
                                 <p>
                                     We were unable to locate a server matching those details. If you believe this is an error
                                     please contact support.
                                 </p>
                             </div>
                             <div class="pt-alert pt-alert-warning">
-                                <span class="mr-2 text-yellow-500" data-icon="exclamation-triangle" data-icon-size="1.5rem"></span>
+                                <span class="mr-2 text-yellow-600" data-icon="exclamation-triangle" data-icon-size="1.5rem"></span>
                                 <p>Your account has two-factor authentication enabled. Recovery tokens were generated.</p>
                             </div>
-                        </section>
+                        </div>
 
-                        <!-- DashboardContainer: server list -------------------->
-                        <section>
-                            <div class="flex flex-wrap justify-between items-center gap-3">
-                                <h2 class="pt-section-title !mt-0 flex-1">Your servers</h2>
-                                <div class="flex justify-end items-center">
-                                    <p class="uppercase text-xs text-neutral-400 mr-2">Showing your servers</p>
-                                    <span class="inline-block w-9 h-5 rounded-full bg-gold-600 relative">
-                                        <span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white"></span>
-                                    </span>
-                                </div>
-                            </div>
-
+                        <!-- DashboardContainer: server grid -------------------->
+                        <div class="pt-dash-grid">
                             <!-- ServerRow.tsx -->
-                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-green-500))">
-                                <div class="pt-server-tile">
-                                    <span data-icon="server" data-icon-size="1.25rem"></span>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="pt-server-name">Survival SMP</p>
-                                    <p class="pt-server-desc">Paper 1.20.4 running on node-01 with 6 plugins.</p>
-                                    <div class="pt-server-meta">
-                                        <span class="pt-chip pt-chip--online">Running</span>
-                                        <span class="pt-chip pt-chip--allocation">192.168.1.10:25565</span>
-                                    </div>
-                                </div>
-                                <div class="pt-server-stats">
-                                    <div class="pt-stat">
-                                        <div class="pt-stat-label">CPU</div>
-                                        <div class="pt-stat-value">38.20%</div>
-                                        <div class="pt-stat-limit">of 100 %</div>
-                                        <div class="pt-bar"><i style="width: 38%"></i></div>
-                                    </div>
-                                    <div class="pt-stat">
-                                        <div class="pt-stat-label">Memory</div>
-                                        <div class="pt-stat-value">1.42 GiB</div>
-                                        <div class="pt-stat-limit">of 4 GiB</div>
-                                        <div class="pt-bar"><i style="width: 35%"></i></div>
-                                    </div>
-                                    <div class="pt-stat">
-                                        <div class="pt-stat-label">Disk</div>
-                                        <div class="pt-stat-value">6.20 GiB</div>
-                                        <div class="pt-stat-limit">of 10 GiB</div>
-                                        <div class="pt-bar is-alarm"><i style="width: 62%"></i></div>
-                                    </div>
-                                </div>
+                            <a href="#" class="pt-server-card" data-power="running">
+                                <span class="pt-server-accent"></span>
+                                <span class="pt-server-body">
+                                    <span class="pt-server-name">Survival SMP</span>
+                                    <span class="pt-server-uuid">8fbb1c26e2a24e17a3d0a4d5e6f70a91</span>
+                                    <span class="pt-server-egg">
+                                        <span data-icon="server" data-icon-size="0.8rem"></span>
+                                        Paper 1.20.4
+                                    </span>
+                                </span>
+                                <button type="button" class="pt-server-power" aria-label="Stop this server">
+                                    <span data-icon="stop" data-icon-size="0.9rem"></span>
+                                </button>
                             </a>
 
-                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-red-500))">
-                                <div class="pt-server-tile">
-                                    <span data-icon="server" data-icon-size="1.25rem"></span>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="pt-server-name">Modded Factory</p>
-                                    <p class="pt-server-desc">Forge 1.19.2, suspended for exceeding its disk quota.</p>
-                                    <div class="pt-server-meta">
-                                        <span class="pt-chip pt-chip--offline">Suspended</span>
-                                        <span class="pt-chip pt-chip--allocation">node-02:25577</span>
-                                    </div>
-                                </div>
-                                <div class="pt-server-stats">
-                                    <span class="pt-stat-label">Awaiting live stats</span>
-                                </div>
+                            <a href="#" class="pt-server-card" data-power="stopped">
+                                <span class="pt-server-accent"></span>
+                                <span class="pt-server-body">
+                                    <span class="pt-server-name">Modded Factory</span>
+                                    <span class="pt-server-uuid">c2a7e91344b04f6d9e8a1b0c5d7f29384</span>
+                                    <span class="pt-server-egg">
+                                        <span data-icon="server" data-icon-size="0.8rem"></span>
+                                        Forge 1.19.2
+                                    </span>
+                                </span>
+                                <button type="button" class="pt-server-power" aria-label="Start this server">
+                                    <span data-icon="play" data-icon-size="0.9rem"></span>
+                                </button>
                             </a>
 
-                            <a href="#" class="pt-server-card" style="--pt-status: rgb(var(--pt-yellow-500))">
-                                <div class="pt-server-tile">
-                                    <span data-icon="server" data-icon-size="1.25rem"></span>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="pt-server-name">Creative Build</p>
-                                    <p class="pt-server-desc">Vanilla 1.20.1 - installation step 2 of 6 is running.</p>
-                                    <div class="pt-server-meta">
-                                        <span class="pt-chip pt-chip--busy">Installing</span>
-                                        <span class="pt-chip pt-chip--allocation">node-01:25599</span>
-                                    </div>
-                                </div>
-                                <div class="pt-server-stats">
-                                    <span class="pt-stat-label">Awaiting live stats</span>
-                                </div>
+                            <a href="#" class="pt-server-card" data-power="busy">
+                                <span class="pt-server-accent"></span>
+                                <span class="pt-server-body">
+                                    <span class="pt-server-name">Creative Build</span>
+                                    <span class="pt-server-uuid">71b0f3e5a8c24d19bf60e4a7c9d21583</span>
+                                    <span class="pt-server-egg">
+                                        <span data-icon="server" data-icon-size="0.8rem"></span>
+                                        Vanilla 1.20.1
+                                    </span>
+                                </span>
+                                <button type="button" class="pt-server-power" disabled aria-label="Power state unavailable">
+                                    <span data-icon="stop" data-icon-size="0.9rem"></span>
+                                </button>
                             </a>
-                        </section>
+
+                            <a href="#" class="pt-server-card" data-power="running">
+                                <span class="pt-server-accent"></span>
+                                <span class="pt-server-body">
+                                    <span class="pt-server-name">Skyblock One</span>
+                                    <span class="pt-server-uuid">4d9c6b2817e34af0b5e2c8d1f6a39074</span>
+                                    <span class="pt-server-egg">
+                                        <span data-icon="server" data-icon-size="0.8rem"></span>
+                                        Paper 1.20.4
+                                    </span>
+                                </span>
+                                <button type="button" class="pt-server-power" aria-label="Stop this server">
+                                    <span data-icon="stop" data-icon-size="0.9rem"></span>
+                                </button>
+                            </a>
+                        </div>
 
                         <!-- Plugins ------------------------------------------->
                         <!-- Mirrors components/server/plugins/PluginsContainer.tsx.
@@ -760,37 +663,35 @@
                         <section>
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Login</h2>
                             <div class="overflow-hidden border border-neutral-600">
-                                <div class="pt-auth-page" style="min-height: 32rem">
+                                <div class="pt-auth-page" style="min-height: 38rem">
                                     <div class="pt-auth">
-                                        <section class="pt-auth-hero">
-                                            <div class="pt-auth-hero-copy">
-                                                <h2 class="pt-auth-hero-title">
-                                                    <span>Your world,</span>
-                                                    <span>always within reach</span>
-                                                </h2>
-                                                <p class="pt-auth-hero-sub">Build, customize and manage your server from one place</p>
+                                        <div class="pt-auth-lockup">
+                                            <span class="pt-auth-emblem">
+                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                            </span>
+                                            <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                        </div>
+                                        <div class="pt-auth-column">
+                                            <div class="pt-auth-heading">
+                                                <h1>Welcome back</h1>
+                                                <p>Log in to manage your game server</p>
                                             </div>
-                                        </section>
-                                        <section class="pt-auth-panel">
-                                            <div class="pt-auth-lockup">
-                                                <span class="pt-auth-emblem">
-                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
-                                                </span>
-                                                <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                            <a class="pt-auth-signup" href="#register">
+                                                <span aria-hidden="true">&#xf234;</span>
+                                                <span>Sign up</span>
+                                            </a>
+                                            <div class="pt-auth-or" aria-hidden="true">
+                                                <span class="pt-auth-or-rule"></span>
+                                                <span class="pt-auth-or-word">or</span>
+                                                <span class="pt-auth-or-rule"></span>
                                             </div>
                                             <div class="pt-auth-card">
-                                                <div class="pt-auth-head">
-                                                    <h1>Welcome back</h1>
-                                                    <p>Log in to manage your game server</p>
-                                                </div>
                                                 <div class="pt-auth-body">
                                                     <label class="block text-neutral-300 text-sm mb-2">Username or Email</label>
                                                     <input class="text_input mb-4" value="john@example.com" />
-                                                    <div class="pt-field-head">
-                                                        <label class="block text-neutral-300 text-sm" style="margin-bottom:0">Password</label>
-                                                        <span class="pt-field-head-action"><a href="#">Forgot password?</a></span>
-                                                    </div>
+                                                    <label class="block text-neutral-300 text-sm mb-2">Password</label>
                                                     <input class="text_input" type="password" value="hunter22" />
+                                                    <div class="pt-auth-aside-link mb-3"><a href="#">Forgot password?</a></div>
                                                     <button type="submit" class="pt-btn pt-btn-primary pt-btn-block">Log in</button>
                                                 </div>
                                                 <div class="pt-auth-footer">New to the panel? <a href="#register">Create an account</a></div>
@@ -802,7 +703,7 @@
                                                     <span>Ask the owner to invite your email from their Subscribers page</span>
                                                 </span>
                                             </div>
-                                        </section>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -812,29 +713,20 @@
                         <section id="register">
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Register</h2>
                             <div class="overflow-hidden border border-neutral-600">
-                                <div class="pt-auth-page" style="min-height: 40rem">
+                                <div class="pt-auth-page" style="min-height: 44rem">
                                     <div class="pt-auth">
-                                        <section class="pt-auth-hero">
-                                            <div class="pt-auth-hero-copy">
-                                                <h2 class="pt-auth-hero-title">
-                                                    <span>Your world,</span>
-                                                    <span>always within reach</span>
-                                                </h2>
-                                                <p class="pt-auth-hero-sub">Build, customize and manage your server from one place</p>
-                                            </div>
-                                        </section>
-                                        <section class="pt-auth-panel">
-                                            <div class="pt-auth-lockup">
-                                                <span class="pt-auth-emblem">
-                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
-                                                </span>
-                                                <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                        <div class="pt-auth-lockup">
+                                            <span class="pt-auth-emblem">
+                                                <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                            </span>
+                                            <span class="pt-auth-lockup-name">Pterodactyl</span>
+                                        </div>
+                                        <div class="pt-auth-column">
+                                            <div class="pt-auth-heading">
+                                                <h1>Create your account</h1>
+                                                <p>Join Pterodactyl to deploy and manage your servers.</p>
                                             </div>
                                             <div class="pt-auth-card">
-                                                <div class="pt-auth-head">
-                                                    <h1>Create your account</h1>
-                                                    <p>Join Pterodactyl to deploy and manage your servers.</p>
-                                                </div>
                                                 <div class="pt-auth-body">
                                                     <label class="block text-neutral-300 text-sm mb-2">Email</label>
                                                     <input class="text_input mb-4" value="john@example.com" />
@@ -864,7 +756,7 @@
                                                 </div>
                                                 <div class="pt-auth-footer">Already have an account? <a href="#">Sign in</a></div>
                                             </div>
-                                        </section>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -103,10 +103,20 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, chi
 
     return (
         <div className={'pt-shell'} style={backgroundStyle('dashboard')}>
-            <aside className={'pt-sidebar'}>{sidebar()}</aside>
-
+            {/*
+             * No desktop sidebar. The reference layout is a topbar-only shell and
+             * the navigation that lived in the sidebar now sits in the topbar as
+             * icon-over-label items (see NavigationBar). The drawer below still
+             * renders the same Sidebar component, so narrow screens keep the full
+             * navigation - this is a layout change, not a loss of nav.
+             */}
             <div className={'pt-shell-body'}>
-                <NavigationBar title={title} subtitle={subtitle} onMenu={() => setDrawerOpen(true)} />
+                <NavigationBar
+                    title={title}
+                    subtitle={subtitle}
+                    onMenu={() => setDrawerOpen(true)}
+                    onLogout={onLogout}
+                />
                 <main className={'pt-shell-main'}>{children}</main>
             </div>
 

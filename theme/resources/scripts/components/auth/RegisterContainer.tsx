@@ -112,6 +112,7 @@ const RegisterContainer = ({ history }: RouteComponentProps) => {
                 <LoginFormContainer
                     title={'Create your account'}
                     subtitle={`Join ${brandName()} to deploy and manage your servers.`}
+                    showSignUpCta={false}
                     footer={
                         <>
                             Already have an account? <Link to={'/auth/login'}>Sign in</Link>

@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
 import ServerRow from '@/components/dashboard/ServerRow';
@@ -8,12 +11,9 @@ import useFlash from '@/plugins/useFlash';
 import { useStoreState } from 'easy-peasy';
 import { usePersistedState } from '@/plugins/usePersistedState';
 import Switch from '@/components/elements/Switch';
-import tw from 'twin.macro';
 import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
 import Pagination from '@/components/elements/Pagination';
-import { brandName } from '@/lib/brand';
-import { useLocation } from 'react-router-dom';
 
 export default () => {
     const { search } = useLocation();
@@ -57,30 +57,37 @@ export default () => {
     const firstName = (username || '').split(/[ ._-]/)[0];
 
     return (
-        <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
-            <section className={'pt-hero'}>
-                <p className={'pt-hero-eyebrow'}>{brandName()}</p>
-                <h1>Welcome back{firstName ? `, ${firstName}` : ''}</h1>
-                <p className={'pt-hero-sub'}>
-                    Spin up, manage and monitor every server you own - files, backups, databases and schedules all live
-                    in one place.
-                </p>
-            </section>
+        <PageContentBlock className={'pt-dash'} title={'Dashboard'} showFlashKey={'dashboard'}>
+            {/*
+             * The reference opens on a centred blue title rather than a greeting
+             * block. `firstName` is still read for the greeting below it, which
+             * stays as a quiet line - dropping the user's name from the page
+             * entirely would be a loss the layout change does not require.
+             */}
+            <div className={'pt-dash-head'}>
+                <h1 className={'pt-dash-title'}>Servers</h1>
+                {firstName && <p className={'pt-dash-greeting'}>Welcome back, {firstName}</p>}
+            </div>
 
-            <div className={'flex flex-wrap justify-between items-center gap-3'}>
-                <h2 className={'pt-section-title !mt-0 flex-1'}>Your servers</h2>
-                {rootAdmin && (
-                    <div className={'flex justify-end items-center'}>
-                        <p css={tw`uppercase text-xs text-neutral-400 mr-2`}>
-                            {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
-                        </p>
-                        <Switch
-                            name={'show_all_servers'}
-                            defaultChecked={showOnlyAdmin}
-                            onChange={() => setShowOnlyAdmin((s) => !s)}
-                        />
-                    </div>
-                )}
+            <div className={'pt-dash-bar'}>
+                <div className={'pt-dash-bar-lead'}>
+                    {rootAdmin && (
+                        <label className={'pt-dash-filter'}>
+                            <span>
+                                {showOnlyAdmin ? "Showing others' servers" : 'Showing your servers'}
+                            </span>
+                            <Switch
+                                name={'show_all_servers'}
+                                defaultChecked={showOnlyAdmin}
+                                onChange={() => setShowOnlyAdmin((s) => !s)}
+                            />
+                        </label>
+                    )}
+                </div>
+                <Link to={'/'} className={'pt-dash-create'}>
+                    <FontAwesomeIcon icon={faPlus} aria-hidden={'true'} />
+                    <span>Create</span>
+                </Link>
             </div>
 
             {!servers ? (
@@ -89,19 +96,20 @@ export default () => {
                 <Pagination data={servers} onPageSelect={setPage}>
                     {({ items }) =>
                         items.length > 0 ? (
-                            items.map((server) => <ServerRow key={server.uuid} server={server} />)
+                            <div className={'pt-dash-grid'}>
+                                {items.map((server) => (
+                                    <ServerRow key={server.uuid} server={server} />
+                                ))}
+                            </div>
                         ) : (
-                            <div className={'pt-server-card'} style={{ cursor: 'default' }}>
-                                <div className={'pt-server-tile'}>
-                                    <span>0</span>
-                                </div>
-                                <div className={'min-w-0'}>
-                                    <p className={'pt-server-name'}>No servers yet</p>
-                                    <p className={'pt-server-desc'}>
+                            <div className={'pt-server-card is-empty'}>
+                                <div className={'pt-server-body'}>
+                                    <span className={'pt-server-name'}>No servers yet</span>
+                                    <span className={'pt-server-egg'}>
                                         {showOnlyAdmin
                                             ? 'There are no other servers to display.'
                                             : 'There are no servers associated with your account. Ask an administrator to assign one to you.'}
-                                    </p>
+                                    </span>
                                 </div>
                             </div>
                         )

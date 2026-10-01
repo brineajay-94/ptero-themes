@@ -15,9 +15,10 @@ export default () => {
     const { path } = useRouteMatch();
 
     // Page chrome, so it lives on the page wrapper rather than inside the
-    // centred auth column: the stylesheet pins it to the viewport's top-left
-    // corner. Reading it off the location keeps the label right for every auth
-    // screen, and for the ones that only exist when registration is enabled.
+    // centred column: the stylesheet pins it to the viewport's top-left corner,
+    // where the logo lockup has left room for it. Reading the label off the
+    // location keeps it right for every auth screen, and for the ones that only
+    // exist when registration is enabled.
     const isRegister = location.pathname.includes('/register');
     const isForgot = location.pathname.includes('/password');
     const isReset = location.pathname.includes('/reset');

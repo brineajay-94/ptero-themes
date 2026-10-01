@@ -1839,10 +1839,23 @@
 }
 
 /* A field plus its leading glyph. The wrapper is what the glyph is positioned
- * against, so it is `relative` whether the field is stacked or in the login row. */
+ * against, so it is `relative` whether the field is stacked or in the login row.
+ *
+ * The padding is handed to the input through custom properties rather than set on
+ * it here. `.pt-auth input:not([type='checkbox']):not([type='radio'])` is three
+ * "class-level" specificity (`:not()` counts as its argument) against this
+ * wrapper's one, so a plain `padding-left` here lost - the shorthand in that later
+ * rule won on specificity, not order, and the glyph ended up sitting on the
+ * placeholder text. Variables sidestep it entirely: they inherit, so the value is
+ * resolved at the input and no selector has to out-rank anything. */
 .pt-auth-field {
     position: relative;
     min-width: 0;
+
+    /* Clears the glyph, and stays clear of the password reveal toggle, which the
+     * Input component renders inside the box on the right. */
+    --pt-auth-input-pad-l: 2.6rem;
+    --pt-auth-input-pad-r: 2.6rem;
 }
 
 /* The leading glyph, out of the input's flow: an <input> is a replaced element
@@ -1893,13 +1906,6 @@
     top: 1.45rem;
 }
 
-.pt-auth-field input {
-    /* Clears the glyph, and stays clear of the password reveal toggle, which
-     * the Input component renders inside the box on the right. */
-    padding-left: 2.6rem;
-    padding-right: 2.6rem;
-}
-
 /* The inline row: username, password and the submit button side by side, which
  * is the reference's arrangement and the reason the submit button is a flex
  * child here rather than a block beneath the fields.
@@ -1915,10 +1921,9 @@
 
 .pt-auth-inline .pt-auth-field {
     flex: 1 1 0;
-}
 
-.pt-auth-inline input {
-    min-height: 2.9rem;
+    /* Taller than a stacked field, to match the submit button beside it. */
+    --pt-auth-input-min-h: 2.9rem;
 }
 
 /* Field labels are clipped rather than removed: the row has one visible label,
@@ -1986,8 +1991,17 @@
 .pt-auth textarea,
 .pt-auth select {
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.55rem 0.85rem;
+    /* Read through variables so a field carrying a leading glyph can widen the
+     * padding without needing a selector that out-ranks this one. Defaults here
+     * are the no-glyph values; `.pt-auth-field` overrides them by inheritance. */
+    min-height: var(--pt-auth-input-min-h, 2.75rem);
+    padding: 0.55rem var(--pt-auth-input-pad-r, 0.85rem) 0.55rem var(--pt-auth-input-pad-l, 0.85rem);
+    /* Stated rather than inherited from Tailwind's preflight, because
+     * `.pt-auth-field-icon`'s `top` is computed from this box's height. Under
+     * content-box, `min-height` would be the CONTENT height and the glyph would sit
+     * low by the padding and border; the panel happens to load a border-box reset,
+     * but a geometry this load-bearing should not depend on that. */
+    box-sizing: border-box;
     border-radius: var(--pt-glass-radius-sm);
     border: 1px solid rgb(255 255 255 / 0.38);
     background-color: rgb(255 255 255 / 0.075);
@@ -2022,10 +2036,16 @@
 }
 
 /* The password field carries a reveal toggle inside it, so the right padding has
-   to leave room for the button the component renders. */
+   to leave room for the button the component renders.
+
+   Set as the variable the base rule consumes, not as `padding-right` directly:
+   the base rule's `padding` shorthand has three "class-level" specificity from
+   its two `:not()`s and was beating a plain `padding-right` here on specificity
+   rather than order, so this padding was never actually applied. Variables are
+   resolved at the element, so nothing has to out-rank anything. */
 .pt-auth input[type='password'],
 .pt-auth input[data-has-toggle] {
-    padding-right: 2.6rem;
+    --pt-auth-input-pad-r: 2.6rem;
 }
 
 /* The label row, used only when a Field is given a `labelAction` (the "Forgot

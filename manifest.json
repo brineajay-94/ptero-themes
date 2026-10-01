@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.12.0",
+    "version": "1.13.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -9,8 +9,8 @@
     "files": [
         {
             "path": "app/Support/IllustrationProcessor.php",
-            "action": "create",
-            "note": "Keys the white background out of an uploaded hero illustration and crops it. Illustration artwork is drawn on white and the auth hero is #141417, so an unprocessed upload renders as a white rectangle, and CSS cannot fix it: `screen` leaves white as white, `multiply` keys the background out but takes the dark parts of the artwork with it. Two passes, because one is not enough - a border flood fill cannot reach background that is *enclosed* by the artwork, and the glow ring in the reference illustration is a closed ellipse, so the white inside it survives as a white lens; a second pass clears remaining near-white regions above a minimum area while keeping small ones, so a white specular highlight on a rack stays. Then the cut edge is feathered and the result cropped. Pure GD, no Imagick"
+            "action": "remove",
+            "note": "Deleted. It keyed an uploaded illustration's white background to transparency and cropped it, which existed only for the hero illustration in the 50/50 auth split. Both are gone, so the class has no caller. Listed with action `remove` rather than simply dropped from the manifest, because a panel that installed an earlier version still has the file on disk and would otherwise be left with an orphan that no installer run could clean up. Both installers back the panel's copy up before deleting it, so uninstall restores it"
         },
         {
             "path": "resources/scripts/components/elements/DropdownMenu.tsx",
@@ -30,7 +30,7 @@
         {
             "path": "tailwind.config.js",
             "action": "replace",
-            "note": "Emits every colour utility as rgb(var(--pt-*)) on Tailwind 3.1+ and as baked-in hex on 2.1/3.0, which cannot apply an opacity modifier to a CSS variable; adds navy/gold brand ramps and aliases blue/primary to navy and cyan to gold. The literal PALETTE here is the pre-3.1 fallback and is kept byte-for-byte in step with the --pt-* blocks in pterodactyl-theme.css - drift between the two makes a rebuild look like the stylesheet did not apply"
+            "note": "Emits every colour utility as rgb(var(--pt-*)) on Tailwind 3.1+ and as baked-in hex on 2.1/3.0, which cannot apply an opacity modifier to a CSS variable; adds navy/gold brand ramps and aliases blue/primary to navy and cyan to gold. The literal PALETTE here is the pre-3.1 fallback and MUST stay byte-for-byte in step with the --pt-* blocks in pterodactyl-theme.css: it is the only palette a panel on Tailwind below 3.1 ever sees, so drift there renders the old colours while the stylesheet declares the new ones - which is indistinguishable from the stylesheet not having applied. The default palette is now light (page #f2f4f6, card #ffffff, dark ink, blue accent) and the ramp keeps its roles across that flip, 50-500 ink and 600-900 surfaces, so the stock panel utilities follow without touching a component"
         },
         {
             "path": "resources/views/templates/wrapper.blade.php",
@@ -50,12 +50,12 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName()/logoUrl()/illustrationUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon, hero illustration, the registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration. The illustration is a separate setting from the auth background: the background is a full-bleed photo behind the whole hero, the illustration floats in the upper half of it on top, so they composite"
+            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon, the registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
             "action": "create",
-            "note": "Monochrome black tokens (#0b0b0d page, #141417 surface, #c8ccd0 neutral accent, system fonts), a fixed neutral aurora field behind every screen, frosted glass on the sidebar/topbar/drawer/auth card and tinted glass on the cards, admin-set background image layers with an adjustable black scrim over the auth screens and the dashboard, auth breadcrumb + quick-link buttons, the round small loading ring, and a [data-pt-theme] block for the amber palette - the default black palette is the :root block itself. Owns focus rings for every theme control (none on :focus, a gold ring on :focus-visible). The neutral ramp is split at 500/600 - 50-500 text, 600-900 surface. The auth screens are a 50/50 split: .pt-auth-hero owns the admin auth image with a two-stop vertical scrim so the marketing line at its foot stays legible, .pt-auth-panel owns the vertical rule and the centring; the responsive overrides are declared after every base rule on purpose, because a media query adds no specificity. Shared scale tokens so the panel reads as one surface: --pt-shadow-sm/md/lg replace fifteen hand-written box-shadows, --pt-hairline replaces four border greys, and --pt-dur-fast/base/slow replace two unit systems for the same duration. prefers-reduced-motion covers every theme transition, not just the drawer"
+            "note": "Light tokens (#f2f4f6 page, #ffffff cards, dark ink, system fonts) plus the dark chrome islands the reference shell is built from - a slate topbar and slate server cards floating on the white page, each with its own light ink steps, because the page ink is unreadable on them. The neutral ramp keeps its ROLES across the polarity flip (50-500 ink, 600-900 surfaces), which is what lets the stock panel ~200 colour utilities re-skin with no component edits; the console header is a third island for the same reason. Every pairing is measured rather than eyeballed: stock muted ink clears 4.5:1 on both the page and a card, and the blue fill clears 4.57:1 with white text. Also owns the app shell - no desktop sidebar, a topbar-only shell with a mobile drawer - the topbar icon-over-label navigation, the centred dashboard with its two-column card grid, admin-set background image layers with an adjustable scrim, the auth screens, and a frosted-surface recipe retuned for light, where a white tint on a white card would be nothing at all. Keeps the amber palette as a dark-gold [data-pt-theme] alternative, shared scale tokens (shadow/hairline/duration), the squaring reset and its opt-in lists, and the reduced-motion / reduced-transparency / forced-colors blocks"
         },
         {
             "path": "public/themes/pterodactyl/images/logo.svg",
@@ -70,17 +70,17 @@
         {
             "path": "resources/scripts/components/AppShell.tsx",
             "action": "create",
-            "note": "Fixed sidebar + sticky topbar + mobile drawer shell for dashboard and server routes, applies the dashboard background image; sign-out lives in the sidebar since the topbar no longer has it. Resolves the topbar title for the theme own server routes (lib/serverExtras) and passes the server uuid and egg variables down so the sidebar can pick the jar nav items"
+            "note": "Topbar + mobile drawer shell for dashboard and server routes; applies the dashboard background image. There is no desktop sidebar any more - the reference shell is a topbar only, and the navigation it carried moved into NavigationBar as icon-over-label items. The Sidebar component is still imported and still rendered inside the drawer, so narrow screens keep the full navigation and its styling survives; removing the sidebar element was a layout change, not a removal of the component"
         },
         {
             "path": "resources/scripts/components/Sidebar.tsx",
             "action": "create",
-            "note": "Aternos-style sidebar with brand block (site icon shown with no chip or background, falling back to the first letter), permission-filtered server/account navigation, sign-out button and user footer. Renders the theme jar routes, showing Plugins when the server has plugins/ and Mods when it has mods/ - a hybrid gets both"
+            "note": "The panel navigation list: brand block, permission-filtered server entries, account entries, the admin shortcut, and a footer with the avatar and sign-out. It is no longer rendered on desktop - AppShell mounts it only inside the mobile drawer, now that the topbar carries the primary navigation - but it is still the full navigation list for narrow screens and for server sub-pages, so it is kept rather than deleted"
         },
         {
             "path": "resources/scripts/components/NavigationBar.tsx",
             "action": "replace",
-            "note": "Three-column topbar (1fr auto 1fr): burger + title, the centred Home/Discord/Status pill cluster, and a balancing spacer - search, admin, avatar, sign-out and the old dashboard shortcut removed"
+            "note": "Topbar-only navigation shell. Three-column grid (1fr auto 1fr): pt-topbar-lead carries the burger, the brand lockup and a quiet page-title line; the centre column is the Home/Discord/Status pill cluster; pt-topbar-tail carries icon-over-label Servers and Account links, the Admin shortcut for a root admin, the username with a Logout button beneath it, and the round avatar. It replaced a title-only bar once the fixed sidebar was removed to match the reference shell - the navigation that lived in the sidebar moved here. onLogout is a prop rather than an inlined POST because AppShell owns http(). The burger and mobile drawer are unchanged: a phone still reaches the full navigation through the drawer, so removing the desktop sidebar was a layout change and not a loss of nav. The page title is kept beside the brand rather than dropped, because on a server page it is the only thing naming which server you are in"
         },
         {
             "path": "resources/scripts/routers/DashboardRouter.tsx",
@@ -100,7 +100,7 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "The split-screen auth shell shared by every auth screen: a hero half carrying the admin background image, the two-tone marketing line and the optional illustration, and a form panel carrying the brand lockup, the card and the optional subuser hint. The hero and panel are siblings, not nested, because the rule between them is a border on the panel and the hero has to bleed to the viewport edge. The illustration is read from AssetComposer rather than hardcoded, so it is per-panel, and its wrapper hides itself on a load error - the wrapper, not the img, because the glow behind the artwork is a child of it"
+            "note": "The auth shell shared by every auth screen: a single centred column with the brand lockup at the top, then the heading, the sign-up call to action and the form card. This replaced a 50/50 split whose left half existed to carry a hero illustration - with the illustration gone the second column only pushed the form off a laptop screen. The sign-up CTA renders only when registration is actually enabled, so it can never link to a route the admin has closed, and showSignUpCta=false turns it off on the register screen where the footer already offers the same link"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
@@ -135,12 +135,12 @@
         {
             "path": "resources/scripts/components/dashboard/DashboardContainer.tsx",
             "action": "replace",
-            "note": "Branded hero header, section title and empty state"
+            "note": "The dashboard in the reference shape: a centred blue Servers title with a quiet greeting line, a row carrying the admin-only show-all-servers switch on the left and the Create button on the right, then a two-column grid of server cards. The previous branded hero block and section title are gone - .pt-dash-title replaces both - but firstName is still read and shown, because dropping the user name would lose something the layout change did not require"
         },
         {
             "path": "resources/scripts/components/dashboard/ServerRow.tsx",
             "action": "replace",
-            "note": "Server cards with status/allocation chips, CPU/MEM/DISK stat blocks and colour bars"
+            "note": "One server as a card in the reference grid: pink left accent bar, name, uuid, egg name, and a round power button that is pink to stop and blue to start. This replaced a full-width row carrying live CPU/memory/disk bars and status/allocation chips - the bars were why a scrolling list of these was expensive to render and why it read as a data table rather than a list of servers, and the numbers are one click away on the server page. Still a single Link, so the power button stops propagation. The press is optimistic and rolls back if the daemon refuses it; suspended and node-maintenance servers are not polled at all. sendPowerAction is the panel stock module, not shipped here"
         },
         {
             "path": "resources/scripts/components/elements/PageContentBlock.tsx",
@@ -225,12 +225,12 @@
         {
             "path": "app/Http/Controllers/Admin/SiteSettingsController.php",
             "action": "create",
-            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the hero illustration for the auth screens, the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises, and a file PHP discarded is reported with the reason from the upload error code instead of being treated as \"no file chosen\". Uploads stored under a fixed stem with a per-upload extension replace EVERY match (deleteStem) rather than the first glob hit, and each read picks the newest file rather than whatever order the filesystem returned - otherwise one failed delete left a stale file that won the next glob and came back on screen. The illustration is re-encoded to a transparent PNG by IllustrationProcessor before it is stored, under a fixed name so the browser URL keeps matching what was uploaded rather than the format it arrived in"
+            "note": "Admin -> Site Settings: site name, icon (uploaded file or pasted link), the two background slots (auth/dashboard - upload or pasted link, each with an on/off switch, its own Save button and a black overlay intensity slider), the panel palette picker (default/black/amber) and the Home/Discord/Status quick links. Uploads are capped to what this server can actually accept: php.ini upload_max_filesize/post_max_size are read and the lower of those and the theme cap is what the page advertises, and a file PHP discarded is reported with the reason from the upload error code instead of being treated as \"no file chosen\". Uploads stored under a fixed stem with a per-upload extension replace EVERY match (deleteStem) rather than the first glob hit, and each read picks the newest file rather than whatever order the filesystem returned - otherwise one failed delete left a stale file that won the next glob and came back on screen"
         },
         {
             "path": "resources/views/admin/site-settings.blade.php",
             "action": "create",
-            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block each with upload/link, on-off switch, intensity slider, live preview and its own Save, then a Hero illustration block), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). The illustration block previews on the hero colour rather than white, and says so, because the whole point of the block is that the server strips the white. Upload help text shows the server-derived ceiling rather than the theme cap, so it cannot promise a size PHP will drop. Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
+            "note": "Responsive Site Settings page with server-rendered tabs (no tab JS): General (name + icon with preview, then a separate Login & register and Dashboard background block each with upload/link, on-off switch, intensity slider, live preview and its own Save), Theme (palette cards with colour swatches, validated server-side against a whitelist) and Links (Home/Discord/Status, each with a switch and URL). Upload help text shows the server-derived ceiling rather than the theme cap, so it cannot promise a size PHP will drop. Preview script is vanilla and inlined at the end of @section('content') so it cannot replace the layout's footer-scripts block"
         },
         {
             "path": "app/Http/Controllers/Auth/RegisterController.php",
@@ -250,7 +250,7 @@
         {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .illustration / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon or the illustration used to leave the previous image on screen"
+            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon used to leave the previous image on screen"
         },
         {
             "path": "routes/auth.php",
@@ -260,7 +260,7 @@
         {
             "path": "routes/admin.php",
             "action": "replace",
-            "note": "Stock routes + /admin/site-settings (+ /illustration save and clear) + /admin/registration + GET/POST /admin/servers/view/{server}/software"
+            "note": "Stock routes + /admin/site-settings + /admin/registration + GET/POST /admin/servers/view/{server}/software"
         },
         {
             "path": "resources/views/layouts/admin.blade.php",

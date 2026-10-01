@@ -286,6 +286,45 @@ while IFS=$'\t' read -r path action; do
     target="$PANEL_DIR/$path"
     source="$SRC/$path"
 
+    # A file the theme used to ship and no longer does. It has no payload, so this
+    # branch has to come BEFORE the payload check below - otherwise a manifest
+    # entry with no file behind it reads as a broken install rather than as the
+    # instruction it is.
+    #
+    # Backing up before deleting is what makes uninstall able to put it back:
+    # restore_latest_backup copies the whole backup tree over the panel root.
+    # But only an `install` has a backup directory to write into - `--update`
+    # deliberately keeps the ORIGINAL backup instead of making a new one, so
+    # $BACKUP is empty there. Copying into it anyway would expand "$BACKUP/app" to
+    # "/app" and, under `set -e`, abort the whole run on a permission error. So
+    # the backup is guarded on both the mode and the directory being real.
+    #
+    # On an update the file is simply deleted. That is safe: it was a file this
+    # theme created, so the panel has no original of its own to lose, and it is
+    # being removed because nothing references it any more.
+    if [ "$action" = "remove" ]; then
+        if [ ! -f "$target" ]; then
+            echo "$(printf '%-8s' "$action") $path  (not on the panel, nothing to do)"
+            continue
+        fi
+
+        if [ "$ACTION" = "status" ]; then
+            echo "$(printf '%-8s' "$action") $path  (still on the panel - re-run without --status to remove it)"
+            continue
+        fi
+
+        if [ "$ACTION" = "install" ] && [ -n "$BACKUP" ]; then
+            mkdir -p "$BACKUP/$(dirname "$path")"
+            cp -a "$target" "$BACKUP/$path"
+            echo "$(printf '%-8s' "$action") $path  (removed; backup kept so uninstall can restore it)"
+        else
+            echo "$(printf '%-8s' "$action") $path  (removed)"
+        fi
+
+        rm -f "$target"
+        continue
+    fi
+
     if [ ! -f "$source" ]; then
         echo "error: theme payload missing: $source" >&2
         exit 1
@@ -319,7 +358,18 @@ THEME_PUBLIC="$PANEL_DIR/public/themes/pterodactyl"
 if [ -n "$WEB_USER" ]; then
     chown -R "$WEB_USER":"$(id -gn "$WEB_USER")" "$THEME_PUBLIC" 2>/dev/null || true
     mkdir -p "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
-    chown -R "$WEB_USER":"$(id -gn "$WEB_USER")" "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"
+    # `|| true` here for the same reason as the line above, and its absence was a
+    # real bug: this chown had no guard, so on a host where it is refused - a
+    # non-root run, a panel on NFS or a container with a read-only uid map - `set
+    # -e` aborted the installer HERE. That is after every file was copied but
+    # before write_state, so the panel was left fully installed with no state file
+    # and no backup marker: the next run called it "already installed" and
+    # uninstall had nothing to restore from. Ownership is a convenience here, not
+    # a correctness requirement, so a refusal is reported and stepped over.
+    if ! chown -R "$WEB_USER":"$(id -gn "$WEB_USER")" "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds" 2>/dev/null; then
+        echo "warning: could not set ownership on images/ and backgrounds/ to $WEB_USER." >&2
+        echo "         set it by hand: chown -R $WEB_USER $THEME_PUBLIC" >&2
+    fi
     # 775, not 755: the group is the panel's own group, so this lets an admin
     # group member write too without opening the directory to everyone.
     chmod 775 "$THEME_PUBLIC/images" "$THEME_PUBLIC/backgrounds"

@@ -1,31 +1,44 @@
 # brine-theme
 
-  A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) with the **Aternos**
-  control-panel layout and a monochrome black palette — `#0b0b0d` page,
-  `#141417` surfaces, neutral `#c8ccd0` accent, the system UI font stack, a fixed
-  sidebar shell and frosted glass surfaces over a cool aurora.
+  A full UI overhaul of **Pterodactyl Panel** (v1.12 – v1.15) following the
+  **Aternos** reference: a **light** palette — `#f2f4f6` page, `#ffffff` cards,
+  dark ink, a `#2977cb` blue accent — with two **dark chrome islands** floating on
+  it (a slate topbar and slate server cards), the system UI font stack and a
+  topbar-only shell.
 
 What it changes on top of the stock panel:
 
-- **Glass** — the sidebar, topbar, mobile drawer and login card are genuinely
-  frosted (`backdrop-filter: blur + saturate`) over a fixed field of violet and
-  cyan blooms that sit behind every screen. Cards, the dashboard hero and the
-  console header use the same material vocabulary — hairline border, top inner
-  highlight, tinted fill — but deliberately **without** a blur: one
+- **Light palette, dark chrome islands.** The page is near-white and the cards on
+  it are white, which is the reference's arrangement. The topbar, the server cards
+  and the console header are slate `#2d3748` with light ink — the page's ink steps
+  are dark and unreadable there, so each island carries its own. The neutral ramp
+  keeps its **roles** across the polarity flip (`50`–`500` ink, `600`–`900`
+  surfaces), which is what lets the stock panel's ~200 colour utilities re-skin
+  with no component edits. Every pairing is measured: stock muted ink clears
+  4.5:1 on both the page and a card, and the blue fill clears 4.57:1 with white
+  text.
+- **Glass** — the topbar, mobile drawer and login card are genuinely
+  frosted (`backdrop-filter: blur + saturate`). Cards and the console header use
+  the same material vocabulary — hairline border, top inner highlight, tinted fill —
+  but deliberately **without** a blur: one
   `backdrop-filter` per row of a scrolling server list is the single most
   expensive thing you can put on a panel. Corners are rounded again on the
   frosted surfaces only; dense, unstyled areas stay square.
+  The recipe is retuned for light, where a white tint on a white card would be
+  nothing at all.
   Users who ask for less transparency (`prefers-reduced-transparency`) or run
   Windows high contrast (`forced-colors`) get opaque surfaces automatically.
-- **Shell** — Aternos-style fixed sidebar (brand block, permission-filtered
-  server + account navigation, user footer), sticky topbar with a violet→blue
-  gradient hairline, and a sliding mobile drawer with a hamburger burger. On a
-  server page the sidebar lists the server's own pages only — the current
-  server's name is not repeated there, because the topbar subtitle and the
-  console hero both already name it and a third copy reads as a dead link.
-- **Dashboard** — branded hero header with section title, and
-  server cards that carry a status chip, allocation chip and CPU/MEM/DISK
-  stat blocks with colour bars.
+- **Shell** — topbar-only, as in the reference: brand lockup and a quiet page
+  title on the left, the admin's Home/Discord/Status links centred, and
+  icon-over-label **Servers** and **Account** navigation with the username, a
+  logout button and a round avatar on the right. There is **no desktop sidebar**;
+  what it used to carry moved into the topbar. A sliding mobile drawer with a
+  burger is unchanged and still renders the full navigation list, so removing the
+  desktop sidebar was a layout change and not a loss of navigation.
+- **Dashboard** — a centred blue **Servers** title, a row with the admin-only
+  show-all-servers switch and a **Create** button, then a two-column grid of dark
+  server cards carrying a pink accent bar, the name, the uuid, the egg and a round
+  power button (pink to stop, blue to start).
 - **Login** — a modern floating auth card, centred both ways on the page: soft
   accent glow on the dark backdrop, a white logo chip instead of the old
   coloured masthead, an uppercase brand eyebrow, a strong "Welcome back" title,
@@ -56,7 +69,7 @@ What it changes on top of the stock panel:
 
 ## Scope
 
-- The **normal user panel** (React) is re-skinned: fixed sidebar shell, dashboard,
+- The **normal user panel** (React) is re-skinned: topbar-only shell, dashboard,
   login, console and file manager.
 - The **admin area** (AdminLTE) keeps its stock look, with exactly two additions:
   - **Site Settings** (`/admin/site-settings`) — three tabs, all server-rendered
@@ -87,23 +100,24 @@ What it changes on top of the stock panel:
   only ships FontAwesome's *solid* set, so the Discord icon is not available as
   a dependency and the theme does not add one just for it.
 
-- **Slim dashboard topbar** — a three-column grid: burger and title on the left,
-  then **Home · Discord · Status** centred as a row of glass pills, then a
-  balancing spacer. The pills carry a soft resting treatment that strengthens on
-  hover, and Discord keeps its brand blurple so it reads as Discord at a glance.
-  Search, the admin shortcut, the account avatar, sign-out and the old dashboard
-  shortcut are gone from the bar. Account and Admin Area are sidebar entries,
-  and sign-out is the button at the bottom of the sidebar (and the mobile
-  drawer), so all of it is still one click away — **except search, which had no
-  other home and is therefore removed from the panel entirely.**
+- **Topbar navigation** — a three-column grid: burger, brand lockup and a quiet
+  page title on the left; **Home · Discord · Status** centred as a row of pills;
+  and icon-over-label **Servers** and **Account** on the right, with the username
+  and a logout button stacked beside them and the round avatar at the end. The
+  pills carry a soft resting treatment that strengthens on hover, and Discord
+  keeps its brand blurple so it reads as Discord at a glance. **Admin** appears
+  here too, for a root admin. This is where the sidebar's navigation went, so the
+  server and account pages are still one click away, and the mobile drawer still
+  renders the full list for narrow screens. Search had no other home and is
+  therefore still removed from the panel entirely.
 
-- **Branding in the sidebar** — the site icon beside the panel name is shown as
-  it is: no chip, no background, no box. It falls back to the first letter of the
-  panel name when no icon has been uploaded.
+- **Brand lockup** — the site icon beside the panel name sits in the topbar now,
+  on a translucent white plate so a dark uploaded icon still separates from the
+  dark bar. It falls back to the theme emblem.
 - The **page title** stays exactly as Pterodactyl ships it. The **favicon** is the
   icon uploaded on the Site Settings page (falling back to the theme emblem) - the
   stock `/favicons` folder is removed on install and restored on uninstall.
-- The **brand name** (sidebar, topbar subtitle, login card, footer) is read from
+- The **brand name** (topbar brand, page-title line, login card, footer) is read from
   the panel's own name setting - `config('app.name')`, exposed to the client as
   `window.SiteConfiguration.name` via `resources/scripts/lib/brand.ts`. Nothing is
   hardcoded, so renaming the panel rebrands the theme automatically.
@@ -288,6 +302,26 @@ The menu is a wrapper around the installers, which can still be called straight:
 Without `--build` / `-Build` the installer only copies files and prints the
 commands to run yourself.
 
+#### The three manifest actions
+
+Every entry in `manifest.json` carries an `action`, and the two installers honour
+all three:
+
+| Action | Meaning |
+| --- | --- |
+| `create` | A file the panel does not have. Copied in, and recorded in `created.txt` so uninstall deletes it — there is no panel original to restore. |
+| `replace` | A file the panel already has. The original is copied into the backup first, then overwritten. |
+| `remove` | A file the theme **used to ship and no longer does**. |
+
+`remove` exists because of `app/Support/IllustrationProcessor.php`. It went when
+the hero illustration did, and dropping it from `manifest.json` alone would have
+left the file sitting on every panel that had installed an earlier version — an
+orphan nothing could clean up. With the entry present, both installers back the
+panel's copy up before deleting it, so `--uninstall` puts it straight back.
+`--update` deletes without a fresh backup, because an update deliberately keeps
+the *original* backup rather than making a new one, and there is nothing there to
+write into.
+
 **Always rebuild the frontend after installing** â€” `tailwind.config.js` is part
 of the package, so the brand colour utilities (`navy`, `gold`, and the
 `blue`/`primary`/`cyan` aliases) only exist in the bundle after a build:
@@ -377,13 +411,33 @@ The config exposes two new ramps read from the CSS variables:
 
 ### Neutral ramp
 
-  The `neutral` / `gray` ramp is the monochrome black ramp: `700` is the
-  card/sidebar/header surface (`#141417`), `800` the page (`#0b0b0d`), `900`
-  raised chrome (`#060608`), `black` the terminal (true black), and the upper
-  steps are the neutral text greys (`#f5f5f7` down to `#7a7a82`). The
-  stock panel builds every surface from `neutral-700/800/900`, so the whole
-  panel lands on the palette without per-page overrides. Corners are square
-everywhere: a global radius reset also neutralises the stock panel's rounding.
+  The `neutral` / `gray` ramp is the **light** ramp, and it is deliberately
+  **role-stable**: `700` is the card surface (`#ffffff`), `800` the page
+  (`#f2f4f6`), `900` raised chrome (`#ffffff` again — on a light page a raised
+  surface is separated by its shadow, not by a different fill), `600` a row fill
+  and border (`#dfe3e8`), and `50`–`500` the ink steps (`#10131a` down to
+  `#696f7b`).
+
+  The roles are the point. When this ramp was dark, the same slots held the
+  opposite values, and keeping the slots is what lets the stock panel build every
+  surface from `neutral-700/800/900` and its every piece of text from
+  `text-neutral-*` and land on the new palette with no per-page overrides. The
+  polarity flipped; the job each step does did not.
+
+  `700` and `900` being the same value is deliberate, not a missing step. The
+  dark chrome islands do **not** come from this ramp: the topbar, the server
+  cards and the console header are `--pt-chrome` (`#2d3748`) with their own
+  `--pt-chrome-ink` / `-muted` / `-faint` steps, because the page ink is dark and
+  would be unreadable on them.
+
+  The two ramps live in **two files** and must stay byte-for-byte identical:
+  `--pt-*` in `pterodactyl-theme.css`, and the literal `PALETTE` in
+  `tailwind.config.js`. The second is what a panel on Tailwind below 3.1 actually
+  renders, so drift there shows the old colours while the stylesheet declares the
+  new ones — indistinguishable from the stylesheet not having applied.
+  Corners are square everywhere: a global radius reset also neutralises the stock
+  panel's rounding.
+
 
 ### Fonts
 
@@ -412,16 +466,16 @@ render, so they match the panel.
 | --- | --- |
 | `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
 | `resources/views/templates/wrapper.blade.php` | replace - stylesheet link, plus `data-pt-theme` on `<html>` and a theme-color that follow the chosen palette (title and favicon stay stock) |
-| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create - monochrome tokens + shell/auth/dashboard/console/files styles |
+| `public/themes/pterodactyl/css/pterodactyl-theme.css` | create - light tokens + dark chrome islands + shell/auth/dashboard/console/files styles |
 | `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
 
 **Shell**
 
 | File | Action |
 | --- | --- |
-| `resources/scripts/components/AppShell.tsx` | create â€” sidebar + topbar + drawer |
-| `resources/scripts/components/Sidebar.tsx` | create â€” brand, nav, user footer |
-| `resources/scripts/components/NavigationBar.tsx` | replace â€” rewritten as the topbar |
+| `resources/scripts/components/AppShell.tsx` | create â€” topbar + drawer shell, no desktop sidebar |
+| `resources/scripts/components/Sidebar.tsx` | create â€” full nav list; drawer-only since the topbar took over desktop |
+| `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, user + logout, avatar |
 | `resources/scripts/routers/DashboardRouter.tsx` | replace â€” wraps in `AppShell` |
 | `resources/scripts/routers/ServerRouter.tsx` | replace â€” wraps in `AppShell` |
 
@@ -453,7 +507,7 @@ render, so they match the panel.
 | `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` |
 | `routes/auth.php` | replace - stock routes + `GET/POST /auth/register`, no recaptcha middleware |
 | `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` |
-| `app/Support/IllustrationProcessor.php` | create - keys an uploaded illustration's white background to transparency (see *Hero illustration*) |
+| `app/Support/IllustrationProcessor.php` | removed - the hero illustration it keyed and cropped is gone with the split layout |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration menu items, icon favicon |
 | `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
@@ -860,45 +914,54 @@ relation will see the wrong thing.
     are gone from the call sites.
   - The ring colour follows `--pt-gold-500`, the same accent as the rest of the
     theme, rather than the stock white. `isBlue` still works.
-- **Auth layout (split screen)** - every auth screen (login, register, forgot,
-  reset, 2FA) is a 50/50 split, matching the design the theme was built to.
+- **Auth layout (single centred column)** - every auth screen (login, register,
+  forgot, reset, 2FA) is one centred column, following the Aternos reference.
   `LoginFormContainer` is the shared shell:
-  - `.pt-auth-hero` (left) carries the admin's **Login & register** background
-    image. That layer used to be a `position: fixed` `::after` on the whole page;
-    it now belongs to the hero half only, because a full-bleed photo across a
-    split screen puts artwork behind the form. The scrim is a two-stop vertical
-    gradient rather than a flat fill, because the marketing line sits at the
-    **foot** of the hero - the bottom has to be dark for the text while the top
-    stays open for the artwork. Upload your illustration through
-    **Site Settings → Login & register background**; it is positioned and scaled
-    to fill the hero.
-  - `.pt-auth-panel` (right) owns the vertical rule, the centring and the page
-    padding, so the hero can bleed to the viewport edge untouched. The brand
-    lockup (mark + site name) sits above the card. The mark's backing is a dim
-    surface rather than the old white chip - a white box read as a sticker on a
-    black screen, and it forced light-on-dark - but a backing is kept at all so
-    a dark uploaded icon still separates from the panel.
-  - The card carries a header band (a shade lighter, hairline under it) with the
-    title and subtitle, then the body, then the footer. Register / Forgot /
-    Reset / Checkpoint pass their own title and subtitle, so every screen gets
-    the layout without extra work.
-  - The gold full-width submit, the rounded fields and the gold focus ring are
-    on **both** palettes. The amber-only `999px` pill override was removed: a pill
+  - This replaced a 50/50 split. The hero half existed to carry a hero
+    illustration; with the illustration gone the second column only pushed the
+    form off a laptop screen, so the layout is now a single column and the accent
+    colour carries the emphasis the artwork used to.
+  - `.pt-auth-page` owns the admin's **Login & register** background image and the
+    scrim, as the page's own background. It used to be a `position: fixed`
+    `::after` on the whole page, then the hero half's background - both are gone,
+    but the `--pt-bg-overlay-*` variables Site Settings writes are unchanged.
+  - `.pt-auth` is the column: the brand lockup (mark + site name) at the top, then
+    `.pt-auth-column` holding the heading, the call to action and the card. The
+    mark's backing is a dim surface rather than the old white chip - a white box
+    read as a sticker on a black screen, and it forced light-on-dark - but a
+    backing is kept at all so a dark uploaded icon still separates from the page.
+  - The heading sits **outside** the card on the page, as in the reference. The
+    card itself is body + footer only; the old header band is gone.
+  - The **Sign up** call to action is the loudest element on the login screen -
+    registration is the reason a first-time visitor is there at all. It renders
+    only when `registrationEnabled()` is true, so it can never link to a route the
+    admin has closed, and `showSignUpCta={false}` turns it off on the register
+    screen where the footer already offers the same link. It is an `<a>`, not a
+    `<button>`, so it has to override the generic `.pt-auth a` colour or it
+    renders as a link rather than a filled surface.
+  - `--pt-blue-*` is a new ramp used by the sign-up CTA and the submit button and
+    nothing else. The rest of the panel stays monochrome; gold remains the link
+    colour throughout, so a link never reads as a button. **The ramp runs down,
+    not up**: `500` is the fill and `400`/`600` (hover/active) are *darker*. A
+    lighter-on-hover ramp is impossible with white text here, because the
+    reference's own `#2b7cd3` is only 4.26:1 against white. The shipped fill is
+    `#2977cb` - 96% of that blue, so it reads as the same colour - and measures
+    4.57:1, with hover and active at 5.69:1 and 7.26:1. All AA.
+  - The submit button is a rounded rect on **both** palettes, not a pill - a pill
     on a 44px button reads as a toggle, not a call to action.
-  - `components/elements/Field.tsx` gains an optional `labelAction` so
-    "Forgot password?" can sit on the **Password label row** rather than in a
-    block below the field. The stock component puts the label on its own line
-    with the input after it, so this cannot be done from the stylesheet - the
-    link is not a sibling of the label. It is additive: with no `labelAction`
-    the markup is byte-for-byte stock, so the other ~200 `Field` call sites in
-    the panel are untouched.
-  - Below 1024px the hero collapses away entirely and the panel takes the full
-    width. `.pt-auth` needs `min-width: 0` for this: a flex item defaults to
-    `min-width: auto` and refuses to shrink below its content, so without it the
-    card's max-width plus the panel padding pushed the page sideways on a phone.
-    The responsive overrides are declared **after** every base rule on purpose -
-    a media query adds no specificity, so one declared first is simply
-    overwritten by the base rule below it.
+  - "Forgot password?" is its own link **under** the password field rather than on
+    the label row, matching the reference. `components/elements/Field.tsx` still
+    carries the optional `labelAction` prop for other callers; nothing on the auth
+    screens uses it now, but it is additive and byte-for-byte stock without it, so
+    the other ~200 `Field` call sites in the panel are untouched.
+  - `.pt-auth` needs `min-width: 0`: a flex item defaults to `min-width: auto` and
+    refuses to shrink below its content, so without it the card's max-width
+    pushed the page sideways on a phone. The responsive overrides are declared
+    **after** every base rule on purpose - a media query adds no specificity, so
+    one declared first is simply overwritten by the base rule below it.
+  - The `Home / <screen>` breadcrumb is page chrome pinned to the viewport's
+    top-left corner, so it lives in `AuthenticationRouter` rather than in the
+    column - `.pt-auth`'s top padding clears it at every breakpoint.
   - reCAPTCHA stays disabled (see *reCAPTCHA* below), so no widget renders. The
     field label stays **Username or Email** rather than the reference's "Email
     address", because the login endpoint accepts either and a narrower label
@@ -923,40 +986,6 @@ relation will see the wrong thing.
     an upload that never landed.
   - The favicon's `type` is derived from the extension instead of being hardcoded
     to `image/png`, which lied for every format except PNG.
-- **Hero illustration** - Admin -> **Site Settings** -> *Hero illustration* puts a
-  discrete object in the upper half of the auth hero, **in front of** the
-  Login & register background rather than instead of it. They are separate
-  settings on purpose, so an admin can have either, both or neither.
-  - **The white background is removed on save.** Illustration artwork is drawn on
-    white and the hero is `#141417`, so an upload left as it arrives renders as a
-    white rectangle pasted on a dark page. CSS cannot rescue it - `screen` leaves
-    white as white, and `multiply` keys the background out but takes the dark
-    server racks with it. `app/Support/IllustrationProcessor.php` does it in pure
-    GD (no Imagick needed), in two passes, because one is not enough:
-    - A **flood fill from the border**, not a brightness threshold. The artwork
-      has genuinely light pixels that must survive - the pale slab top, the
-      clouds, the glowing panels - and any global "make bright pixels
-      transparent" eats them. Only background *connected to the edge* is
-      background.
-    - A **second pass for large enclosed regions.** The blue glow ring is a
-      closed ellipse, so the white inside it is cut off from the page edge and
-      the flood can never reach it - it survives as a white lens floating on the
-      hero. Regions above a minimum area are cleared; smaller ones are kept, so a
-      white specular highlight on a rack survives while the ring's interior does
-      not.
-    - Then the cut edge is **feathered** (a correct alpha file can still leave
-      white speckle against a dark background) and the result **cropped** to what
-      is left, so the layout is not reserving space for a transparent margin.
-  - The stored file is always a **PNG** under a fixed name
-    (`images/auth-illustration.png`), whatever format it arrived in, because the
-    output has to carry an alpha channel and the browser URL should keep matching
-  what the admin uploaded. It carries an `?v=` mtime buster, so replacing it
-  actually shows the new one.
-  - A pasted `https://` link is accepted and used **verbatim** - the server cannot
-    process something it did not receive - so a linked illustration needs its own
-  transparent background. The admin page says so.
-  - If the server has no GD extension the block warns that uploads cannot be
-  processed and will show their original background, rather than failing silently.
 - **Elevation, hairlines and motion are shared scale tokens, not per-component
   values.** `--pt-shadow-sm/md/lg`, `--pt-hairline` and `--pt-dur-fast/base/slow`
   replaced fifteen hand-written `box-shadow`s, four border greys and two unit

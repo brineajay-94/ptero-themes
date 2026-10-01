@@ -255,12 +255,54 @@ $CreatedList = if ($null -ne $Backup) { Join-Path $Backup 'created.txt' } else {
 
 foreach ($file in $Files) {
     $source = Join-Path $Src ($file.path -replace '/', '\')
+    $target = Join-Path $PanelPath ($file.path -replace '/', '\')
+    $targetDir = Split-Path -Parent $target
+
+    # A file the theme used to ship and no longer does. It has no payload, so this
+    # branch has to come BEFORE the payload check below - otherwise a manifest
+    # entry with no file behind it throws and reads as a broken install rather
+    # than as the instruction it is.
+    #
+    # Backing up before deleting is what makes uninstall able to put it back: the
+    # restore copies the whole backup tree over the panel root. But only an
+    # install has a backup directory - `-Update` deliberately keeps the ORIGINAL
+    # backup instead of making a new one, so $Backup is null there and writing
+    # into it would throw. So the backup is guarded on both.
+    #
+    # On an update the file is simply deleted. That is safe: it was a file this
+    # theme created, so the panel has no original of its own to lose, and it is
+    # being removed because nothing references it any more.
+    if ($file.action -eq 'remove') {
+        if (-not (Test-Path -LiteralPath $target)) {
+            Write-Host ('{0,-8} {1}  (not on the panel, nothing to do)' -f $file.action, $file.path)
+        }
+        elseif ($mode -eq 'status') {
+            Write-Host ('{0,-8} {1}  (still on the panel - re-run without -Status to remove it)' -f $file.action, $file.path)
+        }
+        else {
+            $backed = $false
+            if (($mode -eq 'install') -and ($null -ne $Backup)) {
+                $backupTargetDir = Split-Path -Parent (Join-Path $Backup ($file.path -replace '/', '\'))
+                if (-not (Test-Path -LiteralPath $backupTargetDir)) {
+                    New-Item -ItemType Directory -Path $backupTargetDir -Force | Out-Null
+                }
+                Copy-Item -LiteralPath $target -Destination (Join-Path $Backup ($file.path -replace '/', '\')) -Force
+                $backed = $true
+            }
+            Remove-Item -LiteralPath $target -Force
+            if ($backed) {
+                Write-Host ('{0,-8} {1}  (removed; backup kept so uninstall can restore it)' -f $file.action, $file.path)
+            }
+            else {
+                Write-Host ('{0,-8} {1}  (removed)' -f $file.action, $file.path)
+            }
+        }
+        continue
+    }
+
     if (-not (Test-Path -LiteralPath $source)) {
         throw "theme payload missing: $source"
     }
-
-    $target = Join-Path $PanelPath ($file.path -replace '/', '\')
-    $targetDir = Split-Path -Parent $target
 
     if ($mode -eq 'install') {
         if (Test-Path -LiteralPath $target) {

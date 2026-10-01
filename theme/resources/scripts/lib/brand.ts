@@ -9,7 +9,13 @@ interface BrandWindow extends Window {
             dashboard?: { rgb?: string; strength?: string };
         };
         links?: { home?: string | null; discord?: string | null; status?: string | null };
+        social?: { providers?: { id: string; label: string }[] };
     };
+}
+
+export interface SocialProvider {
+    id: string;
+    label: string;
 }
 
 /**
@@ -76,6 +82,40 @@ export const quickLinks = (): { home?: string; discord?: string; status?: string
  * is what makes the admin's per-link toggle actually hide something.
  */
 export const linkHref = (slot: 'home' | 'discord' | 'status'): string | null => quickLinks()[slot] || null;
+
+/**
+ * The social sign-in providers the admin has switched on, as configured in
+ * Admin -> Social Login.
+ *
+ * AssetComposer already filters these down to the providers that are both
+ * enabled and have a complete credential pair, so an empty array means "no
+ * usable providers" and the caller should render nothing at all. It exposes only
+ * the id and label - the client secret never leaves the server, and neither does
+ * the client id.
+ *
+ * Defaults to an empty array rather than trusting the shape, because this reads
+ * a global written by a Blade view: a panel that has an older wrapper, or a
+ * cached page from before this feature, simply has no `social` key.
+ */
+export const socialProviders = (): SocialProvider[] => {
+    const providers = (window as BrandWindow).SiteConfiguration?.social?.providers;
+
+    if (!Array.isArray(providers)) {
+        return [];
+    }
+
+    return providers.filter(
+        (provider): provider is SocialProvider => typeof provider?.id === 'string' && typeof provider?.label === 'string'
+    );
+};
+
+/**
+ * Where a provider's sign-in flow starts.
+ *
+ * A plain path rather than a React route: the provider redirects the browser
+ * somewhere a SPA router cannot follow, so this leaves the client entirely.
+ */
+export const socialRedirectUrl = (provider: string): string => `/auth/social/${encodeURIComponent(provider)}/redirect`;
 
 /**
  * Build the inline style that points a background layer at the configured

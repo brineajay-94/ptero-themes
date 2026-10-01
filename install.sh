@@ -488,10 +488,10 @@ if [ "$DO_BUILD" -eq 1 ]; then
     if run_build; then
         echo "==> clearing Laravel caches"
         if tool="$(find_tool php)"; then
-            (cd "$PANEL_DIR" && "$tool" artisan view:clear && "$tool" artisan cache:clear && "$tool" artisan config:clear)
+            (cd "$PANEL_DIR" && "$tool" artisan view:clear && "$tool" artisan cache:clear && "$tool" artisan config:clear && "$tool" artisan route:clear)
         else
             echo "warning: php is not on PATH - clear the Laravel caches by hand:" >&2
-            echo "  cd '$PANEL_DIR' && php artisan view:clear && php artisan cache:clear && php artisan config:clear" >&2
+            echo "  cd '$PANEL_DIR' && php artisan view:clear && php artisan cache:clear && php artisan config:clear && php artisan route:clear" >&2
         fi
         echo
         echo "brine-theme is live - hard-refresh the browser (Ctrl+Shift+R)."
@@ -510,7 +510,7 @@ Files installed. Now rebuild the panel and clear its caches:
   cd '$PANEL_DIR'
   yarn install --frozen-lockfile
   NODE_OPTIONS=--openssl-legacy-provider yarn build:production
-  php artisan view:clear && php artisan cache:clear && php artisan config:clear
+  php artisan view:clear && php artisan cache:clear && php artisan config:clear && php artisan route:clear
   (drop the NODE_OPTIONS prefix if node --version reports 16 or older)
 
 Then hard-refresh the browser (Ctrl+Shift+R).

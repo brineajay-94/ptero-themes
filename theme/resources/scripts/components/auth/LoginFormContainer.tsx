@@ -23,6 +23,15 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
      * an account" and a button to the page you are already on is noise.
      */
     showSignUpCta?: boolean;
+    /**
+     * The social sign-in row, rendered above the sign-up CTA.
+     *
+     * A slot rather than the component being imported here, so this shared shell
+     * does not decide that login has social buttons and register might not. A
+     * screen that wants it passes its own instance; a screen that does not simply
+     * omits the prop and the row is absent.
+     */
+    social?: React.ReactNode;
 };
 
 /**
@@ -83,7 +92,7 @@ const OrDivider = () => (
 // CTA there would be noise.
 export default forwardRef<HTMLFormElement, Props>(
     (
-        { title, subtitle, footer, showSignUpCta = true, ...props },
+        { title, subtitle, footer, showSignUpCta = true, social, ...props },
         ref,
     ) => {
         // Drives both the CTA and the divider. Without registration there is
@@ -104,6 +113,8 @@ export default forwardRef<HTMLFormElement, Props>(
                         {title && <h1>{title}</h1>}
                         {subtitle && <p>{subtitle}</p>}
                     </div>
+
+                    {social}
 
                     {cta && (
                         <>

@@ -68,6 +68,66 @@ What it changes on top of the stock panel:
   page's sign-up button only when the admin enables it; accounts are created
   directly by the panel's own user service (hashed password, welcome e-mail,
   activity log) — no API key.
+- **Social login** — sign in with **Google** or **Discord**, configured in
+  Admin → **Social Login**. The panel had no social login at all before this, and
+  the row of buttons in the reference was deliberately left out because "a dead
+  Google button is worse than none" — so this is new capability rather than a
+  re-skin, and the buttons only appear once a provider is fully configured.
+
+  It is written directly against each provider's OAuth2 authorization-code flow
+  using Laravel's built-in HTTP client. **No `laravel/socialite`, no
+  `composer.json` change, nothing for the admin to run** — the panel does not
+  ship Socialite, and a theme installable only by mutating the host's dependency
+  tree breaks on the next panel upgrade.
+
+  Getting it working takes three steps per provider: create an application in the
+  [Google Cloud Console](https://console.cloud.google.com/apis/credentials) or the
+  [Discord Developer Portal](https://discord.com/developers/applications), paste
+  the client id and secret into Admin → Social Login, and register the callback
+  URL the page shows. A callback URL that does not match exactly is the most
+  common reason a provider refuses a sign-in, which is why the page displays it
+  with a copy button rather than only documenting it.
+
+  **How a sign-in is matched.** The provider's address must be *verified* by the
+  provider, and it is matched against existing users by email — a match signs
+  straight in, with no password. An address with no account is created as a new
+  user, but **only while Admin → Registration is on**: a panel that has turned
+  registration off to stop sign-up spam has not decided social sign-up is exempt.
+  With registration off, social sign-in still works for people who already have
+  an account; it just will not create new ones.
+
+  **The security decisions**, in the order they matter:
+
+  - A per-attempt random `state` is parked in the session, compared with
+    `hash_equals` and **pulled**, so a callback URL cannot be replayed and an
+    attacker cannot feed a victim a code of their own to log them in as the
+    attacker. The session id is also regenerated before login, because the browser
+    carries one pre-auth cookie through the whole round trip.
+  - The provider name is checked against a hardcoded whitelist before any URL is
+    built, so there is no SSRF surface.
+  - `email_verified` (Google) and `verified` (Discord) are **required**, not
+    preferred — matching on a verified address is the entire basis for deciding
+    whose account gets opened.
+  - The **client secret is encrypted with the panel's `APP_KEY`** on the way into
+    the settings table. It is a live credential for the admin's own application
+    and the settings table is plain text, so anyone with database read access — a
+    backup, a replica — could otherwise mint tokens as this panel. It is never
+    rendered back into the form: a blank field means "keep the current one", and
+    erasing it needs the explicit remove link.
+  - **Accounts with 2FA are refused**, not signed in. The panel's checkpoint needs
+    a confirmation token that only the stock password path mints, and quietly
+    bypassing it would turn social sign-in into a way around a factor the user
+    deliberately enabled. They are sent to the password form with an explanation.
+
+  The buttons are plain anchors, not JS-navigating buttons, so middle-click,
+  open-in-new-tab and copy-link all keep working. Both brand marks are inlined
+  SVG — the panel ships only FontAwesome's *solid* set, so the Google and Discord
+  marks are not available as dependencies. Google keeps its four colours because
+  their brand rules require the full mark on a light background; Discord is
+  `currentColor` because theirs permit recolouring on light. The buttons are a
+  light surface for the same reason: both marks are invisible on the dark page.
+  They sit side by side and stack full-width below 420px, where two columns would
+  leave "Continue with Discord" too narrow to fit on one line.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -106,31 +166,45 @@ What it changes on top of the stock panel:
     palette — see *Palette picker* below. **Links** sets up to three quick links
     — **Home**, **Discord**, **Status** — each with a URL and an on/off switch.
   - **Registration** (`/admin/registration`) — switches public sign-up on or off.
+  - **Social Login** (`/admin/social-auth`) — Google and Discord sign-in. See
+    *Social login* below for the flow, the security decisions, and what it does
+    and does not do.
 
   The page is responsive: the blocks stack full-width on a phone, the preview
   sits beside its controls on desktop, and the range input stays full-width so
   it is usable on touch.
-- **Quick links** — **Home** appears in the auth screens as a `Home / Login`
-  (or `Home / {screen}`) breadcrumb pinned to the viewport's top-left corner.
-  **Home**, **Discord** and **Status** also appear as icons in the dashboard
-  topbar. Disabling a link in the admin removes the link entirely. The auth
-  screens used to render their own row of pill buttons for these above the form;
-  that row is gone — the breadcrumb already carries Home, the sign-up button is
-  the loudest thing on the page, and a row of pills competed with both.
-  The Discord glyph is the real brand mark, inlined as SVG — the panel
-  only ships FontAwesome's *solid* set, so the Discord icon is not available as
-  a dependency and the theme does not add one just for it.
+- **Quick links** — **Home** appears in the auth screens as a `Home / {screen}`
+  breadcrumb in the top bar and a `Home` link in the footer bar.
+  **Home**, **Discord** and **Status** are **no longer rendered in the dashboard
+  topbar**, which is where the clipping problem came from (see *Topbar
+  navigation* below). Nothing was removed from the settings: Admin → Site
+  Settings → *Links* still stores all three, `lib/brand.ts` still exposes
+  `quickLinks()` and `linkHref()`, and switching them back on is a one-line
+  change to `NavigationBar`. Disabling a link in the admin still removes it.
+  The auth screens also used to render their own row of pill buttons for these
+  above the form; that row is gone — the breadcrumb already carries Home, the
+  sign-up button is the loudest thing on the page, and a row of pills competed
+  with both.
 
-- **Topbar navigation** — a three-column grid: burger, brand lockup and a quiet
-  page title on the left; **Home · Discord · Status** centred as a row of pills;
-  and icon-over-label **Servers** and **Account** on the right, with the username
-  and a logout button stacked beside them and the round avatar at the end. The
-  pills carry a soft resting treatment that strengthens on hover, and Discord
-  keeps its brand blurple so it reads as Discord at a glance. **Admin** appears
-  here too, for a root admin. This is where the sidebar's navigation went, so the
-  server and account pages are still one click away, and the mobile drawer still
-  renders the full list for narrow screens. Search had no other home and is
-  therefore still removed from the panel entirely.
+- **Topbar navigation** — a **two-column** grid: burger, brand lockup and a quiet
+  page title on the left taking the slack, and on the right the icon-over-label
+  **Servers** and **Account** items, the admin-only **Admin** shortcut, and a
+  `pt-topbar-account` group holding the username with a logout button stacked
+  beneath it and the round avatar at the end.
+
+  That group exists to fix a clipping bug: the bar used to be
+  `1fr auto 1fr` with an empty balancing column so the quick-link cluster could
+  sit at 50%. Everything on the right then shared a single `1fr` track, and since
+  the avatar is a fixed 2.5rem and cannot shrink, the **logout button absorbed
+  the whole shortfall and disappeared underneath it**. The group is now
+  `flex: none`, so it is measured at min-content and the lead column takes the
+  shortfall instead — and the lead is what has an ellipsis on it. Below 900px the
+  username drops first; below 640px the three navigation items drop too, since the
+  mobile drawer duplicates exactly those. **Admin** appears here for a root admin.
+  This is where the sidebar's navigation went, so the server and account pages are
+  still one click away, and the mobile drawer still renders the full list for
+  narrow screens. Search had no other home and is therefore still removed from the
+  panel entirely.
 
 - **Brand lockup** — the site icon beside the panel name sits in the topbar now,
   on a translucent white plate so a dark uploaded icon still separates from the
@@ -497,7 +571,7 @@ render, so they match the panel.
 | --- | --- |
 | `resources/scripts/components/AppShell.tsx` | create â€” topbar + drawer shell, no desktop sidebar |
 | `resources/scripts/components/Sidebar.tsx` | create â€” full nav list; drawer-only since the topbar took over desktop |
-| `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, user + logout, avatar |
+| `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, and a `pt-topbar-account` group (username, logout, avatar) that cannot be squeezed |
 | `resources/scripts/routers/DashboardRouter.tsx` | replace â€” wraps in `AppShell` |
 | `resources/scripts/routers/ServerRouter.tsx` | replace â€” wraps in `AppShell` |
 
@@ -526,15 +600,41 @@ render, so they match the panel.
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
-| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` |
-| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register`, no recaptcha middleware |
-| `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` |
+| `app/Services/Social/SocialAuthService.php` | create - the Google/Discord OAuth2 flow: state, code exchange, profile, account resolution. No Socialite, no Composer change |
+| `app/Http/Controllers/Auth/SocialAuthController.php` | create - `GET /auth/social/{provider}/redirect` and `/callback` |
+| `app/Http/Controllers/Admin/SocialAuthController.php` | create - Admin -> Social Login: client id, encrypted secret, per-provider switch, clear-secret |
+| `resources/views/admin/social-auth.blade.php` | create - one card per provider, with the copyable callback URL to register |
+| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` / `.social.providers` |
+| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` + the two social routes, no recaptcha middleware |
+| `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` + `/admin/social-auth` |
 | `app/Support/IllustrationProcessor.php` | removed - the hero illustration it keyed and cropped is gone with the split layout |
-| `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration menu items, icon favicon |
-| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()` from `SiteConfiguration` |
+| `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration + Social Login menu items, icon favicon |
+| `resources/scripts/components/auth/SocialLoginButtons.tsx` | create - the provider button row, or nothing when none is configured; both marks inlined SVG |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
-Server-side rendering, permissions, API routes and the database are unaffected.
+Server-side rendering, permissions and the database are unaffected. The API
+routes are too, apart from the one addition noted above: social sign-in is
+**not** an API route. It is two server-side redirects, because a provider
+redirects the browser to a callback URL registered in advance and the React
+router has no say in where that lands.
+
+### What social login does not add
+
+Worth being explicit, because "social login" usually implies more than this:
+
+- **No new panel route, permission or database column.** Accounts are matched by
+  email, so there is no `users.provider_id` column and no separate identities
+  table. Signing in with a second provider that has the same verified address
+  lands on the same account.
+- **No unlinking, and no per-provider linking.** There is no Account settings
+  page for it. The link is implicit and permanent; to stop someone signing in
+  with a provider, switch that provider off in Admin → Social Login, or change
+  the address on the panel account so it no longer matches.
+- **No 2FA bypass.** Accounts with 2FA are refused, not signed in.
+- **No avatar import.** A provider profile picture is not copied to the panel;
+  users keep the avatar they already have.
+- **No `composer require`.** Nothing is added to the panel's dependencies.
 
 ## Plugins and Mods
 
@@ -904,7 +1004,18 @@ relation will see the wrong thing.
 - **Registration** - Admin -> **Registration** to turn public sign-up on or off.
   Accounts are created directly by the panel's own user service, so there is no
   API key to manage; the setting lives in panel settings
-  (`Brine::registration_enabled`).
+  (`Brine::registration_enabled`). Social sign-in reads this same switch: an
+  address with no account is only turned into one while it is on.
+- **Social login** - Admin -> **Social Login**. Each of Google and Discord is a
+  client id, a client secret and a switch, stored as
+  `Brine::social_<provider>_enabled` / `_client_id` / `_client_secret`; the
+  **secret is encrypted** with the panel's `APP_KEY` and never sent back to the
+  browser. A provider reaches `SiteConfiguration.social.providers` — and so the
+  login screen — only when it is both enabled and completely configured, so a
+  half-configured provider is visible on the admin page as **NEEDS CREDENTIALS**
+  rather than as a button that fails. Adding a third provider means adding one
+  entry to `SocialAuthService::PROVIDERS`, one card to the admin view, and one
+  mark to `SocialLoginButtons`; nothing else changes.
 - **Colours** â€” edit the token blocks at the top of
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the

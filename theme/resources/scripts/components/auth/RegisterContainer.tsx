@@ -12,6 +12,7 @@ import { faEnvelope, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
 import { brandName, registrationEnabled } from '@/lib/brand';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 interface Values {
     email: string;
@@ -118,6 +119,10 @@ const RegisterContainer = ({ history }: RouteComponentProps) => {
                     }
                     subtitle={`Join ${brandName()} to deploy and manage your servers.`}
                     showSignUpCta={false}
+                    // Signing up with a provider creates the account directly, so
+                    // the password fields below are not the only way in and the
+                    // row belongs here as much as on the login form.
+                    social={<SocialLoginButtons />}
                     footer={
                         <>
                             Already have an account? <Link to={'/auth/login'}>Sign in</Link>

@@ -280,3 +280,24 @@ Route::group(['prefix' => 'registration'], function () {
     Route::get('/', [Admin\RegistrationController::class, 'index'])->name('admin.registration');
     Route::post('/', [Admin\RegistrationController::class, 'update'])->name('admin.registration.update');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Social Login Routes
+|--------------------------------------------------------------------------
+| Endpoint: /admin/social-auth - the OAuth2 client id and secret for Google and
+| Discord, and a per-provider switch. The secret is encrypted before it is
+| stored and is never sent back to the browser.
+|
+| These sit inside routes/admin.php, which the panel mounts behind
+| ['auth.session', 2FA, AdminAuthenticate] - so the gate is the panel's own
+| root-admin check, not a hand-rolled one.
+|
+*/
+Route::group(['prefix' => 'social-auth'], function () {
+    Route::get('/', [Admin\SocialAuthController::class, 'index'])->name('admin.social-auth');
+    Route::post('/', [Admin\SocialAuthController::class, 'update'])->name('admin.social-auth.update');
+    Route::post('/clear-secret/{provider}', [Admin\SocialAuthController::class, 'clearSecret'])
+        ->where('provider', 'google|discord')
+        ->name('admin.social-auth.clear-secret');
+});

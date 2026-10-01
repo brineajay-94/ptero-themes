@@ -19,6 +19,35 @@ Route::get('/register', [Auth\RegisterController::class, 'index'])->name('auth.r
 Route::get('/password', [Auth\LoginController::class, 'index'])->name('auth.forgot-password');
 Route::get('/password/reset/{token}', [Auth\LoginController::class, 'index'])->name('auth.reset');
 
+/*
+|--------------------------------------------------------------------------
+| Social Sign-in Routes
+|--------------------------------------------------------------------------
+|
+| Endpoint: /auth/social
+|
+| The two halves of an OAuth2 authorization-code flow. The provider redirects
+| the browser here, so these are GETs and neither renders a view.
+|
+| `where` pins the segment to the two supported providers. The service checks it
+| against its own whitelist again before building any URL, so the route
+| constraint is defence in depth rather than the only guard.
+|
+| These are outside the throttle group below. A visitor spends an unknown amount
+| of time on the provider's consent screen, and the callback is what they land
+| on when they come back - throttling it would count that wait against them and
+| hand out lockouts to people who did nothing wrong. Abuse of the endpoint is
+| bounded by the redirect being a no-op without a session-parked `state`, so
+| there is nothing to brute-force.
+|
+*/
+Route::get('/social/{provider}/redirect', [Auth\SocialAuthController::class, 'redirect'])
+    ->where('provider', 'google|discord')
+    ->name('auth.social.redirect');
+Route::get('/social/{provider}/callback', [Auth\SocialAuthController::class, 'callback'])
+    ->where('provider', 'google|discord')
+    ->name('auth.social.callback');
+
 // Apply a throttle to authentication action endpoints to slow down manual
 // attack spammers.
 //

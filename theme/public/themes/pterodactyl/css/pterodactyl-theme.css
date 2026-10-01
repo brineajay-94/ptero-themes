@@ -532,7 +532,6 @@
 .pt-avatar-btn:focus,
 .pt-topbar-actions > a:focus,
 .pt-topbar-actions > button:focus,
-.pt-topbar-links > a:focus,
 .pt-crumb:focus,
 .pt-server-card:focus,
 .pt-drawer-close:focus,
@@ -544,7 +543,6 @@
 .pt-avatar-btn:focus-visible,
 .pt-topbar-actions > a:focus-visible,
 .pt-topbar-actions > button:focus-visible,
-.pt-topbar-links > a:focus-visible,
 .pt-crumb:focus-visible,
 .pt-server-card:focus-visible,
 .pt-drawer-close:focus-visible,
@@ -896,17 +894,29 @@
 
 /* ----------------------------------------------------------------- topbar -- */
 
-/* Three columns - title, centred link cluster, balancing spacer - so the
- * cluster is genuinely centred at any width instead of right-aligned, and the
- * title truncates inside its own column rather than sliding under the icons. */
+/* Two columns - the lead takes the slack, the tail keeps its own track.
+ *
+ * This was `1fr auto 1fr` with an empty balancing cell so the centred link cluster
+ * could sit at 50%. With the cluster gone that arrangement cost more than it bought:
+ * the navigation, the username, the sign-out button and the avatar all shared one
+ * `1fr` track, and on a narrow window the tail was squeezed until the sign-out
+ * button lost its width and disappeared behind the avatar.
+ *
+ * `minmax(0, 1fr)` on the first track, not a bare `1fr`. A `1fr` track is really
+ * `minmax(auto, 1fr)`, whose `auto` minimum is the content's min-content size, and
+ * the brand name and page title are `white-space: nowrap` - so the track would
+ * refuse to shrink, the row would overflow the viewport, and the tail would be
+ * pushed off the right edge. `minmax(0, 1fr)` lets it collapse so the title's own
+ * `text-overflow: ellipsis` can do its job. The tail is `auto`, which means it is
+ * measured at min-content and therefore never squeezed. */
 .pt-topbar {
     position: sticky;
     top: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.9rem;
     height: 4rem;
     padding: 0 1.25rem;
     /* One of the two dark chrome islands: the reference is a white page with a
@@ -959,12 +969,16 @@
     }
 }
 
+/* `flex: none` rather than letting the track compress it. This is the cluster that
+   was being clipped: as a grid item its width came out of a shared `1fr`, and the
+   avatar - `flex: none`, 2.5rem - is the one child that cannot give any ground, so
+   the sign-out button absorbed the whole shortfall. */
 .pt-topbar-tail {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: 0.35rem;
-    min-width: 0;
+    flex: none;
 }
 
 /* Icon over label, the reference's navigation shape. Column layout so the label
@@ -1013,19 +1027,41 @@
     color: rgb(var(--pt-navy-300));
 }
 
+/* Username, sign-out and avatar as one unshrinkable group.
+ *
+ * These three belong together: the avatar cannot shrink (it is a fixed 2.5rem
+ * round portrait) and the sign-out button must never shrink either, because a
+ * clipped "Logout" is a control you cannot read. So they are grouped and given
+ * `flex: none`, which means the group is measured at min-content and the topbar's
+ * lead column absorbs any shortfall instead - and the lead is what has an ellipsis
+ * on it. When even that is not enough the username goes first, below.
+ *
+ * Previously these were separate flex children of the tail, so the shortfall was
+ * shared between them and the sign-out button ended up underneath the avatar. */
+.pt-topbar-account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: none;
+    margin-left: 0.15rem;
+}
+
 /* Username with sign-out beneath it, as the reference stacks them. */
 .pt-topbar-user {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.1rem;
-    padding: 0 0.35rem;
     line-height: 1.2;
 }
 
-@media (min-width: 768px) {
-    .pt-topbar-user {
-        display: flex;
+/* Under this the bar cannot hold Servers / Account / Admin, a username and a
+ * button. The navigation is the only thing the drawer cannot reach, so the
+ * username is what goes - the sign-out button stays, because it is the one control
+ * here with no equivalent anywhere else on a phone. */
+@media (max-width: 900px) {
+    .pt-topbar-username {
+        display: none;
     }
 }
 
@@ -1039,6 +1075,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+    flex: none;
     padding: 0;
     border: 0;
     background: none;
@@ -1046,6 +1083,9 @@
     font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
+    /* The label must never wrap or truncate: this is a button whose whole purpose is
+     * to be identifiable at a glance. */
+    white-space: nowrap;
     transition: color var(--pt-dur-base) ease;
 }
 
@@ -1094,6 +1134,24 @@
     white-space: nowrap;
 }
 
+/* Phone: the topbar keeps the account group and drops the navigation items.
+ *
+ * This used to be `display: none` on the whole tail, which also hid the sign-out
+ * button and the avatar - everything reachable only from the drawer. That is still
+ * true of them, but the burger needs a visible target on the far side of the bar
+ * and a bar that ends in an avatar reads better than one that ends in nothing.
+ * The three items going are exactly the three the drawer's navigation list
+ * duplicates. */
+@media (max-width: 640px) {
+    .pt-topbar-tail > .pt-topnav-item {
+        display: none;
+    }
+
+    .pt-topbar-account {
+        margin-left: 0;
+    }
+}
+
 /* The avatar at the far right, as the reference's round account portrait. */
 .pt-topbar .pt-avatar-btn {
     display: grid;
@@ -1110,125 +1168,6 @@
 .pt-topbar .pt-avatar-btn svg {
     width: 100%;
     height: 100%;
-}
-
-/* ------------------------------------------------------------ link cluster -- */
-/* Frosted pills rather than bare glyphs, so the centred row reads as a set of
- * controls instead of three icons floating in a bar. */
-.pt-topbar-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-}
-
-/* A soft pill is always present, not only on hover: three bare glyphs floating in
- * a bar read as leftovers, whereas a faint container that strengthens on hover
- * reads as a deliberate control group. */
-.pt-topbar-links > a {
-    display: grid;
-    place-items: center;
-    width: 2.15rem;
-    height: 2.15rem;
-    border: 1px solid rgb(255 255 255 / 0.14);
-    border-radius: 999px;
-    background-color: rgb(255 255 255 / 0.08);
-    color: rgb(var(--pt-chrome-muted));
-    font-size: 0.92rem;
-    line-height: 0;
-    text-decoration: none;
-    transition: background-color var(--pt-dur-base) ease, border-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
-}
-
-.pt-topbar-links > a:hover,
-.pt-topbar-links > a:focus-visible {
-    background-color: rgb(255 255 255 / 0.16);
-    border-color: rgb(255 255 255 / 0.3);
-    color: #ffffff;
-    outline: none;
-    transform: translateY(-1px);
-}
-
-/* Discord keeps its brand blurple so it is recognisable at a glance; on hover
- * the other links go white, so brightening it would lose the only cue that says
- * "this one is Discord". */
-.pt-topbar-links > a.pt-topbar-link-discord {
-    color: rgb(var(--pt-discord));
-}
-
-.pt-topbar-links > a.pt-topbar-link-discord:hover,
-.pt-topbar-links > a.pt-topbar-link-discord:focus-visible {
-    background-color: rgb(88 101 242 / 0.22);
-    border-color: rgb(88 101 242 / 0.6);
-    color: rgb(var(--pt-discord));
-}
-
-@media (max-width: 480px) {
-    .pt-topbar-links > a {
-        width: 1.95rem;
-        height: 1.95rem;
-        font-size: 0.85rem;
-    }
-}
-
-/* Phone: the quick links move out of the centre and into the right corner.
- *
- * The three-column grid is what centres them on desktop - column 3 is an empty
- * balancing cell (`.pt-topbar-tail`, aria-hidden) whose only job is to make
- * column 2 sit at 50%. That trick costs a lot on a phone: the title is what
- * identifies the page, and reserving an empty column beside it pushes the title
- * left of centre while the icons float in the middle with dead space to their
- * right. Two columns instead - title takes `1fr`, links take `auto` - puts the
- * icons flush right, which is the conventional mobile header shape.
- *
- * `minmax(0, 1fr)` rather than a bare `1fr` for the first column, and that is
- * not stylistic. A `1fr` track is really `minmax(auto, 1fr)`, whose `auto`
- * minimum is the content's min-content size - and the title is `white-space:
- * nowrap`. The column therefore refuses to shrink, the row overflows the
- * viewport and the links are pushed off the right edge entirely. `minmax(0, 1fr)`
- * lets the track collapse so the title's own `text-overflow: ellipsis` can do
- * its job.
- *
- * `display: none` on the tail is load-bearing rather than cosmetic. It is the
- * third grid item, so leaving it in a two-column grid wraps it onto an implicit
- * second row and silently doubles the topbar's height.
- *
- * Above 640px nothing changes: the grid stays 1fr auto 1fr and the cluster
- * stays centred. */
-@media (max-width: 640px) {
-    .pt-topbar {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    .pt-topbar-tail {
-        display: none;
-    }
-
-    .pt-topbar-links {
-        justify-content: flex-end;
-    }
-}
-
-.pt-topbar-title {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-family: var(--pt-font-heading);
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.pt-topbar-title small {
-    display: block;
-    font-family: var(--pt-font-body);
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-gold-300));
 }
 
 .pt-burger {
@@ -1430,7 +1369,6 @@
     .pt-topbar-actions > a,
     .pt-topbar-actions > button,
     .pt-topbar-actions > .pt-action,
-    .pt-topbar-links > a,
     .pt-nav-item,
     .pt-burger,
     .pt-avatar-btn,
@@ -1782,6 +1720,128 @@
 .pt-auth-signup:active {
     background-color: rgb(var(--pt-blue-600));
     transform: translateY(1px);
+}
+
+/* ------------------------------------------------- social sign-in buttons -- */
+
+/* The social sign-in row, above the sign-up CTA.
+ *
+ * The component renders nothing at all - not even this element - when no
+ * provider is configured, so there is no default-hidden state to override here
+ * and no gap left behind by a rule with no buttons under it. */
+.pt-auth-social {
+    margin-bottom: 1.35rem;
+}
+
+/* "or continue with" between the buttons and the sign-up CTA. Same shape as
+   `.pt-auth-or` - rules as flex children so they can share the row and stay
+   centred on the text - but quieter, because a second full-strength divider a
+   few hundred pixels from the first would compete with the sign-up button. */
+.pt-auth-social-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.95rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgb(var(--pt-white) / 0.55);
+    white-space: nowrap;
+}
+
+.pt-auth-social-rule::before,
+.pt-auth-social-rule::after {
+    content: '';
+    flex: 1 1 0;
+    height: 1px;
+    background-color: rgb(var(--pt-white) / 0.16);
+}
+
+/* One button per provider, side by side.
+ *
+ * `flex-wrap: wrap` with a `min()` width rather than a percentage each: the
+ * labels have different lengths ("Continue with Google" vs "Continue with
+ * Discord"), so percentage widths would either overflow or leave an uneven gap.
+ * This way each button is as wide as it needs to be, they share the row when
+ * there is room, and a third provider would drop to its own line instead of
+ * being squeezed. `flex: 1 1 12rem` with `min-width: 0` keeps them equal-width
+ * and able to shrink below their content. */
+.pt-auth-social-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+/* The button itself: a light surface with a dark label, the inverse of the rest
+   of the auth page, which is dark-on-light inverted throughout. That is not
+   arbitrary - both brand marks have to sit on a light background to be
+   recognisable: Google requires the four-colour mark on white, and Discord's
+   mark is white-on-blurple, which is invisible here. */
+.pt-auth-social-btn {
+    display: flex;
+    flex: 1 1 12rem;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 2.9rem;
+    padding: 0.7rem 1.1rem;
+    border: 1px solid rgb(var(--pt-white) / 0.22);
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-white) / 0.92);
+    color: rgb(var(--pt-navy-900));
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color var(--pt-dur-base) ease, border-color var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+}
+
+.pt-auth-social-btn:hover,
+.pt-auth-social-btn:focus-visible {
+    background-color: rgb(var(--pt-white));
+    border-color: rgb(var(--pt-white) / 0.4);
+    color: rgb(var(--pt-navy-900));
+    outline: none;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.pt-auth-social-btn:active {
+    transform: translateY(0);
+}
+
+.pt-auth-social-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 1.15em rather than a fixed px: the glyph sits next to text whose size is set
+   in rem, so scaling with the font keeps the optical match if the label size
+   changes. The Google mark is already visually smaller than the others at the
+   same box size, so it is nudged up. */
+.pt-auth-social-btn .pt-social-mark {
+    flex: none;
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: 0.6rem;
+}
+
+.pt-auth-social-btn--google .pt-social-mark {
+    width: 1.25em;
+    height: 1.25em;
+}
+
+/* Narrow phone: the buttons stop trying to share a row.
+ *
+ * Below this the two-column layout leaves each button too narrow for "Continue
+ * with Discord" to fit on one line, and with `white-space: nowrap` on the label
+ * the text would overflow its button rather than the button stacking. Full-width
+ * stacked buttons are the conventional shape here and give a comfortable touch
+   target. */
+@media (max-width: 420px) {
+    .pt-auth-social-btn {
+        flex: 1 1 100%;
+    }
 }
 
 /* "or" between the two ways in. The rules are flex children rather than
@@ -2141,16 +2201,36 @@
 /* Links on the auth screens. Light blue: the panel's own link colour is a dark
    blue chosen for the light dashboard, and on this dark page it fell below the
    contrast floor. Filled buttons stay `--pt-blue-500`, so a link never reads as
-   a button. */
-.pt-auth a {
+   a button.
+ *
+   `text-decoration: none` is repeated on `:link` and `:visited` because the bare
+   `.pt-auth a` was not enough. Tailwind's preflight hands `a` a
+   `text-decoration: inherit`, so the underline comes from whatever ancestor set
+   one, and those two qualifiers are worth two extra specificity points against
+   any panel-level `a` rule. Hover changes colour rather than adding an underline:
+   the reference's own links are undecorated, and a link that is already blue has
+   enough of a hover state without one. */
+.pt-auth a,
+.pt-auth a:link,
+.pt-auth a:visited {
     color: rgb(var(--pt-auth-accent));
     font-weight: 600;
     text-decoration: none;
 }
 
-.pt-auth a:hover {
+.pt-auth a:hover,
+.pt-auth a:focus-visible {
     color: rgb(219 234 254);
-    text-decoration: underline;
+    text-decoration: none;
+}
+
+/* Spelled out on the two links that sit below the sign-up button, since that is
+   where the underline was reported. */
+.pt-auth-aside-link,
+.pt-auth-aside-link:link,
+.pt-auth-footer a,
+.pt-auth-footer a:link {
+    text-decoration: none;
 }
 
 /* "Forgot password?" - under the row, as the reference has it, rather than
@@ -2818,6 +2898,7 @@
 .pt-avatar-btn,
 .pt-auth-emblem,
 .pt-auth-signup,
+.pt-auth-social-btn,
 .pt-auth button[type='submit'] {
     border-radius: var(--pt-glass-radius-sm) !important;
 }

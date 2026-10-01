@@ -6,7 +6,6 @@ import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
 import Avatar from '@/components/Avatar';
 import { brandName, logoUrl } from '@/lib/brand';
-import { TopbarLinkCluster } from '@/components/QuickLinks';
 
 export interface NavigationBarProps {
     title: string;
@@ -59,9 +58,18 @@ const TopNavItem = ({
  * the name is the only thing telling you which server you are in, so dropping it
  * would lose information the old topbar carried.
  *
- * `TopbarLinkCluster` keeps the admin's Home / Discord / Status links, centred in
- * their own column. One variable-width pill group appended to the right cluster
- * would knock that row off-centre.
+ * No quick links here. The bar used to carry a centred cluster of the admin's
+ * Home / Discord / Status pills, which needed the grid to stay `1fr auto 1fr` with
+ * an empty balancing column so the cluster could sit at 50%. That arrangement put
+ * the navigation, the username, the sign-out button and the avatar into one
+ * `1fr` track, and on a narrow window the tail was squeezed until the sign-out
+ * button was clipped. Two columns - brand and title taking the slack, everything
+ * else its own track - gives the tail the room it needs.
+ *
+ * The links themselves are untouched: Admin -> Site Settings -> Links still
+ * configures them, `linkHref()` still reads them, and the auth screens still use
+ * Home in their breadcrumb. Only the dashboard topbar stopped rendering them, so
+ * they can be switched back on without re-entering anything.
  */
 export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
@@ -85,8 +93,6 @@ export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
                 </span>
             </div>
 
-            <TopbarLinkCluster />
-
             <div className={'pt-topbar-tail'}>
                 <TopNavItem to={'/'} icon={faServer} label={'Servers'} exact />
                 <TopNavItem to={'/account'} icon={faUserCircle} label={'Account'} />
@@ -99,18 +105,23 @@ export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
                 )}
 
                 {/* Username with sign-out beneath it, as the reference stacks
-                    them. A button, not a link: the panel's logout is a POST. */}
-                <div className={'pt-topbar-user'}>
-                    {username && <span className={'pt-topbar-username'}>{username}</span>}
-                    <button type={'button'} className={'pt-logout-btn'} onClick={onLogout}>
-                        <FontAwesomeIcon icon={faSignOutAlt} />
-                        <span>Logout</span>
-                    </button>
-                </div>
+                    them. A button, not a link: the panel's logout is a POST.
+                    `pt-topbar-account` wraps both so the pair shrinks and drops
+                    the username together rather than the sign-out button losing its
+                    own width, which is what used to hide it. */}
+                <div className={'pt-topbar-account'}>
+                    <div className={'pt-topbar-user'}>
+                        {username && <span className={'pt-topbar-username'}>{username}</span>}
+                        <button type={'button'} className={'pt-logout-btn'} onClick={onLogout}>
+                            <FontAwesomeIcon icon={faSignOutAlt} />
+                            <span>Logout</span>
+                        </button>
+                    </div>
 
-                <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
-                    <Avatar.User />
-                </span>
+                    <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
+                        <Avatar.User />
+                    </span>
+                </div>
             </div>
         </header>
     );

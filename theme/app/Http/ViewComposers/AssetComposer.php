@@ -5,6 +5,7 @@ namespace Pterodactyl\Http\ViewComposers;
 use Illuminate\View\View;
 use Pterodactyl\Services\Helpers\AssetHashService;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
+use Pterodactyl\Services\Social\SocialAuthService;
 
 class AssetComposer
 {
@@ -28,6 +29,7 @@ class AssetComposer
     public function __construct(
         private AssetHashService $assetHashService,
         private SettingsRepositoryInterface $settings,
+        private SocialAuthService $social,
     ) {
     }
 
@@ -71,6 +73,16 @@ class AssetComposer
             'registration' => [
                 'enabled' => $this->settings->get('Brine::registration_enabled') === '1',
             ],
+            // brine-theme: the social sign-in providers that are switched on AND
+            // actually usable (Admin -> Social Login). Only the id and label are
+            // exposed - never the client id or secret, which stay server-side.
+            //
+            // A provider that is enabled but half-configured is deliberately
+            // absent, rather than present-and-disabled: the client cannot tell the
+            // difference and would render a button that cannot complete a flow.
+            'social' => [
+                'providers' => $this->socialProviders(),
+            ],
             // brine-theme: background images set in Admin -> Site Settings -> Background.
             // Each slot is null when the switch is off or no image was chosen, so
             // the React components simply skip the background layer.
@@ -99,6 +111,32 @@ class AssetComposer
                 'variant' => $this->themeVariant(),
             ],
         ]);
+    }
+
+    /**
+     * The social providers the login screen should render a button for.
+     *
+     * Wrapped in a try/catch like `overlay()` is, and for the same reason: this
+     * composer runs on *every* view in the panel, so a settings lookup that
+     * throws would take down pages that have nothing to do with social login.
+     * Falling back to an empty list means the buttons are absent, which is a
+     * cosmetic failure rather than a 500.
+     *
+     * @return array<int, array{id: string, label: string}>
+     */
+    private function socialProviders(): array
+    {
+        try {
+            return array_map(
+                fn (string $provider): array => [
+                    'id' => $provider,
+                    'label' => $this->social->label($provider),
+                ],
+                $this->social->enabledProviders()
+            );
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

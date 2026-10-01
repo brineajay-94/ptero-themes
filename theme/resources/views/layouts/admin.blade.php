@@ -148,6 +148,13 @@
                                 <i class="fa fa-user-plus"></i> <span>Registration</span>
                             </a>
                         </li>
+                        {{-- brine-theme: Google / Discord sign-in. `admin.social-auth.*` is
+                             the prefix, matching the starts_with() above. --}}
+                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.social-auth') ?: 'active' }}">
+                            <a href="{{ route('admin.social-auth') }}">
+                                <i class="fa fa-id-card-o"></i> <span>Social Login</span>
+                            </a>
+                        </li>
                         <li class="header">SERVICE MANAGEMENT</li>
                         <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.mounts') ?: 'active' }}">
                             <a href="{{ route('admin.mounts') }}">

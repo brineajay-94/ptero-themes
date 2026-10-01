@@ -16,14 +16,17 @@
             <div class="pt-shell-body">
                 <!-- NavigationBar.tsx ------------------------------------------>
                 <!--
-                    Mirrors the real component: a three-column grid of
-                    pt-topbar-lead (burger, brand lockup, page title), the
-                    pt-topbar-links cluster, and pt-topbar-tail carrying the
-                    icon-over-label navigation, the username with its logout
-                    button, and the avatar. There is no pt-sidebar any more - the
-                    reference shell is a topbar only - so the preview no longer
-                    renders one either, or the audit this file was used for would
-                    be reading markup that does not exist.
+                    Mirrors the real component: a two-column grid of
+                    pt-topbar-lead (burger, brand lockup, page title) taking the
+                    slack, and pt-topbar-tail carrying the icon-over-label
+                    navigation plus a pt-topbar-account group holding the username,
+                    the logout button and the avatar. There is no quick-link
+                    cluster any more: Home / Discord / Status are no longer
+                    rendered in the topbar, though Site Settings still configures
+                    them and the auth screens still use Home. There is no
+                    pt-sidebar either - the reference shell is a topbar only - so
+                    the preview no longer renders one, or the audit this file was
+                    used for would be reading markup that does not exist.
                 -->
                 <header class="pt-topbar">
                     <div class="pt-topbar-lead">
@@ -42,20 +45,6 @@
                         </span>
                     </div>
 
-                    <nav class="pt-topbar-links" aria-label="Quick links">
-                        <a href="#" title="Home" aria-label="Home">
-                            <span data-icon="home" data-icon-size="1rem"></span>
-                        </a>
-                        <a href="#" class="pt-topbar-link-discord" title="Discord" aria-label="Discord" rel="noopener noreferrer">
-                            <svg viewBox="0 0 24 24" width="1.04em" height="1.04em" fill="currentColor" aria-hidden="true" focusable="false" style="display:block">
-                                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path>
-                            </svg>
-                        </a>
-                        <a href="#" class="pt-topbar-link-status" title="Status" aria-label="Status" rel="noopener noreferrer">
-                            <span data-icon="signal" data-icon-size="1rem"></span>
-                        </a>
-                    </nav>
-
                     <div class="pt-topbar-tail">
                         <a href="#" class="pt-topnav-item active">
                             <span class="pt-topnav-icon" data-icon="server"></span>
@@ -65,16 +54,18 @@
                             <span class="pt-topnav-icon" data-icon="user-circle"></span>
                             <span class="pt-topnav-label">Account</span>
                         </a>
-                        <div class="pt-topbar-user">
-                            <span class="pt-topbar-username">jdoe</span>
-                            <button type="button" class="pt-logout-btn">
-                                <span data-icon="sign-out-alt" data-icon-size="0.8rem"></span>
-                                <span>Logout</span>
-                            </button>
+                        <div class="pt-topbar-account">
+                            <div class="pt-topbar-user">
+                                <span class="pt-topbar-username">jdoe</span>
+                                <button type="button" class="pt-logout-btn">
+                                    <span data-icon="sign-out-alt" data-icon-size="0.8rem"></span>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                            <span class="pt-avatar-btn" style="cursor: default">
+                                <span class="flex items-center justify-center w-full h-full rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
+                            </span>
                         </div>
-                        <span class="pt-avatar-btn" style="cursor: default">
-                            <span class="flex items-center justify-center w-full h-full rounded-full bg-gold-600 text-navy-900 text-2xs font-bold">JD</span>
-                        </span>
                     </div>
                 </header>
 
@@ -690,6 +681,52 @@
                                             <div class="pt-auth-column">
                                                 <div class="pt-auth-heading">
                                                     <h1>Welcome to Pterodactyl</h1>
+                                                </div>
+                                                <!-- SocialLoginButtons.tsx --------->
+                                                <!--
+                                                    Mirrors the real component. The
+                                                    Google G is inline SVG for the
+                                                    same reason the real one is:
+                                                    the panel ships only
+                                                    free-solid-svg-icons, so the
+                                                    brand marks are not available
+                                                    as dependencies. Google keeps
+                                                    its four colours (their brand
+                                                    rules require the full mark on
+                                                    a light background); Discord is
+                                                    currentColor, which their rules
+                                                    permit on light.
+
+                                                    Shown here with both providers
+                                                    enabled because that is the
+                                                    only interesting case to
+                                                    eyeball - the component
+                                                    returns null when none is
+                                                    configured, so the real login
+                                                    page is simply this without
+                                                    the block.
+                                                -->
+                                                <div class="pt-auth-social">
+                                                    <div class="pt-auth-social-rule">
+                                                        <span>or continue with</span>
+                                                    </div>
+                                                    <div class="pt-auth-social-row">
+                                                        <a class="pt-auth-social-btn pt-auth-social-btn--google" href="#">
+                                                            <svg viewBox="0 0 48 48" class="pt-social-mark" aria-hidden="true" focusable="false">
+                                                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                                                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                                                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                                                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                                                            </svg>
+                                                            <span>Continue with Google</span>
+                                                        </a>
+                                                        <a class="pt-auth-social-btn pt-auth-social-btn--discord" href="#">
+                                                            <svg viewBox="0 0 24 24" class="pt-social-mark" aria-hidden="true" focusable="false">
+                                                                <path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" />
+                                                            </svg>
+                                                            <span>Continue with Discord</span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                                 <a class="pt-auth-signup" href="#register">
                                                     <span aria-hidden="true">&#xf234;</span>

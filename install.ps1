@@ -437,13 +437,14 @@ if ($Build) {
             & $php artisan view:clear | Out-Host
             & $php artisan cache:clear | Out-Host
             & $php artisan config:clear | Out-Host
+            & $php artisan route:clear | Out-Host
         }
         finally {
             Pop-Location
         }
     }
     else {
-        Write-Warning "php is not on PATH - clear the Laravel caches by hand: cd '$PanelPath'; php artisan view:clear; php artisan cache:clear; php artisan config:clear"
+        Write-Warning "php is not on PATH - clear the Laravel caches by hand: cd '$PanelPath'; php artisan view:clear; php artisan cache:clear; php artisan config:clear; php artisan route:clear"
     }
 
     Write-Host ''
@@ -456,7 +457,7 @@ Files installed. Now rebuild the panel and clear its caches:
   cd '$PanelPath'
   yarn install --frozen-lockfile
   `$env:NODE_OPTIONS='--openssl-legacy-provider'; yarn build:production  # drop it on node 16 and older
-  php artisan view:clear; php artisan cache:clear; php artisan config:clear
+  php artisan view:clear; php artisan cache:clear; php artisan config:clear; php artisan route:clear
 
 Then hard-refresh the browser (Ctrl+Shift+R).
 "@

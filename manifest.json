@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.13.0",
+    "version": "1.14.0",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -50,7 +50,7 @@
         {
             "path": "resources/scripts/lib/brand.ts",
             "action": "create",
-            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref() - site name, icon, the registration switch, the two background slots and the Home/Discord/Status links from window.SiteConfiguration"
+            "note": "brandName()/logoUrl()/registrationEnabled()/backgroundStyle()/quickLinks()/linkHref()/socialProviders()/socialRedirectUrl() - site name, icon, the registration switch, the two background slots, the Home/Discord/Status links and the enabled social providers, all from window.SiteConfiguration. socialProviders() only ever sees an id and a label: the OAuth client secret stays server-side and never reaches the browser"
         },
         {
             "path": "public/themes/pterodactyl/css/pterodactyl-theme.css",
@@ -64,8 +64,8 @@
         },
         {
             "path": "resources/scripts/components/QuickLinks.tsx",
-            "action": "create",
-            "note": "Admin-configured Home/Discord/Status links: <TopbarLinkCluster> centred pills in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons. <AuthLinks> and its row of pills were removed - the auth screens now put the emblem centred above the heading, and Home reaches them from the breadcrumb in the top bar that AuthenticationRouter owns"
+            "action": "remove",
+            "note": "Deleted. It only ever rendered the admin's Home/Discord/Status links as pill clusters - <TopbarLinkCluster> in the dashboard topbar and, before that, <AuthLinks> on the auth screens. Both are gone, so the component has no caller. The links themselves are untouched and still work: Admin -> Site Settings -> Links still stores them, lib/brand.ts still exposes quickLinks() and linkHref(), and AuthenticationRouter still uses linkHref('home') for the auth breadcrumb and footer. Only the dashboard stopped rendering them, because that cluster is what forced the topbar into a 1fr auto 1fr grid with an empty balancing column, which squeezed the right-hand cluster until the sign-out button was clipped. Listed with action `remove` rather than dropped from the manifest so a panel that installed an earlier version gets the orphaned file cleaned up instead of being left with a dead component webpack can still pull in"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",
@@ -100,17 +100,17 @@
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
             "action": "replace",
-            "note": "The auth shell shared by every auth screen: a single flat column on a dark page - emblem centred above the heading, then the sign-up call to action, then the form directly on the page with no card. This replaced a 50/50 split whose left half existed to carry a hero illustration, and then replaced the white form card, which the reference has no equivalent of. The logo moved off the top-left corner (where the breadcrumb lives) and lost its brand-name text, since the heading already reads \"Welcome to <brand>\". The sign-up CTA renders only when registration is actually enabled, so it can never link to a route the admin has closed, and showSignUpCta=false turns it off on the register screen where the footer already offers the same link"
+            "note": "The auth shell shared by every auth screen: a single flat column on a dark page - emblem centred above the heading, then the optional social sign-in row, then the sign-up call to action, then the form directly on the page with no card. This replaced a 50/50 split whose left half existed to carry a hero illustration, and then replaced the white form card, which the reference has no equivalent of. The logo moved off the top-left corner (where the breadcrumb lives) and lost its brand-name text, since the heading already reads \"Welcome to <brand>\". The sign-up CTA renders only when registration is actually enabled, so it can never link to a route the admin has closed, and showSignUpCta=false turns it off on the register screen where the footer already offers the same link. `social` is a slot rather than an imported component, so this shared shell does not decide that login has social buttons and register might not - each screen passes its own instance or omits the prop and the row is simply absent"
         },
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Login form + success flash after registration (?registered=1). Matches the reference's arrangement: \"Welcome to <brand>\" heading, full-width sign-up CTA, \"or\", then one small \"Login\" label above a single row holding username, password and the submit button side by side, with \"Forgot password?\" under the row. The per-field labels are still rendered but clipped (not display:none) so they stay in the accessibility tree - a placeholder is not a label. The field stays \"Username or Email\" because the endpoint accepts either. Two things from the reference are deliberately absent: the row of social buttons, because the panel has no social login and a dead Google button is worse than none, and the card the form used to sit in. The \"Want to manage a friend's server?\" subuser nudge was removed earlier (component, prop, caller, CSS and preview all dropped together)"
+            "note": "Login form + success flash after registration (?registered=1) + error flash after a failed social sign-in (?social_error=). Matches the reference's arrangement: \"Welcome to <brand>\" heading, the social row, full-width sign-up CTA, \"or\", then one small \"Login\" label above a single row holding username, password and the submit button side by side, with \"Forgot password?\" under the row. The per-field labels are still rendered but clipped (not display:none) so they stay in the accessibility tree - a placeholder is not a label. The field stays \"Username or Email\" because the endpoint accepts either. Both \"you came back here with a message\" cases are handled in ONE mount effect: clearFlashes() runs first so a stale error never carries over from the previous page, then at most one branch fires, and since the first branch already called replaceState the second cannot read a rewritten URL. The card the form used to sit in is still deliberately absent. The \"Want to manage a friend's server?\" subuser nudge was removed earlier (component, prop, caller, CSS and preview all dropped together)"
         },
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",
             "action": "create",
-            "note": "Public registration form (email, first/last name, username, password, confirm) posting to /auth/register. Matches the reference: heading split so 'your account' takes the accent colour, a leading glyph on every field, a placeholder on every field, blue asterisk on every label (all six are `.required()` in the schema below the markup), and first/last name sharing a row. Layout moved off twin.macro margins onto .pt-auth-stack / .pt-auth-pair, so the spacing is a gap the stylesheet owns"
+            "note": "Public registration form (email, first/last name, username, password, confirm) posting to /auth/register. Matches the reference: heading split so 'your account' takes the accent colour, a leading glyph on every field, a placeholder on every field, blue asterisk on every label (all six are `.required()` in the schema below the markup), and first/last name sharing a row. Layout moved off twin.macro margins onto .pt-auth-stack / .pt-auth-pair, so the spacing is a gap the stylesheet owns. Also renders the social sign-in row: signing up with a provider creates the account directly, so the password fields below are not the only way in and the row belongs here as much as on the login form"
         },
         {
             "path": "resources/scripts/api/auth/register.ts",
@@ -248,24 +248,49 @@
             "note": "Registration settings page with the enable switch"
         },
         {
+            "path": "app/Services/Social/SocialAuthService.php",
+            "action": "create",
+            "note": "Google and Discord sign-in, written directly against each provider's OAuth2 authorization-code flow with Laravel's built-in Http client. NO laravel/socialite and NO composer.json change: the panel does not ship Socialite, and a theme installable only by mutating the host's dependency tree breaks on the next panel upgrade, so the flow is spelled out here using guzzle, the session and Crypt, all of which already ship. The security-relevant decisions, in the order they matter: (1) a per-attempt random `state` is parked in the session, compared with hash_equals and PULLED, so a callback URL cannot be replayed and an attacker cannot feed a victim a code of their own; (2) the provider name is checked against a hardcoded whitelist before any URL is built, so there is no SSRF surface; (3) email_verified (Google) / verified (Discord) is REQUIRED, because matching on a verified address is the entire basis for deciding whose account gets opened; (4) the client secret is encrypted with the panel's APP_KEY on the way into the settings table, since it is a live credential for the admin's own application and the settings table is plain text; (5) the session id is regenerated before login, because the browser carries one pre-auth cookie through the whole round trip. Both exchangeCode() and createFromProfile() return {token}/{user} or {error} rather than a nullable, precisely because a token IS a string and is_string() would have read every success as a failure. Accounts with 2FA are refused rather than signed in - the panel's checkpoint needs a token only the stock password path mints, and quietly bypassing a factor the user enabled would make social login a way around it. A new account is only created while Admin -> Registration is on, so a closed panel is genuinely closed"
+        },
+        {
+            "path": "app/Http/Controllers/Auth/SocialAuthController.php",
+            "action": "create",
+            "note": "GET /auth/social/{provider}/redirect and /callback - the two ends of the flow. Both are server-side redirects and neither renders a view: a provider redirects the browser to a URL registered in advance, so the callback cannot be a React route. Failures redirect to the login form with ?social_error= and ?social_message= rather than a session flash, because the panel's flash system only serialises a fixed set of types and an invented one would be dropped"
+        },
+        {
+            "path": "app/Http/Controllers/Admin/SocialAuthController.php",
+            "action": "create",
+            "note": "Admin -> Social Login: the OAuth2 client id and secret for Google and Discord, plus a per-provider switch and a clear-secret action. The secret is never rendered back - a blank field means keep the current one, since that is the one field the admin cannot read - and erasure needs its own endpoint because 'blank means unchanged' would otherwise make it unreachable. Enabling a provider with no credentials is allowed and shows as NEEDS CREDENTIALS, which is useful when the application is still being set up in another tab, and renders no button on the login screen until it is complete"
+        },
+        {
+            "path": "resources/views/admin/social-auth.blade.php",
+            "action": "create",
+            "note": "Social Login settings page: a card per provider with the switch, client id, client secret, and the exact callback URL to paste into the provider console, copyable. The callback URL is the single most common cause of a social login that looks broken and is not, so it is shown rather than documented. The clear-secret forms sit outside the save form because a form cannot nest inside another"
+        },
+        {
+            "path": "resources/scripts/components/auth/SocialLoginButtons.tsx",
+            "action": "create",
+            "note": "The row of social sign-in buttons, or null when no provider is configured. Plain anchors, not buttons with onClick: the flow is server-side redirects, so there is nothing to do in JavaScript, and an anchor keeps middle-click, open-in-new-tab and copy-link working. Both marks are inlined SVG - the panel ships only free-solid-svg-icons, so the Google and Discord brand marks are not available as dependencies and the theme does not add one for two buttons. Google keeps its four colours because their brand rules require the full mark on a light background; Discord is currentColor because their rules permit recolouring on light"
+        },
+        {
             "path": "app/Http/ViewComposers/AssetComposer.php",
             "action": "replace",
-            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon used to leave the previous image on screen"
+            "note": "Exposes SiteConfiguration.logo / .registration.enabled / .backgrounds / .overlay / .links / .social.providers / .theme.variant; validates link targets and the palette slug server-side against a whitelist; reports recaptcha as disabled so the widget never renders and the exhausted-quota lockout cannot happen. Uploaded images are resolved newest-first and carry their mtime as a ?v= cache-buster - a URL that does not change when the file does is one the browser will not refetch, which is why replacing the favicon used to leave the previous image on screen. .social.providers carries an id and a label only, and lists a provider only when it is both enabled and completely configured, so the client cannot render a button that cannot finish a flow. The lookup is wrapped in try/catch because this composer runs on every view in the panel and a settings read that threw would take down unrelated pages"
         },
         {
             "path": "routes/auth.php",
             "action": "replace",
-            "note": "Stock auth routes + GET/POST /auth/register, throttled; drops the stock recaptcha middleware, which would reject every login with HTTP 400 once the shared public keys exhaust their quota"
+            "note": "Stock auth routes + GET/POST /auth/register, throttled; drops the stock recaptcha middleware, which would reject every login with HTTP 400 once the shared public keys exhaust their quota. Also GET /auth/social/{provider}/redirect and /callback, with the provider segment constrained to google|discord and outside the throttle group on purpose: the callback is where a visitor lands after an unknown amount of time on the provider's consent screen, and throttling it would hand lockouts to people who did nothing wrong"
         },
         {
             "path": "routes/admin.php",
             "action": "replace",
-            "note": "Stock routes + /admin/site-settings + /admin/registration + GET/POST /admin/servers/view/{server}/software"
+            "note": "Stock routes + /admin/site-settings + /admin/registration + /admin/social-auth + GET/POST /admin/servers/view/{server}/software. The social-auth group inherits the panel's own admin middleware from this file's mount, so the root-admin gate is not hand-rolled"
         },
         {
             "path": "resources/views/layouts/admin.blade.php",
             "action": "replace",
-            "note": "Stock admin layout + Site Settings and Registration menu items. Favicon handling is kept identical to templates/wrapper.blade.php: newest match wins, mtime cache-buster, MIME type from the extension"
+            "note": "Stock admin layout + Site Settings, Registration and Social Login menu items. Favicon handling is kept identical to templates/wrapper.blade.php: newest match wins, mtime cache-buster, MIME type from the extension"
         },
         {
             "path": "resources/scripts/api/server/jars.ts",
@@ -313,7 +338,8 @@
         "clearCommands": [
             "php artisan view:clear",
             "php artisan cache:clear",
-            "php artisan config:clear"
+            "php artisan config:clear",
+            "php artisan route:clear"
         ]
     }
 }

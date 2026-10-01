@@ -128,8 +128,6 @@ export default forwardRef<HTMLFormElement, Props>(
                     </div>
                 </div>
             </div>
-        );
-    }
 );
     }
 );

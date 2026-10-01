@@ -42,21 +42,30 @@ What it changes on top of the stock panel:
   show-all-servers switch and a **Create** button, then a two-column grid of dark
   server cards carrying a pink accent bar, the name, the uuid, the egg and a round
   power button (pink to stop, blue to start).
+- **Auth chrome** — every auth screen is framed by two bars. A **top bar** carries
+  the brand lockup on the left and a `Home / {screen}` breadcrumb on the right,
+  where the current screen takes the accent colour and an underline; the **bottom
+  bar** carries a credit line on the left (`Designed by BrineAjay`) and
+  `Home` / `Login` on the right. The form centres in the space between them.
 - **Login** — a flat column on a **dark** page, matching the reference's
   arrangement rather than the dashboard's light one: the emblem centred above a
   "Welcome to {brand}" heading, a full-width sign-up button, an "or" rule, then
   one small "Login" label above a **single row** holding username, password and
-  the submit button side by side, with "Forgot password?" underneath. The inputs
-  are light boxes with dark text on the dark page; the row stacks below 700px.
+  the submit button side by side, with "Forgot password?" underneath. Inputs are
+  dark wells with light ink; the row stacks below 700px.
   There is **no card** — the reference has no panel behind the form. Checkpoint,
-  forgot, reset and register follow the same flat treatment.
-- **Top-left corner** — the auth screens pin a `Home / {screen}` breadcrumb to
-  the viewport's top-left. The emblem is deliberately *not* there; it moved to the
-  centre above the heading, and lost its brand-name text because the heading
-  already names the brand.
+  forgot and reset follow the same flat treatment.
+- **Auth accent** — the heading accent, the current breadcrumb and the
+  required-field asterisks use `--pt-auth-accent`, a light blue declared on
+  `.pt-auth-page`. They deliberately do **not** use `--pt-blue-400`, which is a
+  dark blue chosen for the dashboard's white cards and measures only 2.01:1 on
+  this page.
 - **Registration** — a public sign-up page (`/auth/register`) with email, first
-  and last name, username, password and confirm-password. It appears behind the
-  login page's sign-up button only when the admin enables it; accounts are created
+  and last name, username, password and confirm-password, per the reference:
+  heading split so "your account" takes the accent colour, a leading glyph and a
+  placeholder on every field, a blue asterisk on every label (all six really are
+  required), and first/last name sharing a row. It appears behind the login
+  page's sign-up button only when the admin enables it; accounts are created
   directly by the panel's own user service (hashed password, welcome e-mail,
   activity log) — no API key.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
@@ -498,7 +507,7 @@ render, so they match the panel.
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
-| `components/auth/RegisterContainer.tsx` | create - public sign-up form |
+| `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |

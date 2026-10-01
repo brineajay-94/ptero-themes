@@ -6,7 +6,12 @@ import Label from '@/components/elements/Label';
 interface OwnProps {
     name: string;
     light?: boolean;
-    label?: string;
+    /**
+     * A node, not just a string, so a caller can mark a field required with a
+     * styled asterisk (the register screen does) without the Label component
+     * needing to know anything about it.
+     */
+    label?: React.ReactNode;
     description?: string;
     validate?: (value: any) => undefined | string | Promise<any>;
     /**

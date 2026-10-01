@@ -20,7 +20,7 @@
         {
             "path": "resources/scripts/components/elements/Field.tsx",
             "action": "replace",
-            "note": "Stock Field plus an optional labelAction rendered on the label row beside the label. The stock component puts the label on its own line with the input after it, so a \"Forgot password?\" link had to live in a separate block below the field; the reference puts it beside the label, which needs the label row to be a flex container and cannot be done from the stylesheet because the link is not a sibling of the label. Additive - with no labelAction the markup is byte-for-byte stock, so the other ~200 call sites in the panel are untouched"
+            "note": "Stock Field plus two additive props. `labelAction` renders on the label row beside the label, which the reference needs for \"Forgot password?\". `label` is widened from string to ReactNode so a caller can mark a field required with a styled asterisk - the register screen does this on all six of its fields. Both additive: with neither prop the markup is byte-for-byte what stock produced, so the panel's other ~200 Field call sites are untouched"
         },
         {
             "path": "resources/scripts/components/server/files/FileDropdownMenu.tsx",
@@ -65,7 +65,7 @@
         {
             "path": "resources/scripts/components/QuickLinks.tsx",
             "action": "create",
-            "note": "Admin-configured Home/Discord/Status links: <TopbarLinkCluster> centred pills in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons. <AuthLinks> and its row of pills were removed - the auth screens now put the emblem centred above the heading and nothing in the top-left except the Home / <screen> breadcrumb that AuthenticationRouter pins there, which is where Home already lived"
+            "note": "Admin-configured Home/Discord/Status links: <TopbarLinkCluster> centred pills in the dashboard topbar. Discord is the real brand mark, inlined as SVG because the panel does not ship free-brands-svg-icons. <AuthLinks> and its row of pills were removed - the auth screens now put the emblem centred above the heading, and Home reaches them from the breadcrumb in the top bar that AuthenticationRouter owns"
         },
         {
             "path": "resources/scripts/components/AppShell.tsx",
@@ -95,7 +95,7 @@
         {
             "path": "resources/scripts/routers/AuthenticationRouter.tsx",
             "action": "replace",
-            "note": "Auth routes: centres the login card, adds /auth/register, applies the auth background image, and owns the Home / Login breadcrumb pinned to the page top-left"
+            "note": "Auth routes: adds /auth/register, applies the auth background image, and owns the page chrome that frames every auth screen - a top bar (brand lockup left, Home / <screen> breadcrumb right, current screen in the accent with an underline) and a bottom bar (credit left, Home + Login right). The form centres in the space between them via .pt-auth-body. The breadcrumb used to be absolutely positioned into the page's top-left corner, which is where the reference puts its logo; the logo is now the bar lockup and the breadcrumb sits opposite it. The bottom bar's credit reads \"Designed by BrineAjay\" - a hardcoded theme credit, not a setting"
         },
         {
             "path": "resources/scripts/components/auth/LoginFormContainer.tsx",
@@ -110,7 +110,7 @@
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",
             "action": "create",
-            "note": "Public registration form (email, first/last name, username, password, confirm) posting to /auth/register"
+            "note": "Public registration form (email, first/last name, username, password, confirm) posting to /auth/register. Matches the reference: heading split so 'your account' takes the accent colour, a leading glyph on every field, a placeholder on every field, blue asterisk on every label (all six are `.required()` in the schema below the markup), and first/last name sharing a row. Layout moved off twin.macro margins onto .pt-auth-stack / .pt-auth-pair, so the spacing is a gap the stylesheet owns"
         },
         {
             "path": "resources/scripts/api/auth/register.ts",

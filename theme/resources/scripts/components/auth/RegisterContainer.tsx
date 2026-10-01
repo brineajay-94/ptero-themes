@@ -6,8 +6,9 @@ import { useStoreState } from 'easy-peasy';
 import { Formik, FormikHelpers } from 'formik';
 import { object, ref, string } from 'yup';
 import Field from '@/components/elements/Field';
-import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEnvelope, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
 import { brandName, registrationEnabled } from '@/lib/brand';
@@ -110,7 +111,11 @@ const RegisterContainer = ({ history }: RouteComponentProps) => {
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer
-                    title={'Create your account'}
+                    title={
+                        <>
+                            Create <span className={'pt-auth-heading-accent'}>your account</span>
+                        </>
+                    }
                     subtitle={`Join ${brandName()} to deploy and manage your servers.`}
                     showSignUpCta={false}
                     footer={
@@ -119,31 +124,129 @@ const RegisterContainer = ({ history }: RouteComponentProps) => {
                         </>
                     }
                 >
-                    <Field light type={'email'} label={'Email'} name={'email'} disabled={isSubmitting} />
-                    <div css={tw`mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4`}>
-                        <Field light type={'text'} label={'First name'} name={'firstName'} disabled={isSubmitting} />
-                        <Field light type={'text'} label={'Last name'} name={'lastName'} disabled={isSubmitting} />
-                    </div>
-                    <div css={tw`mt-4`}>
-                        <Field light type={'text'} label={'Username'} name={'username'} disabled={isSubmitting} />
-                    </div>
-                    <div css={tw`mt-4`}>
-                        <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
-                    </div>
-                    <div css={tw`mt-4`}>
-                        <Field
-                            light
-                            type={'password'}
-                            label={'Confirm password'}
-                            name={'passwordConfirmation'}
-                            disabled={isSubmitting}
-                        />
-                    </div>
-                    <div css={tw`mt-5`}>
+                    {/* Every field on this form is `.required()` in the schema below,
+                        * so every label carries the asterisk. The span is aria-hidden
+                        * because "First name *" is read as "first name asterisk" - the
+                        * requirement is already announced by the field's own
+                        * invalid/valid state. */}
+                    <div className={'pt-auth-stack'}>
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faEnvelope} />
+                            </span>
+                            <Field
+                                light
+                                type={'email'}
+                                label={
+                                    <>
+                                        Email <span className={'pt-auth-req'} aria-hidden={'true'}>*</span>
+                                    </>
+                                }
+                                placeholder={'you@example.com'}
+                                name={'email'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className={'pt-auth-pair'}>
+                            <div className={'pt-auth-field'}>
+                                <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                    <FontAwesomeIcon icon={faUser} />
+                                </span>
+                                <Field
+                                    light
+                                    type={'text'}
+                                    label={
+                                        <>
+                                            First name <span className={'pt-auth-req'} aria-hidden={'true'}>*</span>
+                                        </>
+                                    }
+                                    placeholder={'John'}
+                                    name={'firstName'}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+                            <div className={'pt-auth-field'}>
+                                <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                    <FontAwesomeIcon icon={faUser} />
+                                </span>
+                                <Field
+                                    light
+                                    type={'text'}
+                                    label={
+                                        <>
+                                            Last name <span className={'pt-auth-req'} aria-hidden={'true'}>*</span>
+                                        </>
+                                    }
+                                    placeholder={'Doe'}
+                                    name={'lastName'}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faUser} />
+                            </span>
+                            <Field
+                                light
+                                type={'text'}
+                                label={
+                                    <>
+                                        Username <span className={'pt-auth-req'} aria-hidden={'true'}>*</span>
+                                    </>
+                                }
+                                placeholder={'Choose a username'}
+                                name={'username'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faLock} />
+                            </span>
+                            <Field
+                                light
+                                type={'password'}
+                                label={
+                                    <>
+                                        Password <span className={'pt-auth-req'} aria-hidden={'true'}>*</span>
+                                    </>
+                                }
+                                placeholder={'Create a strong password'}
+                                name={'password'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
+                                <FontAwesomeIcon icon={faLock} />
+                            </span>
+                            <Field
+                                light
+                                type={'password'}
+                                label={
+                                    <>
+                                        Confirm password{' '}
+                                        <span className={'pt-auth-req'} aria-hidden={'true'}>
+                                            *
+                                        </span>
+                                    </>
+                                }
+                                placeholder={'Confirm your password'}
+                                name={'passwordConfirmation'}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+
                         <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
                             Create account
                         </Button>
                     </div>
+
                     {recaptchaEnabled && (
                         <Reaptcha
                             ref={captchaRef}

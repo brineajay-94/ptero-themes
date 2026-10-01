@@ -663,51 +663,75 @@
                         <section>
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Login</h2>
                             <div class="overflow-hidden border border-neutral-600">
-                                <div class="pt-auth-page" style="min-height: 34rem">
-                                    <nav class="pt-crumbs" aria-label="Breadcrumb">
-                                        <a class="pt-crumb" href="#">Home</a>
-                                        <span class="pt-crumb-sep" aria-hidden="true">/</span>
-                                        <span class="pt-crumb is-current">Login</span>
-                                    </nav>
-                                    <div class="pt-auth">
-                                        <div class="pt-auth-lockup">
-                                            <span class="pt-auth-emblem">
+                                <div class="pt-auth-page" style="min-height: 36rem">
+                                    <header class="pt-auth-bar">
+                                        <a class="pt-auth-bar-brand" href="#">
+                                            <span class="pt-auth-bar-mark">
                                                 <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
                                             </span>
-                                        </div>
-                                        <div class="pt-auth-column">
-                                            <div class="pt-auth-heading">
-                                                <h1>Welcome to Pterodactyl</h1>
-                                            </div>
-                                            <a class="pt-auth-signup" href="#register">
-                                                <span aria-hidden="true">&#xf234;</span>
-                                                <span>Sign up</span>
+                                            <span class="pt-auth-bar-name">Pterodactyl</span>
+                                        </a>
+                                        <nav class="pt-crumbs" aria-label="Breadcrumb">
+                                            <a class="pt-crumb" href="#">
+                                                <span aria-hidden="true">&#xf015;</span>
+                                                <span>Home</span>
                                             </a>
-                                            <div class="pt-auth-or" aria-hidden="true">
-                                                <span class="pt-auth-or-rule"></span>
-                                                <span class="pt-auth-or-word">or</span>
-                                                <span class="pt-auth-or-rule"></span>
+                                            <span class="pt-crumb-sep" aria-hidden="true">/</span>
+                                            <span class="pt-crumb is-current">Login</span>
+                                        </nav>
+                                    </header>
+                                    <div class="pt-auth-body">
+                                        <div class="pt-auth">
+                                            <div class="pt-auth-lockup">
+                                                <span class="pt-auth-emblem">
+                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                                </span>
                                             </div>
-                                            <div class="pt-auth-section-label">Login</div>
-                                            <div class="pt-auth-inline">
-                                                <div class="pt-auth-inline-field">
-                                                    <span class="pt-auth-inline-icon" aria-hidden="true">&#xf007;</span>
-                                                    <label class="block text-sm mb-2">Username or Email</label>
-                                                    <input class="text_input" placeholder="Username" value="john@example.com" />
+                                            <div class="pt-auth-column">
+                                                <div class="pt-auth-heading">
+                                                    <h1>Welcome to Pterodactyl</h1>
                                                 </div>
-                                                <div class="pt-auth-inline-field">
-                                                    <span class="pt-auth-inline-icon" aria-hidden="true">&#xf023;</span>
-                                                    <label class="block text-sm mb-2">Password</label>
-                                                    <input class="text_input" type="password" placeholder="Password" value="hunter22" />
+                                                <a class="pt-auth-signup" href="#register">
+                                                    <span aria-hidden="true">&#xf234;</span>
+                                                    <span>Sign up</span>
+                                                </a>
+                                                <div class="pt-auth-or" aria-hidden="true">
+                                                    <span class="pt-auth-or-rule"></span>
+                                                    <span class="pt-auth-or-word">or</span>
+                                                    <span class="pt-auth-or-rule"></span>
                                                 </div>
-                                                <button type="submit" class="pt-btn pt-btn-primary">Log in</button>
+                                                <div class="pt-auth-section-label">Login</div>
+                                                <div class="pt-auth-inline">
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf007;</span>
+                                                        <label class="block text-sm mb-2">Username or Email</label>
+                                                        <input class="text_input" placeholder="Username" value="john@example.com" />
+                                                    </div>
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf023;</span>
+                                                        <label class="block text-sm mb-2">Password</label>
+                                                        <input class="text_input" type="password" placeholder="Password" value="hunter22" />
+                                                    </div>
+                                                    <button type="submit" class="pt-btn pt-btn-primary">Log in</button>
+                                                </div>
+                                                <div class="pt-auth-aside">
+                                                    <a class="pt-auth-aside-link" href="#">Forgot password?</a>
+                                                </div>
+                                                <div class="pt-auth-footer">&copy; 2026 Pterodactyl. All rights reserved.</div>
                                             </div>
-                                            <div class="pt-auth-aside">
-                                                <a class="pt-auth-aside-link" href="#">Forgot password?</a>
-                                            </div>
-                                            <div class="pt-auth-footer">&copy; 2026 Pterodactyl. All rights reserved.</div>
                                         </div>
                                     </div>
+                                    <footer class="pt-auth-foot">
+                                        <p class="pt-auth-credit">
+                                            <strong>Pterodactyl</strong>
+                                            <span class="pt-auth-credit-div" aria-hidden="true">|</span>
+                                            <span>Designed by BrineAjay</span>
+                                        </p>
+                                        <nav class="pt-auth-foot-nav" aria-label="Footer">
+                                            <a href="#">Home</a>
+                                            <a href="#">Login</a>
+                                        </nav>
+                                    </footer>
                                 </div>
                             </div>
                         </section>
@@ -716,51 +740,85 @@
                         <section id="register">
                             <h2 class="text-neutral-300 mb-4 px-4 text-2xl">Register</h2>
                             <div class="overflow-hidden border border-neutral-600">
-                                <div class="pt-auth-page" style="min-height: 42rem">
-                                    <nav class="pt-crumbs" aria-label="Breadcrumb">
-                                        <a class="pt-crumb" href="#">Home</a>
-                                        <span class="pt-crumb-sep" aria-hidden="true">/</span>
-                                        <span class="pt-crumb is-current">Register</span>
-                                    </nav>
-                                    <div class="pt-auth">
-                                        <div class="pt-auth-lockup">
-                                            <span class="pt-auth-emblem">
+                                <div class="pt-auth-page" style="min-height: 46rem">
+                                    <header class="pt-auth-bar">
+                                        <a class="pt-auth-bar-brand" href="#">
+                                            <span class="pt-auth-bar-mark">
                                                 <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
                                             </span>
-                                        </div>
-                                        <div class="pt-auth-column">
-                                            <div class="pt-auth-heading">
-                                                <h1>Create your account</h1>
-                                                <p>Join Pterodactyl to deploy and manage your servers.</p>
+                                            <span class="pt-auth-bar-name">Pterodactyl</span>
+                                        </a>
+                                        <nav class="pt-crumbs" aria-label="Breadcrumb">
+                                            <a class="pt-crumb" href="#">
+                                                <span aria-hidden="true">&#xf015;</span>
+                                                <span>Home</span>
+                                            </a>
+                                            <span class="pt-crumb-sep" aria-hidden="true">/</span>
+                                            <span class="pt-crumb is-current">Register</span>
+                                        </nav>
+                                    </header>
+                                    <div class="pt-auth-body">
+                                        <div class="pt-auth">
+                                            <div class="pt-auth-lockup">
+                                                <span class="pt-auth-emblem">
+                                                    <img src="../theme/public/themes/pterodactyl/images/logo.svg" alt="" />
+                                                </span>
                                             </div>
-                                            <label class="block text-sm mb-2">Email</label>
-                                            <input class="text_input mb-4" value="john@example.com" />
-                                            <div style="display:flex; gap:1rem;">
-                                                <div style="flex:1; min-width:0;">
-                                                    <label class="block text-sm mb-2">First name</label>
-                                                    <input class="text_input" value="John" />
+                                            <div class="pt-auth-column">
+                                                <div class="pt-auth-heading">
+                                                    <h1>Create <span class="pt-auth-heading-accent">your account</span></h1>
+                                                    <p>Join Pterodactyl to deploy and manage your servers.</p>
                                                 </div>
-                                                <div style="flex:1; min-width:0;">
-                                                    <label class="block text-sm mb-2">Last name</label>
-                                                    <input class="text_input" value="Doe" />
+                                                <div class="pt-auth-stack">
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf0e0;</span>
+                                                        <label class="block text-sm mb-2">Email <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                        <input class="text_input" placeholder="you@example.com" value="you@example.com" />
+                                                    </div>
+                                                    <div class="pt-auth-pair">
+                                                        <div class="pt-auth-field">
+                                                            <span class="pt-auth-field-icon" aria-hidden="true">&#xf007;</span>
+                                                            <label class="block text-sm mb-2">First name <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                            <input class="text_input" placeholder="John" value="John" />
+                                                        </div>
+                                                        <div class="pt-auth-field">
+                                                            <span class="pt-auth-field-icon" aria-hidden="true">&#xf007;</span>
+                                                            <label class="block text-sm mb-2">Last name <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                            <input class="text_input" placeholder="Doe" value="Doe" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf007;</span>
+                                                        <label class="block text-sm mb-2">Username <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                        <input class="text_input" placeholder="Choose a username" value="john" />
+                                                    </div>
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf023;</span>
+                                                        <label class="block text-sm mb-2">Password <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                        <input class="text_input" type="password" placeholder="Create a strong password" value="hunter22" />
+                                                    </div>
+                                                    <div class="pt-auth-field">
+                                                        <span class="pt-auth-field-icon" aria-hidden="true">&#xf023;</span>
+                                                        <label class="block text-sm mb-2">Confirm password <span class="pt-auth-req" aria-hidden="true">*</span></label>
+                                                        <input class="text_input" type="password" placeholder="Confirm your password" value="hunter22" />
+                                                    </div>
+                                                    <button type="submit" class="pt-btn pt-btn-primary pt-btn-block">Create account</button>
                                                 </div>
+                                                <div class="pt-auth-footer">Already have an account? <a href="#">Sign in</a></div>
                                             </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-sm mb-2">Username</label>
-                                                <input class="text_input" value="john" />
-                                            </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-sm mb-2">Password</label>
-                                                <input class="text_input" type="password" value="hunter22" />
-                                            </div>
-                                            <div style="margin-top:1rem;">
-                                                <label class="block text-sm mb-2">Confirm password</label>
-                                                <input class="text_input" type="password" value="hunter22" />
-                                            </div>
-                                            <button type="submit" class="pt-btn pt-btn-primary pt-btn-block">Create account</button>
-                                            <div class="pt-auth-footer">Already have an account? <a href="#">Sign in</a></div>
                                         </div>
                                     </div>
+                                    <footer class="pt-auth-foot">
+                                        <p class="pt-auth-credit">
+                                            <strong>Pterodactyl</strong>
+                                            <span class="pt-auth-credit-div" aria-hidden="true">|</span>
+                                            <span>Designed by BrineAjay</span>
+                                        </p>
+                                        <nav class="pt-auth-foot-nav" aria-label="Footer">
+                                            <a href="#">Home</a>
+                                            <a href="#">Login</a>
+                                        </nav>
+                                    </footer>
                                 </div>
                             </div>
                         </section>

@@ -8,8 +8,13 @@ import tw from 'twin.macro';
 import { brandName, logoUrl, registrationEnabled } from '@/lib/brand';
 
 type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement> & {
-    title?: string;
-    subtitle?: string;
+    /**
+     * Nodes rather than strings, so a screen can put an accent-coloured run inside
+     * its heading - "Create *your account*" - without this shell knowing what the
+     * accent is for.
+     */
+    title?: React.ReactNode;
+    subtitle?: React.ReactNode;
     footer?: React.ReactNode;
     /**
      * Whether to lead with the sign-up call to action. On by default, because

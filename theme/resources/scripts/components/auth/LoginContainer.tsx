@@ -98,8 +98,8 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                     <div className={'pt-auth-section-label'}>Login</div>
 
                     <div className={'pt-auth-inline'}>
-                        <div className={'pt-auth-inline-field'}>
-                            <span className={'pt-auth-inline-icon'} aria-hidden={'true'}>
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
                                 <FontAwesomeIcon icon={faUser} />
                             </span>
                             {/* Deliberately "Username or Email", not the reference's
@@ -117,8 +117,8 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             />
                         </div>
 
-                        <div className={'pt-auth-inline-field'}>
-                            <span className={'pt-auth-inline-icon'} aria-hidden={'true'}>
+                        <div className={'pt-auth-field'}>
+                            <span className={'pt-auth-field-icon'} aria-hidden={'true'}>
                                 <FontAwesomeIcon icon={faLock} />
                             </span>
                             <Field

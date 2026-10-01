@@ -1467,21 +1467,36 @@
  * single #2b3648 fill is what made that screen read as "unfinished panel" rather
  * than "designed". Three soft radial washes over a deep base give the same
  * low-contrast calm surface but with a direction to it - cool light from the
- * top-left, a warmer violet low-right to stop the two corners matching - and the
- * page keeps a real foreground/background separation from the light dashboard it
- * is reached from.
+ * top-left, a warmer violet low-right to stop the two corners matching.
  *
- * `margin: auto` on the column centres it without the top clipping that
- * `align-items: center` causes when the form is taller than the viewport. */
+ * A column, not a row: the bar across the top and the bar across the bottom are
+ * siblings of the form, and `.pt-auth-body` between them grows to take the slack
+ * so the column centres in the space actually left over. */
 .pt-auth-page {
     position: relative;
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
     background-color: rgb(var(--pt-navy-900));
     background-image: radial-gradient(48rem 34rem at 12% -8%, rgb(var(--pt-blue-500) / 0.22), transparent 62%),
         radial-gradient(42rem 30rem at 88% 108%, rgb(126 96 214 / 0.18), transparent 64%),
         radial-gradient(30rem 24rem at 78% 6%, rgb(56 189 178 / 0.1), transparent 68%),
         linear-gradient(168deg, rgb(30 41 59 / 0.55), rgb(15 21 32 / 0.75));
+
+    /*
+     * The accent for this page, which is NOT the panel's `--pt-blue-400`.
+     *
+     * That token is `#2468b1`, chosen to sit on the dashboard's white cards. On
+     * this dark page it measures 2.01:1 - unusable as heading text, as the
+     * current-page marker, or as the required-field asterisk, which is what the
+     * reference paints all three in. A light blue is the same hue read against a
+     * dark ground instead of a light one, and clears 6.4:1 here.
+     *
+     * Declared on the page rather than in `:root` because it is a property of
+     * being on the dark auth ground, not of the palette: the amber and black
+     * palettes have their own answers and the dashboard needs a dark accent.
+     */
+    --pt-auth-accent: 147 197 253;
 }
 
 /* The admin's "Login & register" photo, on its own fixed layer behind the
@@ -1507,6 +1522,135 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
+}
+
+/* ------------------------------------------------------- chrome: top + foot --
+ * The two bars. They are `z-index: 1` and sit above the photo layer, which is
+ * `z-index: 0` and `position: absolute`, so the photo never paints over them.
+ *
+ * Both are translucent over the washes rather than a solid fill. That is the one
+ * place the auth page does use transparency: the page behind them is a static
+ * gradient with nothing scrolling under it, so there is no frosted-glass reason to
+ * frosted-glass it, and a solid bar would cut the wash stack into three bands. */
+.pt-auth-bar,
+.pt-auth-foot {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem clamp(1rem, 4vw, 2rem);
+    background-color: rgb(8 13 24 / 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.pt-auth-bar {
+    border-bottom: 1px solid rgb(255 255 255 / 0.07);
+}
+
+.pt-auth-foot {
+    border-top: 1px solid rgb(255 255 255 / 0.07);
+}
+
+/* The bar's brand lockup. The mark is a small tile rather than the larger centred
+   emblem below it - the two are on the same screen and must not read as one. */
+.pt-auth-bar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    color: #ffffff;
+    font-family: var(--pt-font-heading);
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+}
+
+.pt-auth-bar-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 3px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(255 255 255 / 0.07);
+}
+
+.pt-auth-bar-mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.pt-auth-bar-brand:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.pt-auth-bar-brand:hover .pt-auth-bar-name {
+    text-decoration: underline;
+}
+
+/* "ThunderByte" in the reference sets its last word in the accent colour. That is
+   a two-tone brand lockup, and there is no second colour to set here: `brandName()`
+   is one string chosen by the admin, so splitting it would need a separator in the
+   setting. Left one colour; the accent lives on the heading and the links instead. */
+.pt-auth-bar-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The footer's credit line. */
+.pt-auth-credit,
+.pt-auth-foot-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgb(255 255 255 / 0.62);
+}
+
+.pt-auth-credit strong {
+    font-weight: 700;
+    color: rgb(255 255 255 / 0.9);
+}
+
+.pt-auth-credit-div {
+    color: rgb(255 255 255 / 0.3);
+}
+
+/* The bottom bar's links are quiet text, not the bright link blue the form uses -
+ * they are navigation chrome, not an action inside the form. */
+.pt-auth-foot-nav a {
+    color: rgb(255 255 255 / 0.78);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--pt-dur-base) ease;
+}
+
+.pt-auth-foot-nav a:hover,
+.pt-auth-foot-nav a:focus-visible {
+    color: #ffffff;
+    text-decoration: underline;
+    outline: none;
+}
+
+/* The flexible middle, so the column centres between the two bars. */
+.pt-auth-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
 }
 
 /* The column that holds the emblem, the heading, the CTA and the form.
@@ -1589,6 +1733,12 @@
     color: #ffffff;
 }
 
+/* The accent run inside a heading - "Create *your account*". A screen supplies
+ * the split, so the shell does not have to know which words get accented. */
+.pt-auth-heading-accent {
+    color: rgb(var(--pt-auth-accent));
+}
+
 .pt-auth-heading p {
     margin: 0;
     font-size: 0.9rem;
@@ -1667,14 +1817,68 @@
     letter-spacing: 0.01em;
 }
 
+/* Vertical rhythm for a stacked form. A `gap` rather than a margin on every field:
+ * the register form gained fields and the spacing stayed correct on its own. */
+.pt-auth-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+}
+
+/* Two fields sharing a row - first/last name on the register screen. */
+.pt-auth-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.95rem;
+}
+
+@media (max-width: 640px) {
+    .pt-auth-pair {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* A field plus its leading glyph. The wrapper is what the glyph is positioned
+ * against, so it is `relative` whether the field is stacked or in the login row. */
+.pt-auth-field {
+    position: relative;
+    min-width: 0;
+}
+
+/* The leading glyph, out of the input's flow: an <input> is a replaced element
+ * and cannot carry a ::before, so the icon is a sibling positioned over the
+ * field and the input is padded clear of it. `pointer-events: none` so it can
+ * never intercept a click meant for the box.
+ *
+ * `top: 2.05rem` rather than `50%`, because the glyph has to centre on the INPUT
+ * and every input on this form has a label above it. At 50% it sat on the gap
+ * between the label and the box. That offset is the label's line box plus its
+ * `margin-bottom` - which is why it is expressed as a comment-backed constant and
+ * not recomputed per breakpoint. */
+.pt-auth-field-icon {
+    position: absolute;
+    top: 2.05rem;
+    left: 0.9rem;
+    z-index: 1;
+    display: flex;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 0.95rem;
+    color: rgb(255 255 255 / 0.5);
+}
+
+.pt-auth-field input {
+    /* Clears the glyph, and stays clear of the password reveal toggle, which
+     * the Input component renders inside the box on the right. */
+    padding-left: 2.6rem;
+    padding-right: 2.6rem;
+}
+
 /* The inline row: username, password and the submit button side by side, which
  * is the reference's arrangement and the reason the submit button is a flex
  * child here rather than a block beneath the fields.
  *
- * `1fr` on the fields lets them share the leftover space; the button is `flex:
- * none` so it keeps its natural width instead of stretching, which is what stops
- * the row going lopsided on a narrow screen. */
-/* `flex-start` rather than `stretch`, so a validation message under one field
+ * `flex-start` rather than `stretch`, so a validation message under one field
  * does not stretch the button and the other field to match. All three items carry
  * the same min-height instead, which is what makes the row read as one row. */
 .pt-auth-inline {
@@ -1683,35 +1887,12 @@
     gap: 0.6rem;
 }
 
-.pt-auth-inline-field {
-    position: relative;
+.pt-auth-inline .pt-auth-field {
     flex: 1 1 0;
-    min-width: 0;
 }
 
-/* The leading glyph, out of the input's flow: an <input> is a replaced element
- * and cannot carry a ::before, so the icon is a sibling positioned over the
- * field and the input is padded clear of it. `pointer-events: none` so it can
- * never intercept a click meant for the box. */
-.pt-auth-inline-icon {
-    position: absolute;
-    top: 50%;
-    left: 0.8rem;
-    z-index: 1;
-    display: flex;
-    transform: translateY(-50%);
-    pointer-events: none;
-    font-size: 0.95rem;
-    color: rgb(255 255 255 / 0.55);
-}
-
-.pt-auth-inline-field input {
-    /* Matches the submit button's height, so the three cells line up. */
+.pt-auth-inline input {
     min-height: 2.9rem;
-    /* Clears the glyph, and stays clear of the password reveal toggle, which
-     * the Input component renders inside the box on the right. */
-    padding-left: 2.5rem;
-    padding-right: 2.6rem;
 }
 
 /* Field labels are clipped rather than removed: the row has one visible label,
@@ -1744,26 +1925,39 @@
 .pt-auth label {
     display: block;
     margin-bottom: 0.45rem;
-    color: rgb(255 255 255 / 0.78);
+    color: rgb(255 255 255 / 0.82);
     font-size: 0.82rem;
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
 }
 
-/* Inputs on a dark page: a light box, as the reference has them. The fill is the
- * card step outright rather than a wash - a translucent light fill over a dark
- * page turns grey and stops reading as a field you can type into. */
+/* The required-field marker. Accent-coloured and aria-hidden - a screen reader
+ * announcing "First name asterisk" tells the user nothing they cannot get from
+ * the field's own invalid state, and the asterisk is a visual affordance. */
+.pt-auth-req {
+    color: rgb(var(--pt-auth-accent));
+    font-weight: 700;
+}
+
+/* Inputs on the dark page: a DARK box, as the reference has them.
+ *
+ * This is the opposite of the previous revision, which made them solid white with
+ * dark text. That worked as a contrast anchor but read as a form from a different
+ * site dropped onto a dark page - six bright rectangles in a column of one. The
+ * reference's version is a slightly-lifted dark well: the fill is a low-alpha
+ * white over the page, so it separates from the background by lightness rather
+ * than by being a different colour entirely, and the typed ink is light. */
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
     width: 100%;
-    min-height: 2.6rem;
+    min-height: 2.75rem;
     padding: 0.55rem 0.85rem;
     border-radius: var(--pt-glass-radius-sm);
-    border: 1px solid rgb(255 255 255 / 0.16);
-    background-color: rgb(var(--pt-gray-700));
-    color: rgb(var(--pt-gray-50));
+    border: 1px solid rgb(255 255 255 / 0.38);
+    background-color: rgb(255 255 255 / 0.075);
+    color: #ffffff;
     font-size: 0.9rem;
     transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, background-color var(--pt-dur-base) ease;
 }
@@ -1775,23 +1969,22 @@
 
 /* Placeholders are the only thing telling a first-time visitor which box wants
  * what, so they are held to the text minimum here rather than the usual exemption.
- * A 62%-alpha wash of the ink step is 3.46:1 on white - visible, but not reliably
- * readable, and on this page it is sitting in a row the visitor is meant to scan
- * left to right. */
+ * Checked against the composited fill, not the page: the placeholder sits on the
+ * input, not on the background. */
 .pt-auth input::placeholder,
 .pt-auth textarea::placeholder {
-    color: rgb(var(--pt-gray-300));
+    color: rgb(255 255 255 / 0.66);
 }
 
 /* Focus: a blue border plus a soft ring, so the focused field is obvious against
-   both the light fill and the dark page behind it. */
+   both the well and the page behind it. */
 .pt-auth input:not([type='checkbox']):not([type='radio']):focus,
 .pt-auth textarea:focus,
 .pt-auth select:focus {
     outline: none;
-    border-color: var(--pt-blue-400);
-    background-color: rgb(var(--pt-white));
-    box-shadow: 0 0 0 3px rgb(var(--pt-blue-400) / 0.3);
+    border-color: rgb(var(--pt-auth-accent));
+    background-color: rgb(255 255 255 / 0.1);
+    box-shadow: 0 0 0 3px rgb(var(--pt-auth-accent) / 0.24);
 }
 
 /* The password field carries a reveal toggle inside it, so the right padding has
@@ -1823,12 +2016,12 @@
 }
 
 .pt-auth .pt-field-head-action a {
-    color: rgb(147 197 253);
+    color: rgb(var(--pt-auth-accent));
     text-decoration: none;
 }
 
 .pt-auth .pt-field-head-action a:hover {
-    color: rgb(191 219 254);
+    color: rgb(219 234 254);
     text-decoration: underline;
 }
 
@@ -1896,13 +2089,13 @@
    contrast floor. Filled buttons stay `--pt-blue-500`, so a link never reads as
    a button. */
 .pt-auth a {
-    color: rgb(147 197 253);
+    color: rgb(var(--pt-auth-accent));
     font-weight: 600;
     text-decoration: none;
 }
 
 .pt-auth a:hover {
-    color: rgb(191 219 254);
+    color: rgb(219 234 254);
     text-decoration: underline;
 }
 
@@ -1972,54 +2165,50 @@
 }
 
 /* ------------------------------------------------- auth quick links + crumbs -- */
-/* The breadcrumb is page chrome, not part of the form: it is pinned to the
- * viewport's top-left corner. .pt-auth-page is `position: relative` and fills the
- * screen, so absolute positioning here anchors to the page rather than to the
- * column.
- *
- * This is the top-left corner the reference fills with its logo. The logo moved
- * to the centre; the breadcrumb stays here, because "Home / Login" is the one
- * thing on this page that says where you are and what you can go back to. */
+/* The breadcrumb, right-aligned inside the top bar. It used to be absolutely
+ * positioned into the page's top-left corner, which is where the reference puts
+ * its logo; the logo is now the bar's own lockup, so the breadcrumb sits opposite
+ * it and the current screen carries the accent. */
 .pt-crumbs {
-    position: absolute;
-    top: 1.35rem;
-    left: 1.5rem;
-    z-index: 3;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.78rem;
-    color: rgb(255 255 255 / 0.5);
-}
-
-@media (max-width: 480px) {
-    .pt-crumbs {
-        top: 1rem;
-        left: 1rem;
-        font-size: 0.72rem;
-    }
+    gap: 0.55rem;
+    flex: none;
+    font-size: 0.8rem;
 }
 
 .pt-crumb {
-    color: rgb(255 255 255 / 0.78);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.2rem;
+    color: rgb(255 255 255 / 0.72);
     text-decoration: none;
     transition: color var(--pt-dur-base) ease;
+}
+
+.pt-crumb svg {
+    font-size: 0.85em;
 }
 
 .pt-crumb:hover,
 .pt-crumb:focus-visible {
     color: #ffffff;
-    text-decoration: underline;
+    text-decoration: none;
     outline: none;
 }
 
+/* The current screen is the accent, and underlined - it is a link-looking thing
+ * that is not a link, and the underline is what says "you are here". */
 .pt-crumb.is-current {
-    color: #ffffff;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid rgb(var(--pt-auth-accent));
+    color: rgb(var(--pt-auth-accent));
     font-weight: 600;
 }
 
 .pt-crumb-sep {
-    color: rgb(255 255 255 / 0.4);
+    color: rgb(255 255 255 / 0.38);
 }
 
 /* ------------------------------------------------------------ server cards */
@@ -2680,20 +2869,27 @@
  *
  * The auth screens sit on their own dark page rather than the dashboard's light
  * one, so they are outside the frosted-surface list above and outside the amber
- * palette's overrides. What follows re-asserts the two things the rest of this
- * file would otherwise paint for the light page: the input fill and the emblem.
+ * palette's overrides. What follows re-asserts the input treatment, because the
+ * rest of this file is written for a light page and would otherwise paint the
+ * dashboard's white card fill into every auth input - a row of bright rectangles
+ * on a dark page.
  *
- * Both were wrong here. The input fill was `--pt-gray-600` at 55%, which is a
- * translucent light wash - correct over a white card, and grey-on-dark over this
- * page. The emblem was solid white, which on a dark page is a blank tile with a
- * logo on it rather than a mark sitting on the page. */
+ * The value is a low-alpha white rather than a solid, so it reads as a well
+ * lifted off the background instead of a box of a different colour, and it stays
+ * correct if the page's wash stack changes. */
 
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    background-color: rgb(var(--pt-gray-700));
-    border-color: rgb(255 255 255 / 0.16);
+    background-color: rgb(255 255 255 / 0.075);
+    border-color: rgb(255 255 255 / 0.38);
+    color: #ffffff;
     box-shadow: none;
+}
+
+.pt-auth input::placeholder,
+.pt-auth textarea::placeholder {
+    color: rgb(255 255 255 / 0.66);
 }
 
 .pt-auth-emblem {
@@ -3096,10 +3292,16 @@
         background-color: transparent;
     }
 
-    /* The auth page has no frosted layer at all, so there is nothing to flatten.
-     * Its own washes are gradients, not blurs, and they carry no information a
-     * user asking for less transparency needs removed - the form does not sit on
-     * a glass panel, it sits on the page. */
+    /* The auth bars do use a real backdrop-filter, so they DO flatten - and their
+     * resting fill is already nearly opaque, so the difference is imperceptible.
+     * The form itself has no frosted layer: the inputs are dark wells painted with
+     * alpha, not blurs, and there is nothing behind them to sample. */
+    .pt-auth-bar,
+    .pt-auth-foot {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background-color: rgb(8 13 24);
+    }
 }
 
 /* Forced-colours (Windows high contrast) drops every custom surface anyway;

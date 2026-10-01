@@ -105,7 +105,7 @@
         {
             "path": "resources/scripts/components/auth/LoginContainer.tsx",
             "action": "replace",
-            "note": "Login form + success flash after registration (?registered=1). Copy matches the reference (\"Welcome back\" / \"Log in to manage your game server\", \"Log in\"), except the field stays \"Username or Email\" because the endpoint accepts either. The \"Forgot password?\" link moved onto the Password label row via Field labelAction, and the subuser hint is enabled here"
+            "note": "Login form + success flash after registration (?registered=1). Copy matches the reference (\"Welcome back\" / \"Log in to manage your game server\", \"Log in\"), except the field stays \"Username or Email\" because the endpoint accepts either. The \"Forgot password?\" link moved onto the Password label row via Field labelAction. The \"Want to manage a friend's server?\" subuser nudge was removed from the login page (component, prop, caller, CSS and preview all dropped together)"
         },
         {
             "path": "resources/scripts/components/auth/RegisterContainer.tsx",

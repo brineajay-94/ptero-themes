@@ -86,11 +86,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer
-                    title={'Welcome back'}
-                    subtitle={'Log in to manage your game server'}
-                    showSubuserHint
-                >
+                <LoginFormContainer title={'Welcome back'} subtitle={'Log in to manage your game server'}>
                     {/* Deliberately "Username or Email", not the reference's
                         "Email address": the panel's login endpoint accepts
                         either, and a narrower label would be wrong for anyone

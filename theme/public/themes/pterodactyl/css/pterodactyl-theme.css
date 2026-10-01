@@ -1445,7 +1445,6 @@
     .pt-auth input,
     .pt-auth textarea,
     .pt-auth select,
-    .pt-subuser-hint,
     .fm-path,
     .fm-path-link {
         transition: none !important;
@@ -1655,37 +1654,6 @@
     padding: 1.35rem 1.6rem 1.5rem;
     color: rgb(var(--pt-gray-200));
 }
-
-/* The "manage a friend's server" nudge under the card. */
-.pt-subuser-hint {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.7rem;
-    width: 100%;
-    max-width: min(28rem, 100%);
-    color: rgb(var(--pt-gray-400));
-}
-
-.pt-subuser-hint-icon {
-    flex: none;
-    margin-top: 0.1rem;
-    font-size: 1.05rem;
-    color: rgb(var(--pt-gray-500));
-}
-
-.pt-subuser-hint strong {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: rgb(var(--pt-gray-100));
-}
-
-.pt-subuser-hint span span {
-    display: block;
-    font-size: 0.8rem;
-    line-height: 1.45;
-}
-
 
 /* Field labels: twin.macro inlines colours inside styled-components, so the
    Label element carries no utility class to target - style it on the element.

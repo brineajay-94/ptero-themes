@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { Form } from 'formik';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import tw from 'twin.macro';
 import { brandName, logoUrl, registrationEnabled } from '@/lib/brand';
@@ -13,12 +13,6 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
     subtitle?: string;
     footer?: React.ReactNode;
     /**
-     * The "manage a friend's server" nudge under the card. Only meaningful on
-     * the screens where someone is trying to get *into* the panel, so
-     * Forgot/Reset/Checkpoint leave it off.
-     */
-    showSubuserHint?: boolean;
-    /**
      * Whether to lead with the sign-up call to action. On by default, because
      * registration is the reason a first-time visitor is on this page; the
      * register screen turns it off, since its footer already says "already have
@@ -26,25 +20,6 @@ type Props = React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, 
      */
     showSignUpCta?: boolean;
 };
-
-/**
- * The subuser nudge under the card.
- *
- * On a centred page this sits below the card rather than beside it, which is
- * the same content in a narrower column - the copy is unchanged, only the
- * available width is.
- */
-const SubuserHint = () => (
-    <div className={'pt-subuser-hint'}>
-        <span className={'pt-subuser-hint-icon'} aria-hidden={'true'}>
-            <FontAwesomeIcon icon={faUsers} />
-        </span>
-        <span>
-            <strong>Want to manage a friend&rsquo;s server?</strong>
-            <span>Ask the owner to invite your email from their Subscribers page</span>
-        </span>
-    </div>
-);
 
 /**
  * The sign-up call to action.
@@ -98,7 +73,7 @@ const OrDivider = () => (
 // repeating the CTA there would be noise.
 export default forwardRef<HTMLFormElement, Props>(
     (
-        { title, subtitle, footer, showSubuserHint = false, showSignUpCta = true, ...props },
+        { title, subtitle, footer, showSignUpCta = true, ...props },
         ref,
     ) => {
         // Drives both the CTA and the divider. Without registration there is
@@ -151,8 +126,6 @@ export default forwardRef<HTMLFormElement, Props>(
                             )}
                         </div>
                     </div>
-
-                    {showSubuserHint && <SubuserHint />}
                 </div>
             </div>
         );

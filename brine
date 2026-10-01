@@ -257,12 +257,43 @@ do_clear_cache() {
             rc=1
         fi
     done
+
+    # OPcache, and why it is here.
+    #
+    # Every other cache cleared above belongs to Laravel: compiled Blade views,
+    # the config cache, the route cache, the application cache. None of them
+    # affect a .php file the theme replaced on disk, because that file is not
+    # cached by Laravel at all - it is cached by PHP itself, in memory, in the
+    # FPM/Apache worker that serves requests.
+    #
+    # So on a panel with opcache enabled (the default in every distro's php.ini,
+    # and a strong recommendation for production) a replaced controller keeps
+    # running the OLD bytecode until opcache is reset or the worker is reloaded.
+    # The symptom is exactly "I changed the file and nothing happened": no error,
+    # no warning, and the previous behaviour persists indefinitely.
+    #
+    # `opcache_reset()` only clears the opcache of the PHP process that calls it,
+    # which for a CLI invocation is the CLI's own - NOT the FPM pool. So this is
+    # attempted, but the reliable fix is a worker reload, which needs the service
+    # name and is therefore reported rather than guessed at.
+    printf '  %-18s ' "opcache"
+    if "$php_bin" -r 'exit(function_exists("opcache_reset") && @opcache_reset() ? 0 : 1);' >/dev/null 2>&1; then
+        echo "ok (CLI only - see note below)"
+    else
+        echo "not available"
+    fi
+
     echo
     if [ "$rc" -eq 0 ]; then
-        echo "All caches cleared. Hard-refresh the browser (Ctrl+Shift+R)."
+        echo "All caches cleared."
     else
         echo "Some cache commands failed - check that php runs as your panel user."
     fi
+    echo
+    echo "If a file you just replaced is still behaving like the old one, PHP is"
+    echo "serving cached bytecode. Reload the PHP worker pool, then hard-refresh:"
+    echo "  sudo systemctl reload php${PHP_FPM_VER:-8.2}-fpm   # or restart apache2/nginx"
+    echo "  (or set opcache.validate_timestamps=1 in php.ini to make this self-heal)"
     return "$rc"
 }
 

@@ -256,7 +256,12 @@ function Invoke-ClearCache {
         Write-Host 'Some cache commands failed - check that php runs as your panel user.'
         return 1
     }
-    Write-Host 'All caches cleared. Hard-refresh the browser (Ctrl+Shift+R).'
+    Write-Host 'All Laravel caches cleared.'
+    Write-Host ''
+    Write-Host 'If a file you just replaced is still behaving like the old one, PHP is'
+    Write-Host 'serving cached bytecode. Laravel does not cache .php files - opcache does,'
+    Write-Host 'in the web worker. Restart the web server (or set opcache.validate_timestamps=1'
+    Write-Host 'in php.ini to make this self-heal), then hard-refresh the browser.'
     return 0
 }
 

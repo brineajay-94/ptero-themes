@@ -495,6 +495,8 @@ if [ "$DO_BUILD" -eq 1 ]; then
         fi
         echo
         echo "brine-theme is live - hard-refresh the browser (Ctrl+Shift+R)."
+        echo "If a replaced .php file still behaves like the old one, reload the PHP"
+        echo "worker pool (opcache): sudo systemctl reload php-fpm"
     else
         code=$?
         echo
@@ -514,6 +516,12 @@ Files installed. Now rebuild the panel and clear its caches:
   (drop the NODE_OPTIONS prefix if node --version reports 16 or older)
 
 Then hard-refresh the browser (Ctrl+Shift+R).
+
+Laravel's caches are not the only cache: a replaced .php file is held in memory
+by PHP's opcache, not by Laravel, so it keeps running the old bytecode until
+the worker pool is reloaded - no error, just the previous behaviour. If
+something you replaced did not change:
+  sudo systemctl reload php-fpm
 EOF
 fi
 

@@ -167,13 +167,32 @@ class SocialAuthService
             return false;
         }
 
-        if ($this->settings->get('Brine::social_' . $provider . '_enabled') !== '1') {
+        if ($this->setting('Brine::social_' . $provider . '_enabled') !== '1') {
             return false;
         }
 
         $credentials = $this->credentials($provider);
 
         return $credentials['client_id'] !== '' && $credentials['client_secret'] !== '';
+    }
+
+    /**
+     * Is a client secret stored for this provider?
+     *
+     * Reads through `decrypt()` rather than testing the raw stored string, so a
+     * secret that is present but no longer readable (APP_KEY rotated, value
+     * written before encryption existed) is reported as missing. Reporting it as
+     * present would tell the admin "leave blank to keep" for a value that cannot
+     * be used, which is the one message that would send them looking in the wrong
+     * place.
+     */
+    public function hasSecret(string $provider): bool
+    {
+        if (!$this->isKnown($provider)) {
+            return false;
+        }
+
+        return $this->decrypt($this->setting('Brine::social_' . $provider . '_client_secret')) !== '';
     }
 
     /**
@@ -347,7 +366,7 @@ class SocialAuthService
         // social sign-up is exempt, so an unknown address is refused rather than
         // quietly enrolled. Existing users are unaffected - they are matched
         // above and never reach this method.
-        if ($this->settings->get('Brine::registration_enabled') !== '1') {
+        if ($this->setting('Brine::registration_enabled') !== '1') {
             return ['error' => 'Registration is closed on this panel. Ask an administrator to create your account.'];
         }
 
@@ -608,9 +627,23 @@ class SocialAuthService
         }
     }
 
+    /**
+     * Read one Brine:: setting as a trimmed string, or '' when it is unset.
+     *
+     * The `''` default is load-bearing: Pterodactyl's SettingsRepository throws
+     * NoSuchSettingException for a key that has never been written unless a
+     * default is supplied, and `?? ''` cannot catch that because it is an
+     * exception rather than a null. `isUsable()` runs on every page render via
+     * AssetComposer, so an unguarded read here would take down the panel's login
+     * screen on any install that had never saved these settings.
+     */
     private function setting(string $key): string
     {
-        $value = $this->settings->get($key);
+        try {
+            $value = $this->settings->get($key, '');
+        } catch (\Throwable) {
+            return '';
+        }
 
         return is_string($value) ? trim($value) : '';
     }

@@ -5,6 +5,7 @@ namespace Pterodactyl\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Pterodactyl\Http\Controllers\Controller;
 use Prologue\Alerts\AlertsMessageBag;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
@@ -48,17 +49,14 @@ class SocialAuthController extends Controller
         $providers = [];
 
         foreach (['google', 'discord'] as $provider) {
-            $clientId = (string) ($this->settings->get('Brine::social_' . $provider . '_client_id') ?? '');
-            $hasSecret = trim((string) ($this->settings->get('Brine::social_' . $provider . '_client_secret') ?? '')) !== '';
-
             $providers[$provider] = [
                 'label' => $this->social->label($provider),
-                'enabled' => $this->settings->get('Brine::social_' . $provider . '_enabled') === '1',
-                'client_id' => $clientId,
-                'has_secret' => $hasSecret,
-                // Read back through the service, so a secret that is present but
-                // no longer decryptable (APP_KEY rotated) is reported as
-                // unusable rather than as configured.
+                'enabled' => $this->stored('Brine::social_' . $provider . '_enabled') === '1',
+                'client_id' => $this->stored('Brine::social_' . $provider . '_client_id'),
+                // Whether a secret is present, read through the service so a value
+                // that is stored but no longer decryptable (APP_KEY rotated) is
+                // reported as missing rather than as configured.
+                'has_secret' => $this->social->hasSecret($provider),
                 'usable' => $this->social->isUsable($provider),
                 'callback' => $this->social->callbackUrl($provider),
                 'scopes' => $provider === 'google'
@@ -69,8 +67,34 @@ class SocialAuthController extends Controller
 
         return view('admin.social-auth', [
             'providers' => $providers,
-            'registration_enabled' => $this->settings->get('Brine::registration_enabled') === '1',
+            'registration_enabled' => $this->stored('Brine::registration_enabled') === '1',
         ]);
+    }
+
+    /**
+     * Read one Brine:: setting as a trimmed string, or '' when it is unset.
+     *
+     * The `''` default is required, not defensive decoration. Pterodactyl's
+     * `SettingsRepositoryInterface::get()` declares the default as a REQUIRED
+     * parameter on current versions
+     * (`get(string $key, mixed $default): mixed`), so a single-argument call
+     * is an ArgumentCountError there, and older ones that do default it can
+     * still surface a not-found rather than a null. Every key read on this page
+     * is one that does not exist until an admin saves for the first time, so a
+     * read that has to be answered for a missing key is the normal case here,
+     * not the exception. The catch is the same belt-and-braces as in
+     * `SocialAuthService::setting()`: this page must render on a panel that has
+     * never been configured.
+     */
+    private function stored(string $key): string
+    {
+        try {
+            $value = $this->settings->get($key, '');
+
+            return is_string($value) ? trim($value) : '';
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     /**
@@ -134,6 +158,19 @@ class SocialAuthController extends Controller
                     $this->social->encryptSecret(trim($secret))
                 );
             }
+
+            // Log what was actually written, then log what reads back. This
+            // exists because a silent no-op save cost two rounds of guessing:
+            // the flash said "saved", the page said "NOT READY", and there was
+            // nothing in any log to tell the two apart. The client id is safe to
+            // log - it is not a secret - and the secret is only ever described by
+            // length, never printed.
+            Log::info('brine-theme: social save for ' . $provider, [
+                'client_id_submitted' => is_string($clientId) ? strlen(trim($clientId)) : null,
+                'secret_submitted' => is_string($secret) ? strlen(trim($secret)) : null,
+                'client_id_stored' => strlen($this->stored('Brine::social_' . $provider . '_client_id')),
+                'has_secret_reads_back' => $this->social->hasSecret($provider),
+            ]);
 
             $status = $this->social->isUsable($provider);
             $messages[] = $this->social->label($provider) . ': ' . ($status

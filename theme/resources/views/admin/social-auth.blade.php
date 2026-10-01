@@ -120,6 +120,39 @@
                                             Scopes requested: <code>{{ $provider['scopes'] }}</code>
                                         </p>
                                     </div>
+
+                                    {{-- Why it is not READY, stated per field. "ON, NOT
+                                         READY" on its own gave an admin nothing to act
+                                         on; this names the missing half, and a stored
+                                         secret that is no longer readable (a rotated
+                                         APP_KEY) is called out separately from a
+                                         missing one. --}}
+                                    @if (! $provider['usable'])
+                                        <div class="callout callout-warning" style="margin: 14px 0 0;">
+                                            <p style="margin: 0;">
+                                                @if (! $provider['enabled'])
+                                                    Switch is <strong>off</strong>. Tick it to enable
+                                                    {{ $provider['label'] }} sign-in.
+                                                @elseif ($provider['client_id'] === '' && ! $provider['has_secret'])
+                                                    Nothing is stored yet. Paste the client id and secret
+                                                    below and press <strong>Save settings</strong>.
+                                                @elseif ($provider['client_id'] === '')
+                                                    <strong>Client id is missing.</strong> The secret is saved.
+                                                    Paste the client id and save.
+                                                @elseif (! $provider['has_secret'])
+                                                    <strong>Client secret is missing.</strong> The client id is
+                                                    saved as
+                                                    <code>{{ $provider['client_id'] }}</code>. Paste the secret
+                                                    and save.
+                                                @else
+                                                    Both are stored, but the pair is still not accepted. Check
+                                                    the panel's <code>APP_KEY</code> is set - the secret is
+                                                    encrypted with it, and a panel whose key has changed
+                                                    cannot read its own stored secret back.
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

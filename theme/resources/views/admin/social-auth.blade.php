@@ -18,12 +18,20 @@
          number is not the one you just installed, reload the PHP worker pool
          (`systemctl reload php-fpm`) rather than re-debugging working code.
 
-         `filemtime` rather than the string, because the string can only change if
-         the file did - and a hardcoded version here would be a second place to
-         forget to bump. The mtime is what actually differs. --}}
+         `filemtime` rather than a version string, because a hardcoded version
+         here would be a second place to forget to bump, and a version that
+         lies is worse than no version.
+
+         Resolved through `base_path()`, NOT through `__DIR__`. A Blade view is
+         compiled before it runs, so `__DIR__` is the COMPILED view's directory
+         (storage/framework/views/<hash>.php), not this file's - and counting
+         levels up from there lands outside the panel entirely. `filemtime` on a
+         path that does not exist returns false, which the `?: 0` turns into
+         1970, so the symptom of getting this wrong is a page that looks like it
+         is from 1970 rather than an error. --}}
     <p class="help-block" style="margin-bottom: 10px;">
         Theme file installed
-        <code>{{ date('Y-m-d H:i', @filemtime(__DIR__ . '/../../../../app/Http/Controllers/Admin/SocialAuthController.php') ?: 0) }}</code>
+        <code>{{ date('Y-m-d H:i', @filemtime(base_path('app/Http/Controllers/Admin/SocialAuthController.php')) ?: 0) }}</code>
     </p>
 
     <div class="row">

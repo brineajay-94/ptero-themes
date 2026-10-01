@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Pterodactyl\Http\Controllers\Controller;
 use Prologue\Alerts\AlertsMessageBag;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
@@ -123,66 +124,71 @@ class SocialAuthController extends Controller
 
         $messages = [];
 
-        foreach (['google', 'discord'] as $provider) {
-            $this->settings->set('Brine::social_' . $provider . '_enabled', $request->boolean($provider . '.enabled') ? '1' : '0');
+        // Caught, logged, and reported - rather than allowed to become a 500.
+        //
+        // An uncaught throw here is the least informative failure this page can
+        // produce: the browser says "Server Error", the admin cannot tell whether
+        // the save happened, and the cause is buried in a log nobody thinks to
+        // read. The exception class and message go on the page, because that is
+        // the difference between a bug report someone can act on and one they
+        // cannot.
+        //
+        // Logged at error WITH the trace, since the message alone rarely places a
+        // framework-level failure.
+        try {
+            foreach (['google', 'discord'] as $provider) {
+                $this->settings->set('Brine::social_' . $provider . '_enabled', $request->boolean($provider . '.enabled') ? '1' : '0');
 
-            // Read the values back off the REQUEST, not off $validated.
-            //
-            // This is the bug that made the page look like it was saving and was
-            // not: `$request->validate()` does NOT return the dotted keys it was
-            // given. Laravel's `validated()` walks its own rule keys and re-inserts
-            // each value with `Arr::set()`, so a rule written `google.client_id`
-            // comes back as `$validated['google']['client_id']` - nested. Looking
-            // up `$validated['google.client_id']` therefore always misses, the
-            // `?? null` swallows it, and neither the client id nor the secret was
-            // ever written. The switch still saved, because that line reads
-            // $request directly, which is exactly why the symptom was "Discord:
-            // ON, NOT READY" rather than an outright failure.
-            //
-            // `input()` takes the same dotted path the form field names use and
-            // the same accessor `boolean()` above already relies on, so the two
-            // cannot drift. Validation above is still what guarantees the value
-            // is a string within the length limit before it is stored.
-            $clientId = $request->input($provider . '.client_id');
-            if (is_string($clientId) && trim($clientId) !== '') {
-                $this->settings->set('Brine::social_' . $provider . '_client_id', trim($clientId));
+                // Read the values off the REQUEST, not off $validated.
+                //
+                // `$request->validate()` does not return the keys it was given:
+                // Laravel's validated() walks its own rule keys and re-inserts each
+                // value with Arr::set(), so a rule written `google.client_id` comes
+                // back as $validated['google']['client_id'] - nested. Reading the
+                // dotted key off that array always missed, so neither the client id
+                // nor the secret was ever written. The switch saved, because that
+                // line reads $request directly, which is why the symptom was
+                // "Discord: ON, NOT READY" rather than a hard failure.
+                //
+                // `input()` takes the same dotted path the form field names use and
+                // the same accessor `boolean()` above relies on, so the two cannot
+                // drift. validate() above still gates the value as a string within
+                // its length limit before it is stored.
+                $clientId = $request->input($provider . '.client_id');
+                if (is_string($clientId) && trim($clientId) !== '') {
+                    $this->settings->set('Brine::social_' . $provider . '_client_id', trim($clientId));
+                }
+
+                // A blank secret means "unchanged", not "erase it" - the admin
+                // cannot read the stored value back, so erasing needs its own
+                // action.
+                $secret = $request->input($provider . '.client_secret');
+                if (is_string($secret) && trim($secret) !== '') {
+                    $this->settings->set(
+                        'Brine::social_' . $provider . '_client_secret',
+                        $this->social->encryptSecret(trim($secret))
+                    );
+                }
+
+                $messages[] = $this->social->label($provider) . ': ' . ($this->social->isUsable($provider)
+                    ? 'ready'
+                    : ($request->boolean($provider . '.enabled')
+                        ? 'enabled but incomplete'
+                        : 'off'));
             }
-
-            // A blank secret field means "unchanged", not "erase it". Erasing is
-            // done with the explicit clear button below, because this is the one
-            // field the admin cannot see the current value of.
-            $secret = $request->input($provider . '.client_secret');
-            if (is_string($secret) && trim($secret) !== '') {
-                $this->settings->set(
-                    'Brine::social_' . $provider . '_client_secret',
-                    $this->social->encryptSecret(trim($secret))
-                );
-            }
-
-            // Log what was actually written, then log what reads back. This
-            // exists because a silent no-op save cost two rounds of guessing:
-            // the flash said "saved", the page said "NOT READY", and there was
-            // nothing in any log to tell the two apart. The client id is safe to
-            // log - it is not a secret - and the secret is only ever described by
-            // length, never printed.
-            Log::info('brine-theme: social save for ' . $provider, [
-                'client_id_submitted' => is_string($clientId) ? strlen(trim($clientId)) : null,
-                'secret_submitted' => is_string($secret) ? strlen(trim($secret)) : null,
-                'client_id_stored' => strlen($this->stored('Brine::social_' . $provider . '_client_id')),
-                'has_secret_reads_back' => $this->social->hasSecret($provider),
+        } catch (\Throwable $exception) {
+            Log::error('brine-theme: social login save failed: ' . $exception->getMessage(), [
+                'exception' => get_class($exception),
+                'where' => $exception->getFile() . ':' . $exception->getLine(),
+                'trace' => array_slice(explode("\n", $exception->getTraceAsString()), 0, 12),
             ]);
 
-            // Plain words, not markup.
-            //
-            // This message goes through Prologue Alerts, which renders it as text -
-            // the `<span class="label ...">` versions of these three states appeared
-            // in the flash as literal tags, which is both ugly and, worse, made the
-            // flash look like a rendering fault rather than a report about the save.
-            $messages[] = $this->social->label($provider) . ': ' . ($status
-                ? 'ready'
-                : ($request->boolean($provider . '.enabled')
-                    ? 'enabled but incomplete'
-                    : 'off'));
+            $this->alert->danger(
+                'Could not save: ' . Str::afterLast(get_class($exception), '\\') . ' - ' . $exception->getMessage()
+                    . ' (full detail in storage/logs/laravel.log)'
+            )->flash();
+
+            return redirect()->route('admin.social-auth');
         }
 
         $this->alert->success('Social login settings saved - ' . implode(', ', $messages) . '.')->flash();

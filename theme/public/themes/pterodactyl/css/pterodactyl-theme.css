@@ -630,9 +630,23 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
+    /*
+     * The veil is WHITE here, not black.
+     *
+     * `SiteSettingsController` forces the stored scrim colour to black on every
+     * palette, because it was written when every palette was dark and the text
+     * over the photo was light - a black scrim darkened the photo for that text.
+     * The default palette is light now and its ink is dark, so a black scrim
+     * pushes the photo toward exactly the value the text cannot be read against.
+     *
+     * So the colour is decided here, from the palette, rather than read from
+     * the setting: a white veil keeps a photo under dark ink legible and still
+     * leaves it plainly visible. The admin's intensity slider is unchanged and
+     * still drives this alpha - only the hue moved.
+     */
     background-image: linear-gradient(
-            rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength)),
-            rgb(var(--pt-bg-overlay-rgb) / var(--pt-bg-overlay-strength))
+            rgb(255 255 255 / var(--pt-bg-overlay-strength, 0)),
+            rgb(255 255 255 / var(--pt-bg-overlay-strength, 0))
         ),
         var(--pt-bg-dashboard-image, none);
     background-position: center;
@@ -1452,7 +1466,9 @@
  */
 
 /* The page. Owns the min-height and the admin's "Login & register" background
-   photo; it is no longer a flex row, so the column below centres itself. */
+   photo; it is no longer a flex row, so the column below centres itself.
+   The veil is white for the same reason as the dashboard's: the ink on this page
+   is dark, so the photo has to be lightened to sit under it, not darkened. */
 .pt-auth-page {
     position: relative;
     display: flex;
@@ -1462,8 +1478,8 @@
     background-image: var(--pt-aurora),
         linear-gradient(
             to top,
-            rgb(var(--pt-bg-overlay-rgb-auth, 0 0 0) / var(--pt-bg-overlay-strength-auth, 0.78)),
-            rgb(var(--pt-bg-overlay-rgb-auth, 0 0 0) / calc(var(--pt-bg-overlay-strength-auth, 0.78) * 0.35)) 55%,
+            rgb(255 255 255 / var(--pt-bg-overlay-strength-auth, 0)),
+            rgb(255 255 255 / calc(var(--pt-bg-overlay-strength-auth, 0) * 0.35)) 55%,
             transparent 100%
         ),
         var(--pt-bg-auth-image, none);
@@ -1839,7 +1855,7 @@
 .pt-auth-footer {
     padding: 0.9rem 1.6rem;
     border-top: 1px solid rgb(var(--pt-gray-600) / 0.7);
-    background-color: rgb(var(--pt-gray-800) / 0.5);
+    background-color: rgb(var(--pt-gray-800));
     text-align: center;
     font-size: 0.82rem;
     color: rgb(var(--pt-gray-400));
@@ -1937,8 +1953,11 @@
     justify-content: center;
     min-width: 0;
     padding: 0.6rem 0.85rem;
-    border: 1px solid var(--pt-glass-border);
-    background-color: rgb(var(--pt-gray-700) / 0.5);
+    /* A row-fill pill with a real edge. `--pt-gray-700` at 50% was white at 50%
+       on the light ramp, which made the auth quick links disappear into the
+       page. */
+    border: 1px solid rgb(var(--pt-gray-600));
+    background-color: rgb(var(--pt-gray-700));
     color: rgb(var(--pt-gray-100));
     font-size: 0.8rem;
     font-weight: 600;
@@ -1951,9 +1970,9 @@
 
 .pt-link:hover,
 .pt-link:focus-visible {
-    background-color: rgb(var(--pt-gray-700) / 0.78);
-    border-color: var(--pt-glass-border-hover);
-    color: #ffffff;
+    background-color: rgb(var(--pt-gray-600) / 0.5);
+    border-color: rgb(var(--pt-navy-300));
+    color: rgb(var(--pt-gray-50));
     outline: none;
 }
 
@@ -2389,10 +2408,14 @@
     align-items: center;
     min-width: 0;
     padding: 0.5rem 0.6rem;
-    border: 1px solid var(--pt-hairline);
+    border: 1px solid rgb(var(--pt-gray-600));
     border-radius: 0;
-    background-color: rgb(var(--pt-navy-800));
-    color: rgb(var(--pt-navy-200));
+    /* A path is a read-only field, not chrome. On the light ramp the old
+       `--pt-navy-800` fill made it a dark slate bar with light grey text, and
+       the glass override below then took it to 70% alpha, which is mid grey with
+       mid grey text - unreadable. It is a light well with dark ink instead. */
+    background-color: rgb(var(--pt-gray-700));
+    color: rgb(var(--pt-gray-200));
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
     font-size: 0.8rem;
     line-height: 1.5;
@@ -2438,9 +2461,11 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.7rem 1rem;
-    border: 1px solid rgb(var(--pt-gold-400) / 0.65);
+    border: 1px solid rgb(var(--pt-chrome-deep));
     border-radius: 0;
-    background-color: rgb(var(--pt-navy-900) / 0.97);
+    /* Solid chrome: this bar floats over the file list, so on the light page it
+       is a dark island by intent rather than by accident. */
+    background-color: rgb(var(--pt-chrome));
     box-shadow: var(--pt-shadow-lg);
     pointer-events: auto;
 }
@@ -2530,53 +2555,58 @@
     border-radius: 50% !important;
 }
 
-/* --------------------------------------------------------- sidebar (glass) -- */
+/* -------------------------------------------------- sidebar / brand (chrome) -- */
 
+/* The sidebar only exists inside the drawer now, so it shares the drawer's
+   chrome rather than being its own translucent layer. */
 .pt-sidebar {
-    background-color: rgb(var(--pt-navy-900) / 0.62);
-    border-right: 1px solid var(--pt-glass-border);
-    box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.35);
-    -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
-    backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
+    border-right: 0;
+    box-shadow: none;
 }
 
+/* The brand lockup sits inside the topbar now, not in a sidebar header, so it
+   must not paint a panel of its own. It used to carry `--pt-navy-900` at 45%,
+   which on the light ramp put a dark grey block with a hard border around the
+   logo - the most obviously broken thing on the page. */
 .pt-brand {
-    background-color: rgb(var(--pt-navy-900) / 0.45);
-    border-bottom: 1px solid var(--pt-glass-border);
-    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+    background-color: transparent;
+    border-bottom: 0;
+    box-shadow: none;
 }
 
 .pt-sidebar-foot {
-    background-color: rgb(var(--pt-navy-900) / 0.45);
-    border-top: 1px solid var(--pt-glass-border);
+    background-color: rgb(var(--pt-chrome-deep));
+    border-top: 1px solid rgb(255 255 255 / 0.08);
 }
 
-/* --------------------------------------------------------- topbar (glass) -- */
+/* --------------------------------------------------------- topbar (chrome) -- */
 
-/* The topbar used to be a flat slab of --pt-navy-700 (#1e6fb8), which is the
- * brightest thing on the page and pulled the eye away from the content. As
- * glass it goes dark and translucent so the aurora reads through it, and the
- * brand accent moves down to the 2px gradient rule on its lower edge. */
+/*
+ * The topbar is one of the three dark chrome islands, so it paints SOLID
+ * --pt-chrome.
+ *
+ * It used to be a translucent dark wash over the aurora, which was right on a
+ * black page and is not on a light one: `--pt-navy-900` at 55% over `#f2f4f6`
+ * resolves to a mid grey, so the bar lost its colour entirely and the whole top
+ * of the panel read as washed out. A dark island on a light page has to be OPAQUE
+ * to be dark - translucency can only ever pull it back toward the page behind it.
+ * The blur goes with it, for the same reason: there is nothing behind it worth
+ * refracting except the photo, and blurring a photo behind an auth page just
+ * makes the photo unreadable.
+ */
 .pt-topbar {
-    background-color: rgb(var(--pt-navy-900) / 0.55);
-    border-bottom: 0;
-    box-shadow: inset 0 -1px 0 var(--pt-glass-border), 0 2px 14px rgb(0 0 0 / 0.28);
-    -webkit-backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
-    backdrop-filter: blur(var(--pt-glass-blur)) saturate(var(--pt-glass-saturate));
+    background-color: rgb(var(--pt-chrome));
+    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
+    box-shadow: var(--pt-shadow-md);
 }
 
-/* The 2px gold rule moves onto a pseudo-element so it can be a gradient -
-   a flat gold line under a blurred bar reads as a seam, a fading one reads as
-   a light source. */
+/* The old gradient hairline under the bar was a light source for a bar that was
+ * once brighter than the page. On a dark bar over a light page a bright rule
+ * under it reads as a seam, so it is dropped rather than recoloured. */
 .pt-topbar::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    background-image: var(--pt-topbar-rule);
-    pointer-events: none;
+    content: none;
 }
 
 .pt-nav-item.active {
@@ -2592,37 +2622,35 @@
     box-shadow: 0 0 10px rgb(var(--pt-violet-500) / 0.8);
 }
 
-/* ------------------------------------------------------- drawer (glass) -- */
+/* ------------------------------------------------------- drawer (chrome) -- */
 
+/* Solid for the same reason as the topbar: a translucent dark panel over a light
+   page greys out, and this one covers most of the screen when it is open. */
 .pt-drawer-panel {
-    background-color: rgb(var(--pt-navy-900) / 0.72);
-    border-right: 1px solid var(--pt-glass-border);
-    box-shadow: 0 0 60px rgb(0 0 0 / 0.6);
-    -webkit-backdrop-filter: blur(22px) saturate(var(--pt-glass-saturate));
-    backdrop-filter: blur(22px) saturate(var(--pt-glass-saturate));
+    background-color: rgb(var(--pt-chrome));
+    border-right: 1px solid rgb(var(--pt-chrome-deep));
+    box-shadow: var(--pt-shadow-lg);
 }
 
-/* ------------------------------------------------------ auth card (glass) -- */
+/* ------------------------------------------------------ auth card (light) -- */
 
+/*
+ * The auth card is a WHITE card on the light page, not a dark island - the
+ * reference's sign-in screen is white, and only the auth background photo is
+ * dark. It therefore reads by its border and shadow, not by its fill.
+ *
+ * The old rule was `--pt-gray-700` at 55%, which on the light ramp is white at
+ * 55% - so the card was barely distinguishable from the page behind it and the
+ * inputs had nothing to sit on.
+ */
 .pt-auth-card {
-    background-color: rgb(var(--pt-gray-700) / 0.55);
-    border: 1px solid var(--pt-glass-border);
-    box-shadow: var(--pt-glass-shadow), inset 0 1px 0 var(--pt-glass-highlight);
-    -webkit-backdrop-filter: blur(24px) saturate(var(--pt-glass-saturate));
-    backdrop-filter: blur(24px) saturate(var(--pt-glass-saturate));
+    background-color: rgb(var(--pt-gray-700));
+    border: 1px solid rgb(var(--pt-gray-600));
+    box-shadow: var(--pt-shadow-lg);
 }
 
-/* Top inner highlight: the single detail that reads as "glass" rather than
-   "translucent rectangle". Kept as a gradient so it fades out before the edge. */
 .pt-auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 45%;
-    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent);
-    pointer-events: none;
+    content: none;
 }
 
 .pt-auth-card {
@@ -2631,23 +2659,25 @@
 }
 
 .pt-auth-footer {
-    background-color: rgb(var(--pt-gray-900) / 0.35);
-    border-top: 1px solid var(--pt-glass-border);
+    background-color: rgb(var(--pt-gray-800));
+    border-top: 1px solid rgb(var(--pt-gray-600));
 }
 
-/* Inputs stay legible: a barely-tinted dark well rather than a clear pane, so
-   the placeholder and caret contrast against the page colour is unchanged. */
+/* Inputs read as wells on the white card: a light grey fill, not a dark one.
+ * `--pt-gray-900` is now white, so the old `gray-900 / 0.72` put a near-white
+ * field on a white card with only an inset shadow to separate it - too faint to
+ * find. The row-fill step is the one that differs from the card. */
 .pt-auth input:not([type='checkbox']):not([type='radio']),
 .pt-auth textarea,
 .pt-auth select {
-    background-color: rgb(var(--pt-gray-900) / 0.72);
-    border-color: var(--pt-glass-border);
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+    background-color: rgb(var(--pt-gray-600) / 0.55);
+    border-color: rgb(var(--pt-gray-600));
+    box-shadow: none;
 }
 
 .pt-auth-emblem {
-    background-color: rgb(255 255 255 / 0.94);
-    box-shadow: 0 12px 26px -10px rgb(0 0 0 / 0.75), 0 0 0 1px var(--pt-glass-border);
+    background-color: rgb(255 255 255);
+    box-shadow: var(--pt-shadow-sm);
 }
 
 /* --------------------------------------------------------------- modals -- */
@@ -2713,47 +2743,60 @@
     box-shadow: var(--pt-shadow-lg);
 }
 
-/* ------------------------------------------------- hero / console (tinted) -- */
+/* ------------------------------------------------- hero / console (chrome) -- */
 
+/*
+ * The console header is the third dark chrome island. The base rule gives it a
+ * solid `--pt-chrome` fill; these overrides used to repaint it with a frost
+ * gradient, which on the light ramp is a near-transparent wash and left the white
+ * h1 on whatever happened to be behind it.
+ */
 .pt-console-head {
-    border: 1px solid var(--pt-glass-border);
-    border-bottom-width: 1px;
-    background-image: var(--pt-frost-hero);
-    box-shadow: var(--pt-glass-shadow), inset 0 1px 0 var(--pt-glass-highlight);
-}
-
-/* The decorative corner ring becomes a soft violet bloom instead of a hard
-   bordered square, which is what the frosted card is echoing. */
-
-.pt-console-head {
-    background-image: var(--pt-frost-console);
+    border: 1px solid rgb(var(--pt-chrome-deep));
+    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
+    background-image: none;
+    background-color: rgb(var(--pt-chrome));
+    box-shadow: var(--pt-shadow-md);
 }
 
 .pt-console-head .pt-power {
     border-radius: var(--pt-glass-radius-sm) !important;
 }
 
-/* ------------------------------------------------ server cards (tinted) -- */
-/* No backdrop-filter here on purpose - see the header comment. */
-
+/* ------------------------------------------------------ server cards (chrome) -- */
+/*
+ * No backdrop-filter here, as before: one per card in a scrolling list is the most
+ * expensive thing you can put on a page.
+ *
+ * These rules previously re-declared the card as a translucent LIGHT surface
+ * (`--pt-gray-700` at 50%) on the theory that a repeated card should be tinted
+ * rather than frosted. On the light ramp `--pt-gray-700` IS white, so that
+ * override silently replaced the solid `--pt-chrome` the base rule sets - and
+ * since the card's own text is `--pt-chrome-ink`, which is white too, the name
+ * rendered white on a near-white card and was effectively invisible. Same for the
+ * empty state, which is the first thing an admin sees.
+ *
+ * A dark island cannot be a translucent light surface. Solid chrome, and the
+ * hover is a lift rather than a fill change.
+ */
 .pt-server-card {
-    background-color: rgb(var(--pt-gray-700) / 0.5);
-    border-color: var(--pt-glass-border);
-    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+    background-color: rgb(var(--pt-chrome));
+    border-color: rgb(var(--pt-chrome-deep));
+    box-shadow: var(--pt-shadow-sm);
 }
 
 .pt-server-card:hover,
 .pt-server-card:focus-visible {
-    border-color: var(--pt-glass-border-hover);
-    background-color: rgb(var(--pt-gray-700) / 0.68);
-    box-shadow: var(--pt-shadow-md), inset 0 1px 0 rgb(255 255 255 / 0.18);
+    border-color: rgb(var(--pt-navy-300));
+    background-color: rgb(var(--pt-chrome));
+    box-shadow: var(--pt-shadow-lg);
 }
 
-/* Status rail glows instead of reading as a flat colour block. */
+/* The pink accent bar is a flat brand edge, so it stays flat. */
 .pt-server-card::before {
-    background-image: linear-gradient(180deg, var(--pt-status, rgb(var(--pt-gray-500))), transparent);
-    box-shadow: 0 0 12px -2px var(--pt-status, rgb(var(--pt-gray-500)));
-    opacity: 0.85;
+    background-image: none;
+    box-shadow: none;
+    opacity: 1;
 }
 
 
@@ -2795,14 +2838,16 @@
 /* File manager chrome follows the same material; the rows themselves stay
    solid so long path lists and file names keep their contrast. */
 .fm-path {
-    background-color: rgb(var(--pt-navy-800) / 0.7);
-    border-color: var(--pt-glass-border);
-    box-shadow: inset 0 1px 0 var(--pt-glass-highlight);
+    background-color: rgb(var(--pt-gray-700));
+    border-color: rgb(var(--pt-gray-600));
+    box-shadow: var(--pt-shadow-sm);
 }
 
+/* The mass-action bar floats over the file list, so it keeps the dark chrome
+   treatment - but SOLID. At 92% over a light page it read as a dirty grey slab. */
 .fm-mass {
-    background-color: rgb(var(--pt-navy-900) / 0.92);
-    border-color: rgb(var(--pt-violet-400) / 0.5);
+    background-color: rgb(var(--pt-chrome));
+    border-color: rgb(var(--pt-chrome-deep));
 }
 
 /* ============================================================ flat mode ==
@@ -3017,22 +3062,33 @@
         backdrop-filter: none;
     }
 
+    /*
+     * The opaque fallbacks have to name the same fill the normal rules do, or
+     * turning transparency off CHANGES the colour. `--pt-gray-900` and
+     * `--pt-gray-700` are both near-white on the light ramp, so the old
+     * fallbacks here repainted the topbar and the server cards with a light
+     * surface - and the server card's own text is `--pt-chrome-ink`, which is
+     * white. A user with reduced transparency on got white text on a white card,
+     * which is the bug this whole section is about, just gated behind a media
+     * query.
+     */
     .pt-sidebar,
-    .pt-drawer-panel {
-        background-color: rgb(var(--pt-navy-900));
+    .pt-drawer-panel,
+    .pt-topbar,
+    .pt-console-head,
+    .pt-server-card,
+    .pt-sidebar-foot {
+        background-color: rgb(var(--pt-chrome));
+        background-image: none;
     }
 
-    .pt-topbar {
-        background-color: rgb(var(--pt-navy-900));
-    }
-
-    .pt-auth-card,
-    .pt-server-card {
+    /* The auth card is a light surface, so it keeps the light fallback. */
+    .pt-auth-card {
         background-color: rgb(var(--pt-gray-700));
     }
 
-    .pt-console-head {
-        background-image: var(--pt-frost-hero-solid);
+    .pt-brand {
+        background-color: transparent;
     }
 }
 

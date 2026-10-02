@@ -25,7 +25,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
-import { ServerContext } from '@/state/server';
 import type { ServerEggVariable } from '@/api/server/types';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
@@ -56,6 +55,21 @@ export interface SidebarProps {
     mode: 'dashboard' | 'server';
     /** Which frame to render around the navigation. Defaults to the drawer. */
     variant?: SidebarVariant;
+    /**
+     * The server's identity, for the rail's header. Props and NOT a
+     * ServerContext read, which is a correction rather than a style choice.
+     *
+     * AppShell renders this component for the mobile drawer on EVERY page, and
+     * `ServerContext.Provider` is mounted only around `/server/:id` - the
+     * dashboard route has no provider at all. So a hook here runs with no store
+     * on `/` and `/account`, easy-peasy throws, and the panel's ErrorBoundary
+     * puts "An error was encountered by the application while rendering this
+     * view" in place of the dashboard. All three of these are optional because
+     * on the non-server pages they are genuinely absent, not defaulted.
+     */
+    serverName?: string | null;
+    serverIdentifier?: string | null;
+    serverStatus?: string | null;
     serverId?: number | string | null;
     /**
      * Only set in server mode. Used to decide which jar flavours this server can
@@ -157,6 +171,9 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
 export default ({
     mode,
     variant = 'drawer',
+    serverName,
+    serverIdentifier,
+    serverStatus,
     serverId,
     serverUuid,
     serverVariables,
@@ -167,17 +184,6 @@ export default ({
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
-
-    // The rail's own header: which server this column is about, and whether it is
-    // up. Read through ServerContext rather than passed in, so it follows the same
-    // store every other part of a server page reads and cannot disagree with the
-    // status bar at the top of the page. Safe from here: App.tsx mounts the
-    // provider ABOVE ServerRouter, so AppShell - and this component - are inside
-    // it. The dashboard mode never renders a rail, and it is the only mode whose
-    // shell sits outside a server context.
-    const serverName = ServerContext.useStoreState((state) => state.server.data?.name);
-    const serverIdentifier = ServerContext.useStoreState((state) => state.server.data?.identifier);
-    const serverStatus = ServerContext.useStoreState((state) => state.status.value);
 
     // Which jar flavours this server can take. The panel does not expose the egg
     // name, so this is an egg fingerprint (free, from the variables that are

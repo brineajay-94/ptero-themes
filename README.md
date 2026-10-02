@@ -226,6 +226,22 @@ components. The **navigation** must stay one list; only the frame around it
 changes. Two components is how the rail and the drawer drift into offering
 different destinations.
 
+The rail's server identity arrives as **props**, and that is load-bearing rather
+than stylistic. `AppShell` renders `Sidebar` for the mobile drawer on *every*
+page, while `App.tsx` mounts `ServerContext.Provider` only around `/server/:id` —
+so a `ServerContext` hook in `Sidebar` throws on `/` and `/account`, and the
+panel's `ErrorBoundary` replaces the whole dashboard with **“An error was
+encountered by the application while rendering this view. Try refreshing the
+page.”** That is a *client-side* React render error, so it never reaches
+`storage/logs` — a log check finds nothing at all, which is exactly what makes it
+expensive. `ServerRouter` reads the values and passes them down; it is the only
+place guaranteed to be inside the context.
+
+Worth knowing before adding a component that reads server state: the same trap
+waits for anything `AppShell` renders. Grep for
+`ServerContext.useStoreState|useStoreActions` and confirm each hit is only
+reachable from `ServerRouter`.
+
 **The status panel at the top of the console**, matching the reference top to
 bottom: the address card with a **Connect** button, a full-width status bar (red
 offline, green running, amber in between), a large green **Start**, and the

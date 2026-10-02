@@ -3,7 +3,7 @@ import ContentContainer from '@/components/elements/ContentContainer';
 import { CSSTransition } from 'react-transition-group';
 import tw from 'twin.macro';
 import FlashMessageRender from '@/components/FlashMessageRender';
-import { brandName } from '@/lib/brand';
+import { brandName, themeCredit } from '@/lib/brand';
 
 export interface PageContentBlockProps {
     title?: string;
@@ -31,14 +31,20 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                      * brandName() like everywhere else in the theme - it used to
                      * be a hardcoded "brinecloud", which meant a renamed panel
                      * still credited the wrong company.
+                     *
+                     * The design credit comes from themeCredit(), which the rail
+                     * also uses: it used to be written out here a second time with
+                     * its own hardcoded name and its own hardcoded link, so the two
+                     * credits on the same screen could name different people or
+                     * point at different places.
                      */}
                     <p className={'pt-footer'}>
                         Powered by <strong>{brandName()}</strong> &copy; {new Date().getFullYear()}
                     </p>
                     <p className={'pt-footer-credit'}>
                         Design copyright{' '}
-                        <a href={'https://ajaykafle.com.np'} target={'_blank'} rel={'noopener noreferrer'}>
-                            brineajay
+                        <a href={themeCredit().url} target={'_blank'} rel={'noopener noreferrer'}>
+                            {themeCredit().name}
                         </a>
                     </p>
                 </ContentContainer>

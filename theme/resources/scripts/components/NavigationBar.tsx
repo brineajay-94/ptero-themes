@@ -49,14 +49,30 @@ const TopNavItem = ({
  * to: the brand lockup, the two destinations there were entries for, the admin
  * shortcut for a root admin, and sign-out.
  *
+ * Sign-out is an icon-over-label item IN THE ROW, not a button tucked under the
+ * username. That is the reference's arrangement and it is the better one: the
+ * bar's tail is now a single row of peer controls, so sign-out sits among its
+ * equals instead of being a small caption under a name. The username is gone
+ * from here entirely - the avatar identifies the session, and the name is still
+ * in the drawer footer and on the account page, so nothing is actually lost by
+ * removing a second copy from a bar that is already carrying four labels.
+ *
+ * The avatar is a LINK to the account page. The reference draws a chevron beside
+ * it, which implies a menu; there is no menu here, so the chevron is not drawn
+ * either. A chevron that opens nothing is worse than no chevron - it advertises
+ * a control that does not exist - and making the avatar itself the link gives it
+ * the same target the chevron was promising.
+ *
  * The burger and the drawer are untouched. A phone has no room for four items in
  * a topbar, so the drawer is still how narrow screens reach the full navigation.
  * Removing the sidebar did not mean removing mobile navigation.
  *
  * `title`/`subtitle` moved next to the brand as a quiet line rather than sitting
- * alone in the bar. The reference has no page title at all, but on a server page
- * the name is the only thing telling you which server you are in, so dropping it
- * would lose information the old topbar carried.
+ * alone in the bar. The reference has no page title at all, but on the dashboard
+ * and the account pages the title is the only thing naming them, so dropping it
+ * there would lose information. It IS dropped on a server page - see AppShell's
+ * `has-rail` rule - because the server header card names the server at heading
+ * size and a second copy in the bar would be saying it twice within 200px.
  *
  * No quick links here. The bar used to carry a centred cluster of the admin's
  * Home / Discord / Status pills, which needed the grid to stay `1fr auto 1fr` with
@@ -72,7 +88,6 @@ const TopNavItem = ({
  * they can be switched back on without re-entering anything.
  */
 export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
-    const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
 
     return (
@@ -104,24 +119,17 @@ export default ({ title, subtitle, onMenu, onLogout }: NavigationBarProps) => {
                     </a>
                 )}
 
-                {/* Username with sign-out beneath it, as the reference stacks
-                    them. A button, not a link: the panel's logout is a POST.
-                    `pt-topbar-account` wraps both so the pair shrinks and drops
-                    the username together rather than the sign-out button losing its
-                    own width, which is what used to hide it. */}
-                <div className={'pt-topbar-account'}>
-                    <div className={'pt-topbar-user'}>
-                        {username && <span className={'pt-topbar-username'}>{username}</span>}
-                        <button type={'button'} className={'pt-logout-btn'} onClick={onLogout}>
-                            <FontAwesomeIcon icon={faSignOutAlt} />
-                            <span>Logout</span>
-                        </button>
-                    </div>
+                {/* A button, not a link: the panel's logout is a POST, and a link
+                    to it would be a GET. Styled as a `.pt-topnav-item` so it is a
+                    peer of the three above rather than a caption under one. */}
+                <button type={'button'} className={'pt-topnav-item'} onClick={onLogout}>
+                    <FontAwesomeIcon icon={faSignOutAlt} className={'pt-topnav-icon'} />
+                    <span className={'pt-topnav-label'}>Logout</span>
+                </button>
 
-                    <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
-                        <Avatar.User />
-                    </span>
-                </div>
+                <Link to={'/account'} className={'pt-avatar-btn'} aria-label={'Account settings'}>
+                    <Avatar.User />
+                </Link>
             </div>
         </header>
     );

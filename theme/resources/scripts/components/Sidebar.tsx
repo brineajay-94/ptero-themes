@@ -5,6 +5,8 @@ import {
     IconDefinition,
     faArchive,
     faCalendarAlt,
+    faChevronRight,
+    faCloud,
     faCog,
     faDatabase,
     faFolder,
@@ -14,6 +16,7 @@ import {
     faNetworkWired,
     faPuzzlePiece,
     faCubes,
+    faServer,
     faSignOutAlt,
     faSlidersH,
     faTerminal,
@@ -29,7 +32,7 @@ import type { ServerEggVariable } from '@/api/server/types';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
 import routes from '@/routers/routes';
-import { brandName, logoUrl, accountAccess } from '@/lib/brand';
+import { brandName, logoUrl, accountAccess, themeCredit } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
 import { normalizeAccountPath, THEME_ACCOUNT_ROUTES } from '@/lib/accountRoutes';
 import { candidateJarKinds } from '@/lib/serverFamily';
@@ -40,9 +43,10 @@ import { hasJarDirectory, type JarKind } from '@/api/server/jars';
  *
  * `drawer` is the mobile one: brand block on top, account/admin navigation for
  * the dashboard, and the avatar + sign-out footer. `rail` is the fixed desktop
- * column on a server page, which the reference shapes differently - it has NO
- * top block at all and NO footer, because the topbar directly above it already
- * carries the logo, the server's name, the avatar and the sign-out.
+ * column on a server page, which is shaped differently - a card naming the server
+ * at the top, no brand block (the topbar directly above carries the logo) and no
+ * avatar footer (the topbar carries the avatar and sign-out there too). What the
+ * rail does carry at the bottom is the credit line, which has nowhere else to go.
  *
  * Two variants rather than two components on purpose: the NAVIGATION is one
  * list and must stay one list, or the rail and the drawer drift into offering
@@ -54,6 +58,21 @@ export interface SidebarProps {
     mode: 'dashboard' | 'server';
     /** Which frame to render around the navigation. Defaults to the drawer. */
     variant?: SidebarVariant;
+    /**
+     * Only set in server mode, and only read in the RAIL variant - for the card
+     * that names the current server.
+     *
+     * Props rather than ServerContext hooks, and that is a correction rather than
+     * a style choice: AppShell renders this component for the mobile drawer on
+     * every page, while App.tsx mounts `ServerContext.Provider` only around
+     * /server/:id. A hook here throws on / and /account, and the panel's
+     * ErrorBoundary replaces the whole dashboard with "An error was encountered by
+     * the application while rendering this view". ServerRouter reads these and
+     * passes them down; it is the only place guaranteed to be inside the context.
+     */
+    serverName?: string;
+    /** The panel's power state string - 'running', 'offline', 'starting', ... */
+    serverStatus?: string | null;
     serverId?: number | string | null;
     /**
      * Only set in server mode. Used to decide which jar flavours this server can
@@ -94,6 +113,33 @@ const ACCOUNT_ICONS: Record<string, IconDefinition> = {
 };
 
 const Section: React.FC<{ label: string }> = ({ label }) => <div className={'pt-nav-section'}>{label}</div>;
+
+/**
+ * The rail's word for the panel's power states.
+ *
+ * The panel sends 'running' and 'offline' and, while a transition is in flight,
+ * 'starting' or 'stopping'. Those are state names, not sentences - "running" in a
+ * card reads like a label on a switch, not like the state of a server - so the
+ * two settled states are renamed and the two transitional ones are left as
+ * themselves, because "Starting" is exactly what is happening.
+ *
+ * Anything unrecognised, including the null the store holds until the socket's
+ * first push, renders as Offline rather than as a blank card.
+ */
+const railStatusLabel = (status?: string | null): string => {
+    if (status === 'running') return 'Online';
+    if (status === 'starting') return 'Starting';
+    if (status === 'stopping') return 'Stopping';
+
+    return 'Offline';
+};
+
+const railStatusKind = (status?: string | null): string => {
+    if (status === 'running') return 'online';
+    if (status === 'starting' || status === 'stopping') return 'busy';
+
+    return 'offline';
+};
 
 const Item: React.FC<{
     to: string;
@@ -155,6 +201,8 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
 export default ({
     mode,
     variant = 'drawer',
+    serverName,
+    serverStatus,
     serverId,
     serverUuid,
     serverVariables,
@@ -212,28 +260,9 @@ export default ({
     return (
         <>
             {/*
-             * No rail header. There was a block here carrying the server's name,
-             * its short identifier and a power dot, and it was removed: the topbar
-             * directly above already names the server (page title plus the name
-             * beneath it), and the status band at the top of the content already
-             * carries the state. Two more copies of the same two facts, in the
-             * one place the eye lands first, was not carrying its weight.
-             *
-             * Removing it also removes the reason this component ever needed the
-             * server's identity passed to it - which had to be a PROP rather than
-             * a ServerContext hook, because AppShell renders Sidebar for the
-             * mobile drawer on every page and App.tsx mounts that provider only
-             * around /server/:id. A hook here threw on / and /account and the
-             * panel's ErrorBoundary replaced the whole dashboard with "An error
-             * was encountered by the application while rendering this view".
-             * Nothing in here reads the server store now, so that trap is gone
-             * rather than documented.
-             *
-             * And with the header gone the rail has NO top block at all - which is
-             * why the brand below is drawer-only. The topbar directly above the
-             * rail already carries the logo; putting it here as well would print
-             * it twice, stacked, one scroll-position apart. The rail goes
-             * straight into its navigation, flush with the topbar above it.
+             * The brand block, drawer only. The rail's topbar directly above
+             * already carries the logo, so printing it here as well would stack
+             * the same mark twice a scroll-position apart.
              */}
             {variant === 'drawer' && (
                 <Link to={'/'} className={'pt-brand'} onClick={onNavigate}>
@@ -245,6 +274,33 @@ export default ({
                         <span className={'pt-brand-sub'}>Panel</span>
                     </span>
                 </Link>
+            )}
+
+            {/* The rail's server card: which server this column belongs to. A wide
+                column of ten links with nothing naming the server is the failure
+                mode when a user has several open - the tab title is the only other
+                thing naming it.
+
+                The chevron is decorative and the whole card is not a link: on every
+                server page the rail already has a Dashboard entry one row below
+                pointing at the same place, and a second control to the same
+                destination is the kind of thing that gets clicked, does nothing
+                visible, and reads as broken. `aria-hidden` keeps it out of the
+                accessibility tree for the same reason. */}
+            {variant === 'rail' && (
+                <div className={'pt-rail-idcard'}>
+                    <span className={'pt-rail-idicon'} aria-hidden={'true'}>
+                        <FontAwesomeIcon icon={faServer} />
+                    </span>
+                    <span className={'pt-rail-idtext'}>
+                        <span className={'pt-rail-idname truncate'}>{serverName || 'Server'}</span>
+                        <span className={`pt-rail-idstate is-${railStatusKind(serverStatus)}`}>
+                            <span className={'pt-rail-iddot'} aria-hidden={'true'} />
+                            {railStatusLabel(serverStatus)}
+                        </span>
+                    </span>
+                    <FontAwesomeIcon icon={faChevronRight} className={'pt-rail-idchevron'} aria-hidden={'true'} />
+                </div>
             )}
 
             <nav className={'pt-nav'}>
@@ -339,10 +395,12 @@ export default ({
                 )}
             </nav>
 
-            {/* The rail has no footer: the topbar directly above it already
-                carries the avatar and sign-out, and the reference shows them
-                there rather than twice. */}
-            {variant === 'drawer' && (
+            {/* The rail has no avatar footer: the topbar directly above it already carries
+                the avatar and sign-out, and the reference shows them there rather
+                than twice. The credit line is what the rail does carry at the
+                bottom - it is attribution, not a control, and it belongs on the
+                frame rather than in the navigation. */}
+            {variant === 'drawer' ? (
                 <div className={'pt-sidebar-foot'}>
                     <div className={'flex items-center gap-3'}>
                         <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
@@ -366,6 +424,28 @@ export default ({
                             </button>
                         )}
                     </div>
+                </div>
+            ) : (
+                <div className={'pt-rail-foot'}>
+                    <span className={'pt-rail-footicon'} aria-hidden={'true'}>
+                        <FontAwesomeIcon icon={faCloud} />
+                    </span>
+                    <span className={'min-w-0'}>
+                        <span className={'pt-rail-footline truncate'}>Powered by {brandName()}</span>
+                        {/* Attribution, so it is a link out rather than dead text -
+                            a reader who wants to know who built this should be able
+                            to say so in one click. Both the name and the link come
+                            from themeCredit(), the same source the page footer
+                            reads, so the two credits cannot name different people. */}
+                        <a
+                            className={'pt-rail-footline is-dim truncate'}
+                            href={themeCredit().url}
+                            target={'_blank'}
+                            rel={'noopener noreferrer'}
+                        >
+                            Design by {themeCredit().name}
+                        </a>
+                    </span>
                 </div>
             )}
         </>

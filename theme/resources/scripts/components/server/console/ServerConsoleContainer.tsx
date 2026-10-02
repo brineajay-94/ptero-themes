@@ -13,19 +13,22 @@ import { Alert } from '@/components/elements/alert';
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
 /**
- * The console.
+ * The console page.
  *
- * The status panel above it carries the power controls and the state band; this
- * is the terminal and the panel's own resource/uptime column beside it.
+ * The header above it (ServerStatusPanel) carries the server's name as the page's
+ * heading, the state, and the power controls; the console card carries its own
+ * title and the server's name as a badge; and ServerDetailsBlock carries the
+ * numbers beside the terminal. So there is no name block here any more - there
+ * were three of them once this file printed an eyebrow, an <h1> and a
+ * description, and with the header card in place a fourth would have been one
+ * too many.
  *
- * The address used to sit here as a labelled row above the terminal, with a Copy
- * button. It is gone at the requester's instruction - it was the third place the
- * same fact appeared (the dashboard card, the panel's own sub-navigation, and
- * here), and ServerDetailsBlock beside the terminal already carries everything
- * else worth knowing about this server.
+ * The description stays, though, and deliberately: the name is a fact and the
+ * description is the only prose anywhere on the page. It renders under the
+ * header rather than inside the console card, because a server's description is
+ * about the server, not about its console.
  */
 const ServerConsoleContainer = () => {
-    const name = ServerContext.useStoreState((state) => state.server.data!.name);
     const description = ServerContext.useStoreState((state) => state.server.data!.description);
     const isInstalling = ServerContext.useStoreState((state) => state.server.isInstalling);
     const isTransferring = ServerContext.useStoreState((state) => state.server.data!.isTransferring);
@@ -46,20 +49,28 @@ const ServerConsoleContainer = () => {
 
             <ServerStatusPanel />
 
-            <div className={'pt-console-sub'}>
-                <p className={'pt-hero-eyebrow'}>Server console</p>
-                <h1>{name}</h1>
-                {description && <p className={'pt-console-desc'}>{description}</p>}
-            </div>
+            {description && <p className={'pt-console-desc'}>{description}</p>}
 
-            <div className={'grid grid-cols-4 gap-2 sm:gap-4 mb-4'}>
-                <div className={'flex col-span-4 lg:col-span-3'}>
+            {/*
+             * The console and the statistics column, 3:1 from lg and stacked below.
+             *
+             * `minmax(0, 3fr)` rather than `col-span-3`: a grid track sized in
+             * fractions will not shrink below its content's min-content width, and
+             * the terminal's own markup (an absolutely positioned xterm viewport
+             * inside a `width: 100%` wrapper) has a min-content width that is much
+             * larger than it looks. That is what pushes the details column off the
+             * right edge of a narrow window - the `minmax(0, …)` is what lets the
+             * track actually shrink.
+             */}
+            <div className={'pt-console-grid'}>
+                <div className={'pt-console-main'}>
                     <Spinner.Suspense>
                         <Console />
                     </Spinner.Suspense>
                 </div>
-                <ServerDetailsBlock className={'col-span-4 lg:col-span-1 order-last lg:order-none'} />
+                <ServerDetailsBlock className={'pt-console-side order-last lg:order-none'} />
             </div>
+
             <div className={'grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4'}>
                 <Spinner.Suspense>
                     <StatGraphs />

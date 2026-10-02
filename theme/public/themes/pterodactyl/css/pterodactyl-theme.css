@@ -58,13 +58,19 @@
 
 /* ---------------------------------------------------------------- tokens -- */
 /*
- * The default palette is monochrome black (the `amber` variant is the only
- * alternative; there is no separate "default" slug any more - `:root` *is* the
- * default, so a panel with nothing stored renders these tokens).
+ * The default palette is LIGHT: a near-white page, white cards, dark ink. The
+ * `amber` variant is the only alternative; there is no separate "default" slug
+ * any more - `:root` *is* the default, so a panel with nothing stored renders
+ * these tokens.
  *
- *   page #0b0b0d ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· surface #141417 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· raised #060608 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· border #1c1c20
- *   text #f5f5f7 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· muted #94949c ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· accent #c8ccd0 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· glow #5c6064
- *   success #22c55e ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· danger #ef4444 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· warning #f59e0b
+ *   page    #f2f4f6   card   #ffffff   ink     #10131a   muted #696f7b
+ *   success #22c55e   danger #ef4444   warning #f59e0b
+ *
+ * (These three lines used to describe a monochrome-BLACK palette - page #0b0b0d,
+ * surface #141417, text #f5f5f7 - separated by box-drawing characters that had
+ * been double-encoded into mojibake and were unreadable in any editor. Both
+ * problems are gone: the palette they described is not the default one, and the
+ * art is not worth carrying through a decode to preserve.)
  */
 :root {
     --pt-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -557,8 +563,6 @@
 .pt-topbar-actions > button:focus,
 .pt-crumb:focus,
 .pt-server-card:focus,
-.pt-drawer-close:focus,
-.pt-console-actions button:focus,
 
 .pt-burger:focus-visible,
 .pt-nav-item:focus-visible,
@@ -568,8 +572,6 @@
 .pt-topbar-actions > button:focus-visible,
 .pt-crumb:focus-visible,
 .pt-server-card:focus-visible,
-.pt-drawer-close:focus-visible,
-.pt-console-actions button:focus-visible,
 
 /* --------------------------------------------------------- semantic colour scales -- */
 /*
@@ -816,12 +818,15 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 2px 0.5rem;
+    margin: 2px 0.75rem;
     padding: 0.58rem 0.75rem;
     border-radius: 0;
     font-size: 0.875rem;
     font-weight: 500;
-    color: rgb(var(--pt-navy-100));
+    /* Muted, not white. The rail is a dark surface and every label at full white
+     * is a row of glare; the reference keeps the resting state quiet and lets the
+     * filled active row be the only bright thing in the column. */
+    color: rgb(var(--pt-chrome-muted));
     text-decoration: none;
     transition: background-color var(--pt-dur-base) ease, color var(--pt-dur-base) ease;
 }
@@ -843,27 +848,32 @@
 }
 
 .pt-nav-item:hover > .pt-nav-ico,
-.pt-nav-item.active > .pt-nav-ico {
+.pt-nav-item:focus-visible > .pt-nav-ico {
     opacity: 1;
-    color: rgb(var(--pt-gold-300));
+    color: #ffffff;
 }
 
+/* The active row is a FILLED pill in the reference, not a wash with an accent
+ * bar down its left edge.
+ *
+ * Two reasons it is a fill rather than a bar. A 3px bar at the margin edge reads
+ * as belonging to the rail's own border rather than to the row, and because the
+ * row is `margin: 2px 0.75rem` the bar had to be positioned at a negative offset
+ * to sit outside it - geometry that only lined up at one width. A fill needs
+ * none of that, and it is the shape the reference actually uses, so the active
+ * page is unmistakable at a glance from across the room.
+ *
+ * `--pt-navy-300` is the accent step that clears 4.5:1 against white (4.57:1), so
+ * the label stays readable on the fill rather than being the thing that breaks. */
 .pt-nav-item.active {
-    background-color: rgb(255 255 255 / 0.1);
+    background-color: rgb(var(--pt-navy-300));
     color: #ffffff;
     font-weight: 600;
 }
 
-.pt-nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: -0.5rem;
-    width: 3px;
-    height: 62%;
-    border-radius: 0;
-    background-color: rgb(var(--pt-gold-300));
-    transform: translateY(-50%);
+.pt-nav-item.active > .pt-nav-ico {
+    opacity: 1;
+    color: #ffffff;
 }
 
 .pt-nav-item .pt-nav-badge {
@@ -872,6 +882,140 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     color: rgb(var(--pt-navy-300));
+}
+
+/* A badge sitting on the filled active row has to leave the white behind. */
+.pt-nav-item.active .pt-nav-badge {
+    color: #ffffff;
+}
+
+/* ------------------------------------------------------- rail: server card --
+ * The card at the top of the rail naming the server this column belongs to.
+ *
+ * A fill lighter than the rail rather than a border or a bar, because the rail is
+ * a single dark surface and a bordered block reads as an input. `--pt-chrome-deep`
+ * is the pressed step of the chrome ramp, which is darker; this is a wash of white
+ * over the chrome instead, which moves the card FORWARD the way a raised tile
+ * should.
+ *
+ * The dot reuses the status band's own colour vocabulary - green running, amber
+ * transitional, red offline - rather than inventing a third set of state colours,
+ * so the dot in the rail and the band at the top of the page can never disagree
+ * about what colour "online" is. */
+.pt-rail-idcard {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex: none;
+    margin: 0.85rem 0.75rem 0.35rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(255 255 255 / 0.07);
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-rail-idicon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome-deep));
+    font-size: 1rem;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-rail-idtext {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pt-rail-idname {
+    font-family: var(--pt-font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.pt-rail-idstate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+.pt-rail-iddot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background-color: rgb(var(--pt-red-500));
+}
+
+.pt-rail-idstate.is-online .pt-rail-iddot {
+    background-color: rgb(var(--pt-green-500));
+}
+
+.pt-rail-idstate.is-busy .pt-rail-iddot {
+    background-color: rgb(var(--pt-yellow-500));
+}
+
+.pt-rail-idchevron {
+    flex: none;
+    font-size: 0.7rem;
+    opacity: 0.45;
+}
+
+/* The credit at the bottom of the rail. `margin-top: auto` is what pins it: the
+ * navigation above it is `flex: 1 1 auto`, so the credit sits on the bottom edge
+ * of the column rather than directly under the last nav row. */
+.pt-rail-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex: none;
+    margin-top: auto;
+    padding: 0.9rem 1.1rem;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    font-size: 0.68rem;
+    line-height: 1.35;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+.pt-rail-footicon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    font-size: 0.72rem;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-rail-footline {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.pt-rail-footline.is-dim {
+    color: rgb(var(--pt-chrome-faint));
+}
+
+a.pt-rail-footline:hover,
+a.pt-rail-footline:focus-visible {
+    color: #ffffff;
+    text-decoration: underline;
+    outline: none;
 }
 
 .pt-sidebar-foot {
@@ -1061,72 +1205,6 @@
  *
  * Previously these were separate flex children of the tail, so the shortfall was
  * shared between them and the sign-out button ended up underneath the avatar. */
-.pt-topbar-account {
-    display: flex;
-    align-items: center;
-    /* The gap between the sign-out button and the avatar.
-     *
-     * It was 0.5rem, which read as a collision rather than a gap: the button's
-     * label sits directly under a 2.5rem round portrait, and at 8px the "t" of
-     * "Logout" looked attached to the avatar's edge. 0.8rem is enough to separate
-     * them without the group starting to look like two unrelated controls. */
-    gap: 0.8rem;
-    flex: none;
-    margin-left: 0.15rem;
-}
-
-/* Username with sign-out beneath it, as the reference stacks them. */
-.pt-topbar-user {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.1rem;
-    line-height: 1.2;
-}
-
-/* Under this the bar cannot hold Servers / Account / Admin, a username and a
- * button. The navigation is the only thing the drawer cannot reach, so the
- * username is what goes - the sign-out button stays, because it is the one control
- * here with no equivalent anywhere else on a phone. */
-@media (max-width: 900px) {
-    .pt-topbar-username {
-        display: none;
-    }
-}
-
-.pt-topbar-username {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: rgb(var(--pt-chrome-ink));
-    /* The username truncates, and this is the fix for the avatar sitting ON TOP of
-     * the sign-out label rather than beside it.
-     *
-     * The account group is `flex: none`, so it is measured at min-content - and
-     * min-content for a `white-space: nowrap` string is the whole string. A long
-     * username ("silentbrineexe") therefore made the group wider than the space
-     * the topbar had, and since the avatar cannot shrink, the overflow was taken
-     * out of the spacing between them: the "Logout" label ended up underneath the
-     * round portrait, with the portrait's 2.5rem box drawn over the text.
-     *
-     * Capping the width and giving the name its own ellipsis means the name gives
-     * ground instead. The sign-out button and the avatar - the two things that
-     * have to stay legible and visible - keep their full size, and a long name
-     * costs a few characters rather than costing the control. Same trade the
-     * page title already makes, which is why `.pt-topbar-where strong` carries
-     * the same three properties.
-     *
-     * KEPT even though the reported case turned out to be a five-character name
-     * ("admin"), which made this look unnecessary. It is a bound, and an
-     * unbounded `nowrap` string in a `flex: none` group is exactly how the
-     * sign-out button lost its width in the first place - the same class of bug
-     * with the opposite sign, so it belongs here whether or not this particular
-     * report needed it. 11rem is wide enough that no realistic name truncates. */
-    max-width: 11rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .pt-topbar .pt-logout-btn {
     display: inline-flex;
     align-items: center;
@@ -1203,10 +1281,7 @@
         display: none;
     }
 
-    .pt-topbar-account {
-        margin-left: 0;
     }
-}
 
 /* The avatar at the far right, as the reference's round account portrait.
  *
@@ -1447,7 +1522,6 @@
     .pt-avatar-btn,
     .pt-logout-btn,
     .pt-server-card,
-    .pt-console-head,
     .pt-crumb,
     .pt-auth button[type='submit'],
     .pt-auth input,
@@ -2525,37 +2599,54 @@
  * A dark card on the light page. `display: flex` rather than the row's grid
  * because there is no icon tile and no stat column any more - just the accent
  * bar, the body, and the power button. */
+/* ------------------------------------------------------------ server card --
+ * A LIGHT card, like every other card on a server page.
+ *
+ * These were the "second dark chrome island" - slate cards floating on the
+ * near-white page, deliberately darker than the page they sat on. That was the
+ * right idea when the topbar and the rail were the only dark things around and
+ * the card was the one place a server's identity got a surface of its own.
+ *
+ * It stops being right the moment the page's own content is light. A slate card
+ * grid on the dashboard above a light console page is two themes in one panel,
+ * and the thing that tips it over is that the dashboard and the server pages are
+ * one click apart: the same list you browse is the list you arrive from. So the
+ * dashboard's cards join the console's cards, and the dark chrome is left doing
+ * the one job it is good at - being the frame.
+ */
 .pt-server-card {
     position: relative;
     display: flex;
     align-items: stretch;
     gap: 0.9rem;
     padding: 0.9rem 1rem 0.9rem 1.1rem;
-    border: 1px solid rgb(var(--pt-chrome-deep));
+    border: 1px solid rgb(var(--pt-gray-600));
     border-radius: var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-chrome));
-    color: rgb(var(--pt-chrome-ink));
+    background-color: rgb(var(--pt-gray-700));
+    color: rgb(var(--pt-gray-100));
     text-decoration: none;
     overflow: hidden;
-    transition: box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease;
 }
 
-/* The pink left edge. Always pink, not power-coloured: the reference's bar is a
- * brand edge on every card, and tying it to power would make a stopped server
- * look like an error. */
+/* The left edge, in the accent rather than the old brand pink.
+ *
+ * It is still always the same colour rather than power-coloured: tying it to
+ * power would make a stopped server look like an error, and the card's power
+ * button already carries the state unambiguously. */
 .pt-server-accent {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     width: 4px;
-    background-color: rgb(var(--pt-accent-pink));
+    background-color: rgb(var(--pt-blue-500));
 }
 
 .pt-server-card:hover,
 .pt-server-card:focus-visible {
-    box-shadow: var(--pt-shadow-lg);
-    transform: translateY(-2px);
+    border-color: rgb(var(--pt-blue-400) / 0.7);
+    box-shadow: var(--pt-shadow-md);
     outline: none;
 }
 
@@ -2566,7 +2657,6 @@
 
 .pt-server-card.is-empty:hover {
     box-shadow: none;
-    transform: none;
 }
 
 .pt-server-body {
@@ -2582,14 +2672,14 @@
     font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.25;
-    color: rgb(var(--pt-chrome-ink));
+    color: rgb(var(--pt-gray-100));
     word-break: break-word;
 }
 
 .pt-server-uuid {
     font-size: 0.7rem;
     line-height: 1.3;
-    color: rgb(var(--pt-chrome-muted));
+    color: rgb(var(--pt-gray-500));
     /* A uuid is 36 characters and the card is half a wide grid column. Truncating
      * the middle keeps the identifying ends readable. */
     overflow: hidden;
@@ -2604,43 +2694,45 @@
     margin-top: 0.3rem;
     font-size: 0.78rem;
     line-height: 1.4;
-    color: rgb(var(--pt-chrome-ink));
+    color: rgb(var(--pt-gray-400));
 }
 
-/* The round power button on the card's right edge. Pink to stop, blue to start,
- * matching the reference; both carry a white glyph at 4.75:1. */
+/* The round power button on the card's right edge: red to stop, blue to start,
+ * matching the console page's own Start and Stop. Both carry a white glyph, and
+ * the disabled state is a flat grey rather than a faded colour - a faded red
+ * still reads as "stop" to someone who cannot see that it is disabled. */
 .pt-server-power {
     display: grid;
     place-items: center;
     flex: none;
     align-self: center;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.6rem;
+    height: 2.6rem;
     border: 0;
     border-radius: 999px;
-    background-color: rgb(var(--pt-accent-pink));
+    background-color: rgb(var(--pt-red-500));
     color: rgb(var(--pt-white));
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: background-color var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
 }
 
 .pt-server-card[data-power='stopped'] .pt-server-power {
-    background-color: rgb(var(--pt-blue-500));
+    background-color: rgb(var(--pt-green-500));
 }
 
 .pt-server-power:hover:not(:disabled) {
-    background-color: rgb(var(--pt-accent-pink-deep));
+    background-color: rgb(var(--pt-red-600));
     transform: scale(1.06);
 }
 
 .pt-server-card[data-power='stopped'] .pt-server-power:hover:not(:disabled) {
-    background-color: rgb(var(--pt-blue-400));
+    background-color: rgb(var(--pt-green-600));
 }
 
 .pt-server-power:disabled {
-    background-color: rgb(var(--pt-chrome-faint) / 0.35);
-    color: rgb(var(--pt-chrome-muted));
+    background-color: rgb(var(--pt-gray-600));
+    color: rgb(var(--pt-gray-500));
     cursor: not-allowed;
 }
 
@@ -2745,40 +2837,192 @@
 }
 
 /* ------------------------------------------------------ server status panel -- */
-/* The power block at the top of a server page: four buttons, then a status band.
+/* The server page header: identity and meta chips on the left, status band and
+ * power controls on the right.
  *
- * It used to carry an address heading, a Software row and a Version row as well.
- * All three are gone - the address was the third place the same fact appeared, and
- * Software / Version repeated what the console's own Startup page says. That
- * removal is why this section is short: what is left is the one thing the block
- * was ever for, which is whether the server is running and what you can do about
- * it.
+ * TWO COLUMNS, NOT FOUR STACKED BANDS
+ * ----------------------------------
+ * The left column labels ("this is what you are looking at") and the right column
+ * controls ("this is what you can do about it"), and a user scanning the top of a
+ * server page reads them in that order. Stacking identity, status and buttons as
+ * three full-width bands spends three vertical strips saying two things.
  *
- * Both surfaces are the two dark chrome islands the theme already has
- * (--pt-chrome for a card, --pt-chrome-deep for a row set into it), so this reads
- * as the same vocabulary as the topbar and the server cards rather than a fourth
- * treatment. */
+ * It is a LIGHT card on the light page rather than a dark island, unlike the
+ * topbar and the rail beside it. That is the reference's own arrangement - dark
+ * chrome is the frame, light cards are the content - and it is why the dark
+ * islands here belong to the shell and not to the page's own content. */
 .pt-sv {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 0.6rem;
     margin-bottom: 1.25rem;
 }
 
+.pt-sv-head {
+    display: grid;
+    /* The right column is sized by its content and the left takes the slack, so
+     * the power buttons sit in a block of their own width rather than being
+     * stretched across half the page. `minmax(0, 1fr)` on the left is what stops
+     * a long server name from pushing the grid wider than its container. */
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem 1.5rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid rgb(var(--pt-gray-600));
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: var(--pt-shadow-sm);
+}
 
-/* The full-width status bar. This is the one thing on the page that has to be
- * right at a glance, so it is a filled band in the state colour with white text
- * rather than a chip - a chip is what the old console header used, and it was the
- * least noticeable thing on the screen. */
+/* Identity: the server's mark, its name, its state, and the spec line. */
+.pt-sv-ident {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem 0.85rem;
+    min-width: 0;
+}
+
+/* The mark is the one dark square inside a light card, which is what makes it
+ * read as an emblem rather than as another icon. */
+.pt-sv-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-row: span 2;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome));
+    font-size: 1.35rem;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-sv-identtext {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.pt-sv-name {
+    margin: 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: rgb(var(--pt-gray-100));
+}
+
+.pt-sv-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(var(--pt-gray-400));
+}
+
+.pt-sv-statedot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: rgb(var(--pt-red-500));
+}
+
+.pt-sv-state.is-online {
+    color: rgb(var(--pt-green-600));
+}
+
+.pt-sv-state.is-online .pt-sv-statedot {
+    background-color: rgb(var(--pt-green-500));
+}
+
+.pt-sv-state.is-busy {
+    color: rgb(var(--pt-yellow-700));
+}
+
+.pt-sv-state.is-busy .pt-sv-statedot {
+    background-color: rgb(var(--pt-yellow-500));
+}
+
+/* The spec line: software, version, CPU, memory.
+ *
+ * `grid-column: 1 / -1` puts it on its own row under the name, spanning the
+ * mark's column too - the reference does exactly this, and it is what keeps the
+ * chips from being squeezed into the width left over beside the name.
+ *
+ * The chips are separated by hairlines rather than by gaps alone. Four short
+ * labels with gaps between them read as one run-on string; the rules make each
+ * one a cell, which is what they are. */
+.pt-sv-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.85rem;
+    margin: 0.35rem 0 0;
+    padding: 0.55rem 0 0;
+    border-top: 1px solid rgb(var(--pt-gray-600));
+    list-style: none;
+}
+
+.pt-sv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    font-size: 0.8rem;
+    color: rgb(var(--pt-gray-400));
+}
+
+/* Hairline between chips. `:not(:first-child)` rather than a border on every chip
+ * plus a negative margin, so the row has no leading rule hanging off its left
+ * edge when there is only one chip. */
+.pt-sv-meta .pt-sv-chip + .pt-sv-chip {
+    padding-left: 0.85rem;
+    border-left: 1px solid rgb(var(--pt-gray-600));
+}
+
+.pt-sv-chip-icon {
+    flex: none;
+    font-size: 0.85rem;
+    color: rgb(var(--pt-blue-500));
+}
+
+.pt-sv-chip-value {
+    min-width: 0;
+    font-weight: 600;
+}
+
+/* The right column: the status band above the power buttons. */
+.pt-sv-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+
+/* The status band. A filled block in the state colour with white text, and it
+ * stays the loudest thing in the header - it is the one fact that has to be right
+ * at a glance, before anything else on the page has been read.
+ *
+ * Rounded now, which it was explicitly not before. The old reasoning was that a
+ * full-bleed strip with rounded corners reads as a button, and that was true when
+ * this band was the full width of the page. It is not any more: it sits in a
+ * column beside the identity block, the width of its own content, where the
+ * rounded rectangle is a chip - which is what it is. */
 .pt-sv-status {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    padding: 0.7rem 1rem;
-    border-radius: 0;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--pt-glass-radius-sm);
     font-family: var(--pt-font-heading);
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 800;
     color: #ffffff;
 }
@@ -2880,6 +3124,27 @@
     color: rgb(var(--pt-gray-500));
 }
 
+/* Below `lg` the header is one column.
+ *
+ * The identity and the controls are competing for a row that does not exist at
+ * this width: at 1024px minus the rail minus the gutters there is roughly 600px
+ * of content, and the four power buttons alone want 400 of them. Side by side
+ * that forces either the buttons to wrap into a ragged two-by-two or the server
+ * name to truncate at about fifteen characters, and a header that truncates the
+ * server's own name is worse than a header that is tall. Stacked, both are whole.
+ *
+ * The band goes back to full width here so it still reads as a band rather than as
+ * a chip sitting above a row of buttons. */
+@media (max-width: 1023px) {
+    .pt-sv-head {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pt-sv-status {
+        align-self: stretch;
+    }
+}
+
 /* Below `sm` the four buttons stop trying to share a row and become one
  * full-width stack.
  *
@@ -2900,164 +3165,77 @@
         width: 100%;
         padding: 0.85rem 1rem;
     }
-}
 
+    .pt-sv-meta {
+        gap: 0.35rem 0.7rem;
+    }
 
-/* The strip that replaced the old console header, which held the power buttons.
- * Those moved into the status panel above, so all that is left here is the page's
- * own label - and it is deliberately NOT a dark island: the panel above it is one,
- * and two stacked dark bars with a gap read as one broken one. */
-.pt-console-sub {
-    margin-bottom: 0.9rem;
-}
-
-.pt-console-sub h1 {
-    margin: 0.15rem 0 0;
-    font-family: var(--pt-font-heading);
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: rgb(var(--pt-navy-900));
-}
-
-.pt-console-desc {
-    margin: 0.2rem 0 0;
-    font-size: 0.85rem;
-    color: rgb(var(--pt-gray-500));
-}
-
-/* --------------------------------------------------------------- console -- */
-
-/* The console header is the third dark chrome island, like the topbar and the
- * server cards: slate fill with light text. Its gradient used to run between two
- * dark navy steps, which read as a card; on the light ramp the same two tokens
- * are #dfe3e8 and #242c3a, so the gradient would have gone light-to-dark behind a
- * white h1 and made the title unreadable at one end. It is a flat slate now. */
-.pt-console-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    padding: 1.05rem 1.25rem;
-    border-radius: 0;
-    border-bottom: 3px solid rgb(var(--pt-navy-300));
-    background-color: rgb(var(--pt-chrome));
-    color: rgb(var(--pt-chrome-ink));
-    box-shadow: var(--pt-shadow-md);
-    overflow: hidden;
-}
-
-/* The eyebrow above the console title. Not to be confused with the dashboard's
- * old greeting block, which is gone - this one is the server console's own page
- * label and still rendered by ServerConsoleContainer. */
-.pt-hero-eyebrow {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgb(var(--pt-chrome-muted));
-}
-
-/* Status chips. Also still rendered - by ServerConsoleContainer, beside the
- * console description - so these survived the dashboard rebuild even though the
- * dashboard's own chips went away with the resource bars. Tinted rather than
- * filled, and rounded, so they read as labels on the dark console header. */
-.pt-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.15rem 0.55rem;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    line-height: 1.5;
-}
-
-.pt-chip--online {
-    background-color: rgb(var(--pt-green-600) / 0.2);
-    border-color: rgb(var(--pt-green-600) / 0.5);
-    color: rgb(var(--pt-green-500));
-}
-
-.pt-chip--offline {
-    background-color: rgb(var(--pt-red-600) / 0.2);
-    border-color: rgb(var(--pt-red-600) / 0.5);
-    color: rgb(var(--pt-red-500));
-}
-
-.pt-chip--busy {
-    background-color: rgb(var(--pt-yellow-600) / 0.2);
-    border-color: rgb(var(--pt-yellow-600) / 0.5);
-    color: rgb(var(--pt-yellow-500));
-}
-
-.pt-chip--neutral {
-    background-color: rgb(255 255 255 / 0.1);
-    border-color: rgb(255 255 255 / 0.2);
-    color: rgb(var(--pt-chrome-muted));
-}
-
-.pt-console-head h1 {
-    margin-top: 0.3rem;
-    font-family: var(--pt-font-heading);
-    font-size: clamp(1.2rem, 2.6vw, 1.6rem);
-    font-weight: 700;
-    line-height: 1.2;
-    color: #ffffff;
-    word-break: break-word;
-}
-
-.pt-console-desc {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.55rem;
-    max-width: 46rem;
-    font-size: 0.8rem;
-    line-height: 1.55;
-    color: rgb(var(--pt-navy-200));
-}
-
-.pt-console-actions {
-    display: flex;
-    flex: 1 1 auto;
-    justify-content: flex-start;
-}
-
-@media (min-width: 640px) {
-    .pt-console-actions {
-        justify-content: flex-end;
+    /* The hairlines come off at this width. Four chips wrapping across two rows
+     * with vertical rules between them reads as a broken table; the gaps alone
+     * are enough to separate them once they are no longer on one line. */
+    .pt-sv-meta .pt-sv-chip + .pt-sv-chip {
+        padding-left: 0;
+        border-left: 0;
     }
 }
 
-/* Green Start call-to-action (Aternos: #22c55e / hover #16a34a); Stop keeps
-   the danger red and Restart keeps the neutral treatment. */
-.pt-console-actions button.pt-power {
-    background-color: rgb(var(--pt-green-500));
-    border-color: rgb(var(--pt-green-600));
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgb(var(--pt-green-500) / 0.3);
+
+/* ------------------------------------------------------- console page grid --
+ * The console card and the statistics column: three parts to one from `lg`,
+ * stacked below it.
+ *
+ * `minmax(0, 3fr)` rather than the `col-span-3` this used to be. A grid track
+ * sized with a bare `fr` will not shrink below its content's min-content width,
+ * and xterm's markup - an absolutely positioned viewport inside a `width: 100%`
+ * wrapper - has a min-content width considerably wider than it looks. That is
+ * what pushed the details column off the right edge on a narrow window: the track
+ * refused to shrink, so the grid overflowed rather than reflowing.
+ */
+.pt-console-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
-.pt-console-actions button.pt-power:hover:not(:disabled),
-.pt-console-actions button.pt-power:focus-visible {
-    background-color: rgb(var(--pt-green-600));
-    border-color: rgb(var(--pt-green-700));
-    color: #ffffff;
+.pt-console-main {
+    display: flex;
+    min-width: 0;
 }
 
-.pt-console-actions button.pt-power:disabled {
-    opacity: 0.7;
-    background-color: rgb(var(--pt-gold-300));
-    border-color: rgb(var(--pt-gold-400));
-    color: rgb(var(--pt-navy-900) / 0.7);
-    box-shadow: none;
+.pt-console-side {
+    min-width: 0;
 }
+
+@media (min-width: 1024px) {
+    .pt-console-grid {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+/* The server's description, the only prose on the page.
+ *
+ * This class had TWO rules in this file. The second one - `display: flex` with
+ * `color: var(--pt-navy-200)` - was written for the description when it sat
+ * inside the old dark console header, where light ink was correct, and it came
+ * later in the file so it won. Left alone after the header went light, that made
+ * every server description invisible: near-white text on a near-white page. It
+ * is now one rule, on the page's own ink, which is the surface it actually sits
+ * on.
+ *
+ * `margin: 0 0 1rem` rather than a top margin, because it is the last thing
+ * before the console grid and a leading indent would only push the whole page
+ * down by a line for no reason. */
+.pt-console-desc {
+    margin: 0 0 1rem;
+    max-width: 52rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: rgb(var(--pt-gray-400));
+}
+
+/* --------------------------------------------------------------- console -- */
 
 /* -------------------------------------------------------- file manager -- */
 
@@ -3146,7 +3324,7 @@
  * genuinely blurred):
  *     .pt-sidebar  .pt-topbar  .pt-drawer-panel
  * What only *looks* frosted (tint + hairline + top highlight, no blur):
- *     .pt-server-card  .pt-console-head  and the small controls
+ *     .pt-server-card  and the small controls
  *
  * The auth screens are deliberately absent from both lists. Their form sits
  * directly on a dark page now, so there is nothing behind a panel for a blur to
@@ -3165,11 +3343,25 @@
  * users get opaque surfaces (see the media queries at the end of this file).
  */
 
+/* The topbar's page title, dropped on a server page.
+ *
+ * On the dashboard and the account pages this is the only thing naming the page,
+ * so it stays. On a server page the header card below prints the server's name at
+ * heading size, and a bar-level copy of the same name 200px above it is the same
+ * redundancy this theme has been removing piece by piece - the rail card, the
+ * console sub-header and the eyebrow all went for exactly this reason.
+ *
+ * CSS rather than a prop so AppShell does not have to know that one of its two
+ * routes wants a title and the other does not; `has-rail` is already the single
+ * thing that distinguishes them. */
+.pt-shell.has-rail .pt-topbar-where {
+    display: none;
+}
+
 /* ---------------------------------------------------------- radii opt-in -- */
 /* Restate the radius at class specificity so it beats the `*` reset above. */
 .pt-sidebar,
 .pt-drawer-panel,
-.pt-console-head,
 .pt-server-card,
 .pt-nav-item,
 .pt-burger,
@@ -3193,10 +3385,6 @@
  * this file is `border-radius: 0 !important`, so the bar goes square without a
  * rule of its own. */
 
-.pt-console-head {
-    border-radius: var(--pt-glass-radius-lg) !important;
-}
-
 .pt-nav-item,
 .pt-burger,
 .pt-logout-btn,
@@ -3207,20 +3395,27 @@
 .pt-auth-social-btn,
 .pt-social-btn,
 .pt-sv-power-btn,
+.pt-sv-mark,
+.pt-sv-head,
+.pt-sv-status,
+.pt-rail-idcard,
+.pt-rail-idicon,
+.pt-rail-footicon,
 .pt-auth button[type='submit'] {
     border-radius: var(--pt-glass-radius-sm) !important;
 }
 
-/* The status band, square: a rounded corner on a full-bleed strip reads as a
- * button. */
-.pt-sv-status {
-    border-radius: 0 !important;
-}
-
-/* The dot in the status band is the one genuinely round thing left in this block,
- * so it gets the single `50%` rule rather than inheriting the squaring reset and
- * rendering as a square. */
-.pt-sv-dot {
+/* The two dots are the only genuinely round things in this block, so they get the
+ * one `50%` rule rather than inheriting the squaring reset and rendering as
+ * squares.
+ *
+ * `.pt-sv-status` is deliberately NOT squared. It was, on the reasoning that a
+ * rounded corner on a full-bleed strip reads as a button - which was true when
+ * the band was the full width of the page and is not true now that it is a chip
+ * sitting in a column beside the identity block. */
+.pt-sv-dot,
+.pt-sv-statedot,
+.pt-rail-iddot {
     border-radius: 50% !important;
 }
 
@@ -3745,52 +3940,32 @@
  * gradient, which on the light ramp is a near-transparent wash and left the white
  * h1 on whatever happened to be behind it.
  */
-.pt-console-head {
-    border: 1px solid rgb(var(--pt-chrome-deep));
-    border-bottom: 1px solid rgb(var(--pt-chrome-deep));
-    background-image: none;
-    background-color: rgb(var(--pt-chrome));
-    box-shadow: var(--pt-shadow-md);
-}
-
-.pt-console-head .pt-power {
-    border-radius: var(--pt-glass-radius-sm) !important;
-}
-
 /* ------------------------------------------------------ server cards (chrome) -- */
 /*
- * No backdrop-filter here, as before: one per card in a scrolling list is the most
- * expensive thing you can put on a page.
+ * This block used to force the dashboard's cards back to solid `--pt-chrome`,
+ * to undo an earlier override that had painted them as a translucent light
+ * surface - which on the light ramp meant white text on a near-white card, and
+ * an invisible server name.
  *
- * These rules previously re-declared the card as a translucent LIGHT surface
- * (`--pt-gray-700` at 50%) on the theory that a repeated card should be tinted
- * rather than frosted. On the light ramp `--pt-gray-700` IS white, so that
- * override silently replaced the solid `--pt-chrome` the base rule sets - and
- * since the card's own text is `--pt-chrome-ink`, which is white too, the name
- * rendered white on a near-white card and was effectively invisible. Same for the
- * empty state, which is the first thing an admin sees.
- *
- * A dark island cannot be a translucent light surface. Solid chrome, and the
- * hover is a lift rather than a fill change.
+ * The cards are light now, so there is nothing to undo and nothing to force: the
+ * base rule and this block were describing the same card in two places, and only
+ * one of them was true at a time. The block is kept as the single place that
+ * states the card's SURFACE, rather than deleting it and leaving the fill
+ * declared only in the base rule - because a card is exactly the kind of thing
+ * that gets "just a quick override" added to it, and having one obvious home for
+ * its fill is cheaper than having two rules that fight.
  */
 .pt-server-card {
-    background-color: rgb(var(--pt-chrome));
-    border-color: rgb(var(--pt-chrome-deep));
+    background-color: rgb(var(--pt-gray-700));
+    border-color: rgb(var(--pt-gray-600));
     box-shadow: var(--pt-shadow-sm);
 }
 
 .pt-server-card:hover,
 .pt-server-card:focus-visible {
-    border-color: rgb(var(--pt-navy-300));
-    background-color: rgb(var(--pt-chrome));
-    box-shadow: var(--pt-shadow-lg);
-}
-
-/* The pink accent bar is a flat brand edge, so it stays flat. */
-.pt-server-card::before {
-    background-image: none;
-    box-shadow: none;
-    opacity: 1;
+    border-color: rgb(var(--pt-blue-400) / 0.7);
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: var(--pt-shadow-md);
 }
 
 
@@ -3916,13 +4091,6 @@
     box-shadow: none;
 }
 
-/* Cards: solid, border-defined, 1px shadow. */
-[data-pt-theme='amber'] .pt-console-head {
-    background-image: none;
-    background-color: rgb(var(--pt-gray-700));
-    box-shadow: var(--pt-glass-shadow);
-}
-
 
 [data-pt-theme='amber'] .pt-server-card {
     background-color: rgb(var(--pt-gray-700));
@@ -3965,11 +4133,6 @@
  * button. The auth *focus ring* a few lines up is deliberately NOT touched -
  * a focus indicator is not a glow, and removing it would cost keyboard users
  * the only cue they have. */
-[data-pt-theme='amber'] .pt-auth button[type='submit'],
-[data-pt-theme='amber'] .pt-console-actions button.pt-power {
-    box-shadow: none;
-}
-
 /* Controls, bars and chips. */
 [data-pt-theme='amber'] .pt-burger,
 [data-pt-theme='amber'] .pt-avatar-btn,
@@ -4036,7 +4199,6 @@
     .pt-sidebar,
     .pt-topbar,
     .pt-drawer-panel,
-    .pt-console-head,
     .pt-server-card,
     .pt-brand,
     .pt-sidebar-foot,
@@ -4058,7 +4220,6 @@
     .pt-sidebar,
     .pt-drawer-panel,
     .pt-topbar,
-    .pt-console-head,
     .pt-server-card,
     .pt-sidebar-foot {
         background-color: rgb(var(--pt-chrome));
@@ -4087,7 +4248,6 @@
     .pt-sidebar,
     .pt-topbar,
     .pt-drawer-panel,
-    .pt-console-head,
     .pt-server-card {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;

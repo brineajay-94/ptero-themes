@@ -191,3 +191,22 @@ export const backgroundStyle = (area: 'auth' | 'dashboard'): React.CSSProperties
               }),
     } as React.CSSProperties;
 };
+
+/**
+ * Who designed the theme, for the credit line.
+ *
+ * Lives here rather than inline because the credit appears in TWO places - the
+ * footer under the page content and the rail's own bottom edge - and those were
+ * two hardcoded names with two hardcoded links. That is the shape of bug where
+ * the rail points at a GitHub profile and the footer points at a website, and
+ * neither is wrong enough to be noticed until somebody notices.
+ *
+ * `name` and `url` are separate fields rather than one markdown string so the rail
+ * can print the name as plain text and the footer can wrap "Design copyright"
+ * around it, without either re-parsing the other's markup. Change the credit by
+ * changing it here.
+ */
+export const themeCredit = (): { name: string; url: string } => ({
+    name: 'brineajay',
+    url: 'https://ajaykafle.com.np',
+});

@@ -202,9 +202,19 @@ What it changes on top of the stock panel:
   that knows about social sessions; hiding the button would have been the whole of
   the enforcement, and hiding a button is not a check.
 
-### Server pages — the Aternos layout
+### Server pages — the reference layout
 
-Server pages get the reference's shape, in two parts.
+Server pages follow the reference's arrangement, and one rule runs through all of
+it:
+
+> **Dark chrome is the frame. Light cards are the content.**
+
+The topbar and the left rail are slate islands; everything the page is *about* is
+a light card on the light page. The dashboard's server cards used to be the second
+dark island. They are light now, because a slate card grid sitting above a light
+console page is two themes in one panel — and the dashboard and the server pages
+are one click apart, so it is the same list you browse and the list you arrive
+from.
 
 **A fixed left rail, from `lg` up.** The dashboard and account pages are still the
 topbar-only shell — three destinations and four respectively, and the topbar
@@ -215,87 +225,146 @@ topbar icons cannot hold that without hiding them. So the rail is back — **on
 server pages only**, which does mean server pages look different from the
 dashboard. Say the word if you want it everywhere.
 
-The rail has **no header**. It used to show the server's own name, short identifier
-and a power dot, read from the same `ServerContext` the page reads — but the
-topbar directly above already names the server, and the status band at the top of
-the content already carries the state. Two more copies of the same two facts, in
-the one place the eye lands first, was not carrying its weight. With the header
-gone the rail has no top block at all, and the brand block became **drawer-only**,
-because the topbar directly above the rail already carries the logo. Below `lg` the
-rail is hidden with CSS and `aria-hidden` in the markup — the mobile drawer is the
-real navigation at those widths, and two navigations for one page is a screen
-reader reading the same list twice.
+The rail is shaped differently at both ends from the drawer. At the top there is a
+**card naming the server** — icon tile, name, live state dot, and a decorative
+chevron. The chevron is decorative *and the card is not a link*, on purpose: the
+rail already has a Dashboard entry one row below pointing at the same place, and a
+second control to one destination gets clicked, does nothing visible, and reads as
+broken. At the bottom there is the **credit line**, which is attribution rather
+than a control and has nowhere else to go.
 
-`Sidebar` gained a `variant` prop (`'drawer' | 'rail'`) rather than becoming two
-components. The **navigation** must stay one list; only the frame around it
-changes. Two components is how the rail and the drawer drift into offering
-different destinations.
+The brand block is **drawer-only**, because the topbar directly above the rail
+already carries the logo.
 
-**The trap that header used to sit on** is worth keeping, because removing the
-header did not remove the trap — it removed the one reason anybody was tempted to
-walk into it. `AppShell` renders `Sidebar` for the mobile drawer on *every* page,
+The active nav row is a **filled accent pill**, not a wash with a 3px bar down its
+left edge. The bar was positioned at the row's negative margin to sit outside it,
+so it read as part of the rail's own border and only lined up at one width; a fill
+needs no such geometry.
+
+The card's name and state arrive as **props**, which is a correction rather than a
+style choice. `AppShell` renders `Sidebar` for the mobile drawer on *every* page,
 while `App.tsx` mounts `ServerContext.Provider` only around `/server/:id` — so a
 `ServerContext` hook in `Sidebar` throws on `/` and `/account`, and the panel's
 `ErrorBoundary` replaces the whole dashboard with **“An error was encountered by
 the application while rendering this view. Try refreshing the page.”** That is a
 *client-side* React render error, so it never reaches `storage/logs` — a log check
-finds nothing at all, which is exactly what makes it expensive.
+finds nothing at all, which is exactly what makes it expensive. `ServerRouter`
+reads the values and passes them down; it is the only place guaranteed to be
+inside the context.
 
-The header needed the server's identity, which is why it arrived as **props**:
-`ServerRouter` read the values and passed them down through `AppShell`, being the
-only place guaranteed to be inside the context. All of that is now gone — nothing
-in `Sidebar` reads the server store, so the trap is gone rather than documented.
-Worth knowing before adding a component that reads server state anyway: the same
-trap waits for anything `AppShell` renders. Grep for
+Worth knowing before adding a component that reads server state: the same trap
+waits for anything `AppShell` renders. Grep for
 `ServerContext.useStoreState|useStoreActions` and confirm each hit is only
 reachable from `ServerRouter`.
 
-**The power block at the top of the console.** Order is **the four buttons first,
-then the status band.** The first thing on the page is what you can do; the second
-is what state you are in.
+**The header: identity on the left, controls on the right.** One light card,
+two columns. On the left, the server's mark, its name at heading size, its live
+state, and a row of chips: **software, version, CPU, memory**. On the right, the
+**status band** and the four **power buttons**.
+
+Two columns rather than three stacked bands because the left column *labels* and
+the right column *controls*, and a user scanning the top of a server page reads
+them in that order. Stacked, it spends three vertical strips saying two things.
+
+Software and version were removed in 1.16.5 and are back. The reasoning then was
+that Software repeated the Startup page and cost a request — and that was right
+about the layout it was in, where they were two full-width bordered rows with
+their own “Change” buttons. As four chips on one line under the name they are a
+different proposition: a spec line, which is what a server owner's eye goes to
+first, on a page that already holds a websocket. So `serverVersionLabel()` is back
+and so is `GET /auth/servers/eggs`, both scoped to this one component.
+
+CPU and memory are a **second subscription** to the same `STATS` event rather than
+a shared value. A shared value needs a context provider or a module store for two
+components sitting in different grids; two subscriptions to one websocket event is
+not a cost worth that, and the panel's own components do exactly this.
 
 All four power signals share **one** button class — Start, Stop, Restart, Kill.
 They were a large Start with two small square icons beside it, and two sizes read
 as two different classes of action when they are the same class. Colour carries
-the difference now: green start, red stop/kill, blue restart. They wrap rather
-than scroll (`flex: 1 1 9.5rem`, so a wrapped row still reads as one row of equal
-buttons), and below `sm` they become a full-width single column — the only
-arrangement where every button is as wide as the panel it sits in, and the one a
-thumb expects for the control people reach for on a phone. Kill confirms because
-it is the one irreversible action; Start, Stop and Restart do not.
-
-What is left of this block is much smaller than it was. The address heading with
-its Connect button, the Software row and the Version row are **all gone**, and the
-removals were not only cosmetic: the egg name cost a request to
-`GET /auth/servers/eggs` plus a state hook and a fallback chain, for a label, and
-taking those rows out took that request off every console page load. Software and
-Version repeated what the console's own Startup page says; the address was the
-third place the same fact appeared, after the dashboard card and the panel's own
-sub-navigation. What remains reads nothing from the app store and fetches nothing,
-so it cannot fail in a way that takes the page with it.
-
-What did *not* survive the translation, and why:
-
-| Reference | Here | Why |
-| --- | --- | --- |
-| Blue RAM-boost banner | **Dropped** | It is Aternos selling an upgrade. On this panel it advertises a product that does not exist. |
-| Connect button | **Dropped** | It opens a launcher dialog; there is nothing to launch here. |
-| One large **Start** | Four buttons, same class | Dropping two power signals the panel offers would be a regression dressed as a match. |
-| Address card | **Dropped** | The third copy of a fact the dashboard card and the sub-navigation already carry, and it was never what an owner opens a server page to read. |
-| Software row | **Dropped** | Repeated the Startup page, and cost a request on every console page load for a label. |
-| Version row | **Dropped** | Repeated the Startup page, which is genuinely where a user changes those values. |
-| Empty left card | Dropped | Its CPU/memory/disk readings are already in the console's own detail column, so a second card repeated them. |
+the difference: green start, red stop/kill, blue restart. They wrap rather than
+scroll (`flex: 1 1 9.5rem`, so a wrapped row still reads as one row of equal
+buttons), go full width in a single column below `sm`, and the header stacks to
+one column below `lg`. Kill confirms because it is the one irreversible action;
+the other three do not, because a dialog on the everyday controls is a dialog
+people learn to dismiss unread.
 
 Power goes over the `ServerContext` socket with `socket.send('set state', …)`,
 exactly as the panel's own `PowerButtons` does — the socket is already open here
 carrying the resource stats, and an HTTP call would be a second channel to the
 same daemon.
 
-`GET /auth/servers/eggs` is **still shipped and still used**, by the dashboard
-cards. Only the server page stopped needing it. For the same reason
-`serverVersionLabel()` is gone from `lib/serverFamily.ts` — its only consumer was
-the Version row, and an exported helper with no caller is just a second place to
-keep in sync.
+**The console is a light card with a dark terminal inside it.** A header row on
+white (`>_` glyph, “Server Console”, the server's name as a badge, a fullscreen
+toggle), the terminal inset under it, and a command row on white below.
+
+The old dark title bar — three dots, “Console”, a keyboard-shortcut hint — is
+gone. It was a second header saying less than this one, and it put a dark strip
+directly above a dark terminal so the two merged into one block with a seam.
+
+Fullscreen targets the **card**, not the terminal element. A fullscreen element
+that is only the terminal has no header to put the exit control in, so the user
+would have to leave by <kbd>Escape</kbd> alone. Growing the card brings the header,
+the badge and the input along, and the `ResizeObserver` that already refits xterm
+handles the new box. The button is not rendered at all where the Fullscreen API is
+missing, rather than rendered and throwing when pressed, and it listens for
+`fullscreenchange` because that API fires no React event — without the listener
+the label still says “expand” after expanding, which is exactly the state Escape
+leaves behind.
+
+The **Send** button calls the same `sendCommand` the <kbd>Enter</kbd> key does, so
+the two paths cannot drift. It is a button and not a form submit because the
+command goes over the websocket, not to an endpoint. Below `sm` it drops its label
+and keeps the glyph, leaving the text in the DOM for the accessible name.
+
+**The statistics column: six cards.** Address (with a copy button), Uptime, CPU
+Load, Memory, Disk, and one Network card.
+
+The stock block renders Network Inbound and Network Outbound as two cards, and the
+merge is not only cosmetic. Two cards for one metric makes the column seven tall.
+More importantly the numbers are **cumulative** byte counts — `network.tx_bytes` is
+bytes sent since the process started — so printing it in a card labelled “Network”
+beside a Memory card in MB invites reading it as a current rate. This card prints
+**bytes per second**, from the delta between two frames.
+
+That derivation needs the previous frame, so the first frame after a socket connect
+has nothing to subtract from and reports `0` — a wrong number that looks plausible
+is worse than a zero that is merely uninteresting for two seconds. The elapsed time
+is floored at one second, because a reconnect delivers two frames back to back and
+dividing by the real near-zero interval produces a rate in the gigabytes that then
+decays over the next few pushes.
+
+A card whose value **truncates** rather than shrinking. `use-fit-text` was the right
+idea for a fixed-width tile and the wrong one here: the cards sit in fractional
+grid columns, so the width changes with the viewport and a measured font size is
+only right until the next resize — and the fitted size has no floor, so an address
+on a narrow screen landed at 8px. One type size across all six keeps them
+comparable at a glance, which is the reason they are stacked in a column; the
+`title` attribute and the copy button keep the full value reachable.
+
+The panel's own 80% / 90% pressure thresholds are kept, now as **tones** rather
+than Tailwind background classes. A light card wants a pale tinted icon square and
+a coloured bar, and a class name cannot drive both. The thresholds themselves are a
+judgement about headroom and do not change because the card got prettier. Uptime is
+the one red card when the server is not running — the reference's choice, and the
+only saturated card on the page.
+
+**The graphs** are three light cards, each with its icon and its **live value** in
+the header. The value is why that is an override and not just a restyle: a chart is
+the only place on the page where recent history and the present reading are visible
+at once, and the reference puts them in one line of sight. Without it you read the
+last point off the line, which is the one thing a chart is worst at.
+
+What did *not* survive the translation, and why:
+
+| Reference | Here | Why |
+| --- | --- | --- |
+| Blue RAM-boost banner | **Dropped** | It is Aternos selling an upgrade. On this panel it advertises a product that does not exist. |
+| One large **Start** | Four buttons, same class | Dropping two power signals the panel offers would be a regression dressed as a match. |
+| Empty left card | Dropped | Its CPU/memory/disk readings are already in the statistics column, so a second card repeated them. |
+| Connect button | **Never added** | It opened a launcher dialog on the reference and has no equivalent here. |
+| Software / Version rows | **Chips, not rows** | As full-width bordered rows with their own Change buttons they repeated the Startup page three times over. As one spec line under the name they are the first thing an owner reads. |
+| Network in + out | One card, B/s | See above — cumulative counters read as rates. |
 
 **The file row dropdown, and the two mistakes that made it shake.** The stock panel
 rendered `absolute` inside a plain wrapper and nudged it with
@@ -303,7 +372,7 @@ rendered `absolute` inside a plain wrapper and nudged it with
 at the viewport origin. Inside a `.file_row` at some x offset it was pushed off to
 the right, the row grew, and the page grew a horizontal scrollbar.
 
-Changing it to `position: fixed` is **not** the fix, which is the part worth
+Changing it to `position: fixed` is **not** the fix, and this is the part worth
 knowing:
 
 - A non-`none` `transform` on an **ancestor** makes that ancestor the containing
@@ -311,25 +380,27 @@ knowing:
   `transform: translateY(-1px)`, so the containing block *appeared and disappeared*
   as the pointer crossed the row — the panel was viewport-relative on one frame and
   row-relative on the next. That is the horizontal jitter.
-- `offsetParent` does not rescue you. The spec says it returns `null` for an element
-  whose computed position is `fixed`, and browsers honour that, so the obvious
-  “rebase the coordinates onto `offsetParent`” is a silent no-op that reads as
-  though it works.
-- Writing `top`/`left` feeds straight back into the scroll listener that repositions
+- `offsetParent` is not the escape hatch. The spec says it returns `null` for an
+  element whose computed position is `fixed`, and browsers honour that, so “rebase
+  the coordinates onto `offsetParent`” is a silent no-op that reads as though it
+  works.
+- Writing `top`/`left` fed straight back into the scroll listener that repositions
   the panel: reposition changed the document, the document scrolled, that
-  repositioned again. The panel moved with a **transform**, never with `top`/`left`,
-  so it cannot change the document's scrollable size and cannot fire that event.
+  repositioned again, forever. The panel is now moved with a **transform**, which
+  cannot change the document's scrollable size and cannot fire that event.
 
 So the panel is rendered through a **portal into `<body>`**: its parent is not
 transformed, not clipped and establishes no containing block, which makes
 `position: fixed` mean the viewport unconditionally and removes the need to rebase
 at all. Every token it uses is declared on `:root`, so it still inherits them
-through `<body>`, and being `fixed` it takes no space in the portal div.
+through `<body>`, and being `fixed` it takes no space in the portal div — which is
+itself removed when the component unmounts.
 
 No scroll correction is applied to those coordinates, deliberately: for a `fixed`
 element the containing block is the viewport and `getBoundingClientRect()` is
 already measuring in viewport space, so adding `window.scrollX` would displace the
 menu by exactly the scroll distance on any scrolled page.
+
 - **Dashboard server cards** — the third line of each card is the server **family**,
   not the egg name, because the panel never sends the egg name to the browser.
   `ServerTransformer` returns neither an egg name nor an egg id (`egg_features` is
@@ -368,10 +439,10 @@ menu by exactly the scroll distance on any scrolled page.
   another endpoint here: the panel loads route files *by name*, the theme ships
   two of them, and `routes/admin.php` is behind `AdminAuthenticate` — so
   `routes/auth.php` is the only web route file a normal user can reach.
-- **Console** â€” terminal chrome (window bar, dots, title, command hint) in
+- **Console** — terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
-- **File manager** â€” monospaced path bar with blue links, card-style file
+- **File manager** — monospaced path bar with blue links, card-style file
   rows with icon tiles, and a branded selection bar.
 - **Dark only** - one scheme matching `aternos-panel.html`: no light palette and
   no light/dark toggle anywhere in the panel.
@@ -491,7 +562,7 @@ build does not depend on a dependency older panels do not ship.
 ## Preview
 
 `preview/` is a static, offline mock of the user panel. It runs
-straight from disk â€” no database, no PHP, no build step:
+straight from disk — no database, no PHP, no build step:
 
 ```bash
 # Windows
@@ -537,7 +608,7 @@ palette or `tailwind.config.js`:
 node preview/build-preview.js --panel /path/to/pterodactyl/panel
 ```
 
-> `preview/` is for eyeballing the theme only â€” it is **not** in
+> `preview/` is for eyeballing the theme only — it is **not** in
 > `manifest.json`, so the installers never copy it into a panel.
 
 ## Install
@@ -611,7 +682,7 @@ Choose [0-6]:
 ```
 
 The panel directory is auto-detected (`$BRINE_PANEL`, `/var/www/pterodactyl`,
-`/usr/local/pterodactyl`, `C:\inetpub\pterodactyl`, the current directory â€¦) and
+`/usr/local/pterodactyl`, `C:\inetpub\pterodactyl`, the current directory …) and
 option `5` accepts any other path. Option `6` runs every Laravel cache clear
 (`view`, `config`, `route`, `cache`, `event`) against the panel. After
 installing, updating or uninstalling, the menu offers to rebuild the panel
@@ -640,7 +711,7 @@ brine clear-cache C:\inetpub\pterodactyl
 | Environment variable | Effect |
 | --- | --- |
 | `BRINE_PANEL` | Default panel directory (skips auto-detection). |
-| `BRINE_BUILD` | `y` / `n` â€” rebuild assets without asking (non-interactive runs default to `n`). |
+| `BRINE_BUILD` | `y` / `n` — rebuild assets without asking (non-interactive runs default to `n`). |
 
 ### Direct installer
 
@@ -683,7 +754,7 @@ panel's copy up before deleting it, so `--uninstall` puts it straight back.
 the *original* backup rather than making a new one, and there is nothing there to
 write into.
 
-**Always rebuild the frontend after installing** â€” `tailwind.config.js` is part
+**Always rebuild the frontend after installing** — `tailwind.config.js` is part
 of the package, so the brand colour utilities (`navy`, `gold`, and the
 `blue`/`primary`/`cyan` aliases) only exist in the bundle after a build:
 
@@ -726,7 +797,7 @@ Every install writes a timestamped copy of the original files to
 `<panel>/.pterodactyl-backup/<timestamp>/` and a state file to
 `<panel>/.brine-theme.state`. Uninstall restores the most recent backup,
 deletes the files the theme created and removes the state file. Rebuild and
-clear the caches afterwards â€” the menu offers to do that too.
+clear the caches afterwards — the menu offers to do that too.
 
 - A plain `install` refuses to run when the theme is already present, so a
   second run can never overwrite your backup with themed files.
@@ -825,10 +896,10 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `tailwind.config.js` | replace â€” brand ramps + `rgb(var(--pt-*))` emitters |
+| `tailwind.config.js` | replace — brand ramps + `rgb(var(--pt-*))` emitters |
 | `resources/views/templates/wrapper.blade.php` | replace - stylesheet link, plus `data-pt-theme` on `<html>` and a theme-color that follow the chosen palette (title and favicon stay stock) |
 | `public/themes/pterodactyl/css/pterodactyl-theme.css` | create - light tokens + dark chrome islands + shell/auth/dashboard/console/files styles |
-| `public/themes/pterodactyl/images/logo.svg` | create â€” brand mark |
+| `public/themes/pterodactyl/images/logo.svg` | create — brand mark |
 
 **Shell**
 
@@ -836,16 +907,16 @@ render, so they match the panel.
 | --- | --- |
 | `resources/scripts/components/AppShell.tsx` | create — topbar + drawer shell on every page, plus a fixed desktop rail on SERVER pages only. The rail lives here rather than in ServerRouter so `mode` stays the one thing that decides the shell
 | `resources/scripts/components/Sidebar.tsx` | create — full nav list, used in the mobile drawer everywhere and in the fixed desktop rail on server pages. A `variant` prop swaps the frame (brand + footer in the drawer, nothing at the top in the rail, because the topbar directly above already carries both) without forking the navigation into two lists. Nothing in it reads the server store
-| `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, and a `pt-topbar-account` group (username, logout, avatar) that cannot be squeezed |
-| `resources/scripts/routers/DashboardRouter.tsx` | replace â€” wraps in `AppShell` |
-| `resources/scripts/routers/ServerRouter.tsx` | replace â€” wraps in `AppShell` |
+| `resources/scripts/components/NavigationBar.tsx` | replace — brand lockup plus four icon-over-label items in the tail (Servers, Account, Admin, Logout) then the avatar as a link to the account page. Sign-out is an item in the row rather than a button under the username, and the username is gone from the bar entirely avatar) that cannot be squeezed |
+| `resources/scripts/routers/DashboardRouter.tsx` | replace — wraps in `AppShell` |
+| `resources/scripts/routers/ServerRouter.tsx` | replace — wraps in `AppShell` |
 
 **Pages**
 
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - the card's third line is the server's **software**, from `GET /auth/servers/eggs`, because the panel's servers list carries no egg name (see *Dashboard server cards* below) |
-| `components/server/status/ServerStatusPanel.tsx` | create - the power block at the top of a server page: the four power buttons first, then the status band. The address card and the Software/Version rows are gone, and with them the egg request they needed |
+| `components/server/status/ServerStatusPanel.tsx` | create - the server page header: identity and its software/version/CPU/memory chips on the left, status band and the four power buttons on the rightus band. The address card and the Software/Version rows are gone, and with them the egg request they needed |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
@@ -859,7 +930,7 @@ render, so they match the panel.
 | `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
 | `components/elements/DropdownMenu.tsx` | replace - panel rendered through a portal into `<body>`, moved by `transform` so it cannot change the document's scrollable size (see *File actions menu* below) |
 | `components/elements/Field.tsx` | replace - adds an optional `labelAction` on the label row |
-| `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
+| `components/server/console/{ServerConsoleContainer,ServerDetailsBlock,Console,StatBlock,StatGraphs,ChartBlock,chart.ts,style.module.css}` | replace — see the section above for what each one does now |
 | `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,FileDropdownMenu,MassActionsBar,style.module.css}` | replace |
 
 **Infrastructure carried over from the token work**
@@ -883,8 +954,8 @@ render, so they match the panel.
 | `app/Support/IllustrationProcessor.php` | removed - the hero illustration it keyed and cropped is gone with the split layout |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration + Social Login menu items, icon favicon |
 | `resources/scripts/components/auth/SocialLoginButtons.tsx` | create - the provider button row, or nothing when none is configured; both marks inlined SVG |
-| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()`/`accountAccess()` from `SiteConfiguration` |
-| `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()`/`themeCredit()` (the single source for the design credit, which appears in both the page footer and the rail) -`accountAccess()` from `SiteConfiguration` |
+| `resources/scripts/lib/theme.ts` | create — `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions and the database are unaffected. The API
 routes are too, apart from the one addition noted above: social sign-in is
@@ -1290,7 +1361,7 @@ relation will see the wrong thing.
   rather than as a button that fails. Adding a third provider means adding one
   entry to `SocialAuthService::PROVIDERS`, one card to the admin view, and one
   mark to `SocialLoginButtons`; nothing else changes.
-- **Colours** â€” edit the token blocks at the top of
+- **Colours** — edit the token blocks at the top of
   `public/themes/pterodactyl/css/pterodactyl-theme.css`. Channel triplets are
   `R G B` separated by spaces (e.g. `--pt-gold-600: 200 164 78;`). Mirror the
   same edit into `tailwind.config.js` only if you add a *new* ramp.
@@ -1515,8 +1586,8 @@ webpack 5.105) with this package installed:
   text-primary-500/50` plus hover/focus/disabled variants. 2.0.x cannot, its
   classic engine having no opacity modifiers at all.
 
-- `tsc --noEmit` â€” passes.
-- `eslint` on every touched TS/TSX/JS file â€” 0 errors (files are LF, matching
+- `tsc --noEmit` — passes.
+- `eslint` on every touched TS/TSX/JS file — 0 errors (files are LF, matching
   `.editorconfig`; run Prettier from *inside* the panel checkout so the panel's
   `.prettierrc.json` is picked up).
 - Production webpack build succeeds

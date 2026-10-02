@@ -323,6 +323,20 @@ foreach ($file in $Files) {
     }
 
     Copy-Item -LiteralPath $source -Destination $target -Force
+
+    # Stamp the copy with the install time.
+    #
+    # The panel's stylesheet is cache-busted on its OWN mtime - the wrapper reads
+    # @filemtime() and appends it as ?v=, because config('app.version') is the
+    # panel's version and never changes on a theme update. Copy-Item carries the
+    # SOURCE's timestamp across, and git does not rewrite a file it did not
+    # change, so re-installing after pulling a commit that touched some OTHER
+    # theme file re-copies the stylesheet with its OLD mtime. The URL comes out
+    # identical, the browser serves its cached copy, and the update looks like it
+    # did nothing - which is the one failure mode the mtime cache-buster exists
+    # to prevent. Touching the file makes the URL change whenever the bytes do.
+    (Get-Item -LiteralPath $target).LastWriteTime = Get-Date
+
     Write-Host ('{0,-8} {1}' -f $file.action, $file.path)
 }
 

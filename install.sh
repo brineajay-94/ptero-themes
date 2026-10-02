@@ -344,6 +344,26 @@ while IFS=$'\t' read -r path action; do
 
     mkdir -p "$(dirname "$target")"
     cp -a "$source" "$target"
+
+    # Stamp the copy with the install time.
+    #
+    # The panel's stylesheet is cache-busted on its OWN mtime - the wrapper reads
+    # @filemtime() and appends it as ?v=, because config('app.version') is the
+    # panel's version and never changes on a theme update. `cp -a` is
+    # --preserve=all, so it carries the SOURCE's timestamp across, and git does
+    # not rewrite a file it did not change: re-installing after pulling a commit
+    # that touched some OTHER theme file re-copies the stylesheet with its OLD
+    # mtime, the URL comes out identical, the browser serves its cached copy, and
+    # the update looks like it did nothing. That is the exact failure the mtime
+    # cache-buster exists to prevent, and it is unreachable from install.sh's side
+    # unless the mtime is moved.
+    #
+    # Only the payload, never the panel's own files that were merely backed up -
+    # this is inside the copy loop, so it runs for each theme file as it lands.
+    # `|| true` because a filesystem mounted noatime/ro should not fail an install
+    # over a timestamp.
+    touch "$target" 2>/dev/null || true
+
     echo "$(printf '%-8s' "$action") $path"
 done < <(printf '%s\n' "${PAIRS[@]}")
 

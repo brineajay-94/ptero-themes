@@ -491,6 +491,31 @@ node preview/build-preview.js --panel /path/to/pterodactyl/panel
 
 ## Install
 
+### Why an update can look like it did nothing
+
+`templates/wrapper.blade.php` cache-busts the theme stylesheet on its **own
+mtime** (`?v=@filemtime(...)`), because `config('app.version')` is the *panel's*
+version and never changes on a theme update. Both installers therefore stamp each
+copied file with the install time.
+
+This is not housekeeping — it is what makes an update visible. The installers used
+to copy with timestamp preservation (`cp -a` / `Copy-Item`), and git does not
+rewrite a file it did not change, so pulling a commit that touched some *other*
+theme file and re-running the installer re-copied the stylesheet with its **old**
+mtime. The URL came out byte-identical, the browser served its cached copy, and
+the update looked like it had done nothing.
+
+Verified against both installers on a fixture panel root: the old one left the
+mtime identical across `--update`, the new one moves it. If an update ever seems
+to do nothing, check this before anything else:
+
+```bash
+stat -c '%y' /var/www/pterodactyl/public/themes/pterodactyl/css/pterodactyl-theme.css
+grep -o 'pterodactyl-theme.css?v=[0-9]*' <the page source>
+```
+
+Those two numbers must match, and must be newer than your last install.
+
 ### One command on a server
 
 ```bash

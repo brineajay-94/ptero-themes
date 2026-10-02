@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.16.3",
+    "version": "1.16.4",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",

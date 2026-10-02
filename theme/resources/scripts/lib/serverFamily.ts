@@ -96,3 +96,55 @@ export const candidateJarKinds = (
     // let the filesystem decide.
     return ['plugins', 'mods'];
 };
+
+/**
+ * A label for what KIND of server this is, or null when the variables say
+ * nothing at all.
+ *
+ * WHY A FAMILY AND NOT THE EGG NAME
+ * ---------------------------------
+ * The egg name is not available to the browser on this endpoint - see the
+ * docblock above - so anything claiming to name the egg is either a guess or a
+ * lie. Guessing is worse than not answering: Paper, Spigot and Purpur all carry
+ * MINECRAFT_VERSION and BUILD_NUMBER, so a Paper server and a Spigot server are
+ * indistinguishable from the client, and "Paper" would be wrong on one of them.
+ * "Bukkit" is right on both.
+ *
+ * The same reasoning killed an earlier version of the dashboard card, which
+ * printed "No egg assigned" whenever `server.egg` / `server.eggName` were
+ * undefined - and the panel never sends either, so EVERY server showed it, Paper
+ * servers included. A field the client cannot see is not a missing egg.
+ *
+ * Null means genuinely unknown, and it is a real case: `includeVariables()`
+ * returns a null resource for a subuser without ACTION_STARTUP_READ, so their
+ * variables relationship is absent rather than empty. Callers fall back to the
+ * node name, which the transformer always sends.
+ */
+export const serverFamilyLabel = (variables: { envVariable: string }[] = []): string | null => {
+    const names = variables.map((variable) => (variable.envVariable || '').toUpperCase());
+    const has = (...candidates: string[]) => candidates.some((candidate) => names.includes(candidate));
+
+    // Ordered most specific first, and every branch is a variable name the panel
+    // itself documents - so a hit means something, rather than being a default.
+    if (has('SRCDS_APPID')) return 'Source Engine';
+    if (has('TS_VERSION')) return 'TeamSpeak';
+    if (has('FRAMEWORK')) return 'Rust';
+    if (has('BUNGEE_VERSION')) return 'Bungeecord';
+    if (has('SPONGE_VERSION')) return 'Sponge';
+
+    if (has('FORGE_VERSION')) return 'Forge';
+    if (has('FABRIC_VERSION')) return 'Fabric';
+    if (has('QUILT_VERSION')) return 'Quilt';
+    if (has('NEOFORGE_VERSION')) return 'NeoForge';
+    // A bare MODLOADER says something is modded without saying what, so it gets a
+    // label that admits that instead of being folded into "Minecraft".
+    if (has('MODLOADER')) return 'Modded';
+
+    if (has('VANILLA_VERSION')) return 'Vanilla';
+
+    // The Bukkit family. Deliberately not "Paper": Spigot and Purpur are
+    // indistinguishable here and would be mislabelled.
+    if (has('MINECRAFT_VERSION', 'BUILD_NUMBER')) return 'Bukkit';
+
+    return null;
+};

@@ -201,6 +201,29 @@ What it changes on top of the stock panel:
   is a panel file the theme does not ship, so there is nowhere to hang a middleware
   that knows about social sessions; hiding the button would have been the whole of
   the enforcement, and hiding a button is not a check.
+- **Dashboard server cards** — the third line of each card is the server **family**,
+  not the egg name, because the panel never sends the egg name to the browser.
+  `ServerTransformer` returns neither an egg name nor an egg id (`egg_features` is
+  the only egg-derived field, and it is identical across the Minecraft eggs); the
+  egg itself is only reachable through `?include=egg`, and `ServerController::index`
+  never calls `parseIncludes()`, so that include is silently ignored.
+
+  The card used to read `server.eggName || server.egg` and print **“No egg
+  assigned”** when both were missing — which was *always*, because the panel sends
+  neither. So every server on the dashboard claimed to have no egg, Paper servers
+  included. A field the client cannot see is not a missing egg.
+
+  What it prints now is the family derived from the egg's **variable names**, the
+  same fingerprint `serverFamilyLabel()` in `lib/serverFamily.ts` already uses to
+  decide which jar directories are worth probing. It says “Bukkit” and not
+  “Paper” on purpose: Paper, Spigot and Purpur all carry `MINECRAFT_VERSION` and
+  `BUILD_NUMBER`, so they are indistinguishable from the client, and naming one
+  would be a guess that is wrong on the other two.
+
+  When no family can be derived the card prints the **node name**, which the
+  transformer always sends. That fallback is not hypothetical —
+  `includeVariables()` returns a *null resource* (not an empty one) for a subuser
+  without `ACTION_STARTUP_READ`, so their variables relationship is simply absent.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -652,7 +675,7 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace |
+| `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - `ServerRow`'s third line is the server **family** (`Bukkit`, `Forge`, `Fabric`, `Vanilla`, `Bungeecord`, `Source Engine`, `Rust`, `TeamSpeak`, `Sponge`), never the egg name, because the panel does not send one (see *Dashboard server cards* below) |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |

@@ -4,6 +4,7 @@ import { faServer, faStop, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServerResourceUsage, { ServerPowerState } from '@/api/server/getServerResourceUsage';
+import { serverFamilyLabel } from '@/lib/serverFamily';
 import http from '@/api/http';
 
 /** What the card shows about power, which is not the same as the API's states. */
@@ -102,10 +103,21 @@ const ServerRow = ({ server, className }: { server: Server; className?: string }
         [pending, power, server.uuid]
     );
 
-    // The egg's user-visible name. Not every panel build includes it on the
-    // servers list, hence the fallbacks rather than assuming it is always there.
-    const source = server as unknown as { eggName?: string; egg?: string };
-    const egg = source.eggName || source.egg;
+    // What goes on the third line. NOT the egg name: the panel does not send it
+    // on this endpoint, so the card used to read `server.eggName || server.egg`
+    // and print "No egg assigned" when both were missing - which was always,
+    // because `ServerTransformer` returns neither and the egg is only reachable
+    // through `?include=egg`, which `ServerController::index` never asks for.
+    // Every server therefore showed "No egg assigned", Paper servers included.
+    //
+    // What it prints instead is the family the egg's variables identify, via the
+    // same fingerprint `candidateJarKinds` uses to decide which jar directories
+    // to probe. Null means the panel withheld the variables from this user
+    // (a subuser without ACTION_STARTUP_READ gets a null resource, not an empty
+    // one), and the node name is the truthful fallback: it is a string the
+    // transformer always sends.
+    const family = serverFamilyLabel(server.variables);
+    const detail = family || server.node;
 
     const canToggle = power === 'running' || power === 'stopped';
     const label =
@@ -118,9 +130,9 @@ const ServerRow = ({ server, className }: { server: Server; className?: string }
             <span className={'pt-server-body'}>
                 <span className={'pt-server-name'}>{server.name}</span>
                 <span className={'pt-server-uuid'}>{server.uuid}</span>
-                <span className={'pt-server-egg'}>
+                <span className={'pt-server-egg'} title={detail}>
                     <FontAwesomeIcon icon={faServer} aria-hidden={'true'} />
-                    {egg || 'No egg assigned'}
+                    {detail}
                 </span>
             </span>
 

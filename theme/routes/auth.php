@@ -121,5 +121,31 @@ Route::put('/account/email', [Auth\AccountEmailController::class, 'update'])
     ->middleware('auth')
     ->name('auth.account.email');
 
+/*
+|--------------------------------------------------------------------------
+| Server Egg Names
+|--------------------------------------------------------------------------
+|
+| Endpoint: /auth/servers/eggs
+|
+| brine-theme: the egg name for every server the caller can see, so the dashboard
+| card can label a server by its software.
+|
+| The panel does not send it. ServerTransformer returns no egg name and no egg
+| id, and the egg relationship is only reachable through `?include=egg`, which
+| ServerController::index never asks for - so the browser genuinely cannot see
+| it, and an earlier version of the card printed "No egg assigned" on every
+| server because of it. A family can be guessed from the egg's variable names,
+| but Paper, Spigot and Purpur are indistinguishable that way, so the name has
+| to come from the server. See ServerEggController.
+|
+| A GET, so no CSRF priming is needed, and behind the same
+| withoutMiddleware('guest') + middleware('auth') pair as the routes above.
+*/
+Route::get('/servers/eggs', [Auth\ServerEggController::class, 'index'])
+    ->withoutMiddleware('guest')
+    ->middleware('auth')
+    ->name('auth.servers.eggs');
+
 // Catch any other combinations of routes and pass them off to the React component.
 Route::fallback([Auth\LoginController::class, 'index']);

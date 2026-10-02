@@ -11,6 +11,7 @@ import { usePersistedState } from '@/plugins/usePersistedState';
 import Switch from '@/components/elements/Switch';
 import useSWR from 'swr';
 import { PaginatedResult } from '@/api/http';
+import getServerEggs, { ServerEggNames } from '@/api/server/eggs';
 import Pagination from '@/components/elements/Pagination';
 
 export default () => {
@@ -28,6 +29,20 @@ export default () => {
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
+
+    // The egg names, which the panel's servers list does not carry. Separate from
+    // the list above on purpose: it is not paginated and does not change when the
+    // page or the filter does, so giving it its own key means switching pages does
+    // not refetch it, and switching the "show all servers" switch does not
+    // refetch it either - the endpoint already answers for every server the
+    // caller can see, admin-sighted ones included.
+    //
+    // Deliberately not awaited and not allowed to block the grid. A card that
+    // cannot name its software still has to render: ServerRow falls back to the
+    // family it can derive from the egg's variables, and then to the node name.
+    // An endpoint failure must not take the dashboard down with it, so this is
+    // never fed to the flash the way the list error is.
+    const { data: eggs } = useSWR<ServerEggNames>('/auth/servers/eggs', getServerEggs);
 
     useEffect(() => {
         setPage(1);
@@ -92,7 +107,7 @@ export default () => {
                         items.length > 0 ? (
                             <div className={'pt-dash-grid'}>
                                 {items.map((server) => (
-                                    <ServerRow key={server.uuid} server={server} />
+                                    <ServerRow key={server.uuid} server={server} eggName={eggs?.[server.uuid]} />
                                 ))}
                             </div>
                         ) : (

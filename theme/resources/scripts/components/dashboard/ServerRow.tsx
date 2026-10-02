@@ -31,15 +31,27 @@ const sendPower = (uuid: string, signal: 'start' | 'stop') => http.post(`/api/cl
  * One server, as a card in the reference's two-column grid.
  *
  * This replaced a full-width row carrying live CPU / memory / disk bars. The
- * reference's card is much quieter - name, uuid, egg, and a power button - and
- * those bars were why a scrolling list of these was expensive to render as well
- * as why it read as a data table rather than a list of servers. The numbers are
- * still available one click away on the server's own page.
+ * reference's card is much quieter - name, uuid, software, and a power button -
+ * and those bars were why a scrolling list of these was expensive to render as
+ * well as why it read as a data table rather than a list of servers. The numbers
+ * are still available one click away on the server's own page.
  *
  * The card is a single <Link>, as the row was. The power button is inside it, so
  * it stops propagation - otherwise clicking it would navigate as well as fire.
+ *
+ * `eggName` is passed in rather than fetched here, because the answer is one
+ * request for the whole dashboard - see `api/server/eggs`. It is optional so the
+ * card still renders (and still says something true) before that request lands.
  */
-const ServerRow = ({ server, className }: { server: Server; className?: string }) => {
+const ServerRow = ({
+    server,
+    className,
+    eggName,
+}: {
+    server: Server;
+    className?: string;
+    eggName?: string | null;
+}) => {
     const interval = useRef<ReturnType<typeof setInterval>>(null) as React.MutableRefObject<
         ReturnType<typeof setInterval>
     >;
@@ -103,21 +115,26 @@ const ServerRow = ({ server, className }: { server: Server; className?: string }
         [pending, power, server.uuid]
     );
 
-    // What goes on the third line. NOT the egg name: the panel does not send it
-    // on this endpoint, so the card used to read `server.eggName || server.egg`
-    // and print "No egg assigned" when both were missing - which was always,
-    // because `ServerTransformer` returns neither and the egg is only reachable
-    // through `?include=egg`, which `ServerController::index` never asks for.
-    // Every server therefore showed "No egg assigned", Paper servers included.
+    // What goes on the third line, in descending order of certainty.
     //
-    // What it prints instead is the family the egg's variables identify, via the
-    // same fingerprint `candidateJarKinds` uses to decide which jar directories
-    // to probe. Null means the panel withheld the variables from this user
-    // (a subuser without ACTION_STARTUP_READ gets a null resource, not an empty
-    // one), and the node name is the truthful fallback: it is a string the
-    // transformer always sends.
-    const family = serverFamilyLabel(server.variables);
-    const detail = family || server.node;
+    // 1. The egg name, from the theme's own endpoint. This is the answer, and it
+    //    is a real one: the panel does not send the egg name on the servers list
+    //    at all (ServerTransformer returns neither a name nor an id, and the
+    //    egg relationship needs `?include=egg`, which ServerController::index
+    //    never asks for), so the card used to read `server.eggName ||
+    //    server.egg` and print "No egg assigned" when both were missing - which
+    //    was always, on every server on the panel.
+    // 2. The family, from the egg's variable names. A guess at a coarser grain
+    //    than the name, and a real one rather than nothing: Paper, Spigot and
+    //    Purpur all look identical here, which is why it is only a fallback.
+    // 3. The node name, which the transformer always sends.
+    //
+    // Step 3 is not theoretical: `includeVariables()` returns a null RESOURCE for
+    // a subuser without ACTION_STARTUP_READ, so their variables relationship is
+    // absent rather than empty. And steps 1 and 2 are both absent for a server
+    // that genuinely has no egg, which is what an explicit null from the
+    // endpoint means.
+    const detail = eggName || serverFamilyLabel(server.variables) || server.node;
 
     const canToggle = power === 'running' || power === 'stopped';
     const label =

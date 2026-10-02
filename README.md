@@ -224,6 +224,21 @@ What it changes on top of the stock panel:
   transformer always sends. That fallback is not hypothetical —
   `includeVariables()` returns a *null resource* (not an empty one) for a subuser
   without `ACTION_STARTUP_READ`, so their variables relationship is simply absent.
+
+  And since guessing cannot name the egg, a small theme endpoint does: **`GET
+  /auth/servers/eggs`** returns `{ uuid: "Paper" }` for every server the caller can
+  see, from the panel's own `accessibleServers()` relation — the same one behind
+  the server switcher — so owner and subuser access resolve through the panel's
+  rules rather than a hand-written join. One request per dashboard load, not one
+  per card. A root admin gets every server, which reveals nothing new since
+  Admin → Servers already shows each server's egg, and without it the
+  “show all servers” switch would leave other admins' cards on a guess.
+
+  The card prefers the real name, falls back to the family, then to the node. It
+  lives under `/auth/` for a structural reason worth knowing before you add
+  another endpoint here: the panel loads route files *by name*, the theme ships
+  two of them, and `routes/admin.php` is behind `AdminAuthenticate` — so
+  `routes/auth.php` is the only web route file a normal user can reach.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -675,7 +690,7 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - `ServerRow`'s third line is the server **family** (`Bukkit`, `Forge`, `Fabric`, `Vanilla`, `Bungeecord`, `Source Engine`, `Rust`, `TeamSpeak`, `Sponge`), never the egg name, because the panel does not send one (see *Dashboard server cards* below) |
+| `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - the card's third line is the server's **software**, from `GET /auth/servers/eggs`, because the panel's servers list carries no egg name (see *Dashboard server cards* below) |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
@@ -702,12 +717,13 @@ render, so they match the panel.
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
 | `app/Http/Controllers/Auth/AccountEmailController.php` | create - `PUT /auth/account/email`: refuses a provider session first, then the panel's `Hasher` checks the current password, then the panel's `UserUpdateService` does the write |
+| `app/Http/Controllers/Auth/ServerEggController.php` | create - `GET /auth/servers/eggs`: the egg name per server the caller can see, which the panel's own servers list cannot supply |
 | `app/Services/Social/SocialAuthService.php` | create - the Google/Discord OAuth2 flow: state, code exchange, profile, account resolution. No Socialite, no Composer change |
 | `app/Http/Controllers/Auth/SocialAuthController.php` | create - `GET /auth/social/{provider}/redirect` and `/callback`. A successful callback also records the provider in the session, which is what keeps a social session out of *Change email* |
 | `app/Http/Controllers/Admin/SocialAuthController.php` | create - Admin -> Social Login: client id, encrypted secret, per-provider switch, clear-secret |
 | `resources/views/admin/social-auth.blade.php` | create - one card per provider, with the copyable callback URL to register |
 | `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` / `.social.providers` / `.account` |
-| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` + the two social routes + `PUT /auth/account/email`, no recaptcha middleware |
+| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` + the two social routes + `PUT /auth/account/email` + `GET /auth/servers/eggs`, no recaptcha middleware |
 | `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` + `/admin/social-auth` |
 | `app/Support/IllustrationProcessor.php` | removed - the hero illustration it keyed and cropped is gone with the split layout |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration + Social Login menu items, icon favicon |
@@ -750,7 +766,8 @@ into `plugins/` or `mods/`, list what is installed, remove it. Theme-only:
 | `components/server/jars/JarsContainer.tsx` | create - the page, for both flavours |
 | `components/server/jars/style.module.css` | create - page styling on the theme tokens |
 | `api/server/jars.ts` | create - Modrinth catalog + the panel file calls, per flavour |
-| `lib/serverFamily.ts` | create - which flavours a server can take |
+| `api/server/eggs.ts` | create - `GET /auth/servers/eggs`; one request per dashboard load |
+| `lib/serverFamily.ts` | create - which flavours a server can take, and `serverFamilyLabel()` so the card can print a truthful fallback while `/auth/servers/eggs` loads |
 | `lib/serverExtras.ts` | create - the two routes, shared by router/sidebar/topbar |
 
 **What each server gets.**

@@ -61,6 +61,14 @@ use Pterodactyl\Services\Users\UserCreationService;
  *     quietly bypassing it would turn social sign-in into a way around a
  *     factor the user deliberately turned on. They are sent to the normal login
  *     form with an explanation instead.
+ *
+ *   - A successful sign-in records the provider in the SESSION (see
+ *     SESSION_PROVIDER_KEY). The account screens read it to keep a
+ *     provider-signed-in session out of anything that asks for a password -
+ *     changing the email address, today - because a provider account has no
+ *     password its owner was ever told. That is session state and not account
+ *     state on purpose: an account can be signed in with a password in one tab
+ *     and with Google in another, and only the session knows which is which.
  */
 class SocialAuthService
 {
@@ -106,6 +114,34 @@ class SocialAuthService
      * standing token.
      */
     private const STATE_TTL = 900;
+
+    /**
+     * Session key holding the provider that opened the current session.
+     *
+     * It is written ONLY here, on a successful social sign-in, and it is what
+     * AssetComposer and AccountEmailController read to know that this browser is
+     * signed in with Google or Discord rather than with a password. Nothing ever
+     * writes a value the reader does not recognise: `sessionProvider()` checks
+     * the name against self::PROVIDERS, so a hand-edited or stale session value
+     * reads as "no provider" instead of reaching a message.
+     *
+     * WHY THE SESSION AND NOT THE USER ROW
+     * ------------------------------------
+     * The question the account screens ask is "how did THIS browser get in",
+     * which is session state, not account state. An account created with a
+     * password can legitimately hold two sessions - one from the form, one from
+     * Google - and only the session knows which is which.
+     *
+     * What this does NOT do is stop the change on its own, and it is not meant
+     * to. "Remember me" reopens a session from the remember cookie with a fresh
+     * session store, so a social user who ticked the box can arrive with no
+     * marker here. The password check is what actually refuses them: an account
+     * made through a provider was stored with a 48-character random password
+     * that nobody was ever told (see createFromProfile), so no guess can satisfy
+     * it. The marker is what lets the UI say WHY up front instead of failing on
+     * a password the user was never given.
+     */
+    public const SESSION_PROVIDER_KEY = 'brine_social_login';
 
     /**
      * Upstream calls to Google and Discord.
@@ -294,7 +330,7 @@ class SocialAuthService
             ];
         }
 
-        return $this->signIn($request, $profile);
+        return $this->signIn($request, $profile, $provider);
     }
 
     /**
@@ -303,7 +339,7 @@ class SocialAuthService
      * @param  array{id: string, email: string, email_verified: bool, name: string, username: string}  $profile
      * @return array{user: User}|array{error: string, message: string}
      */
-    private function signIn(Request $request, array $profile): array
+    private function signIn(Request $request, array $profile, string $provider): array
     {
         $user = User::query()->where('email', $profile['email'])->first();
 
@@ -347,7 +383,42 @@ class SocialAuthService
         }
         auth()->login($user, true);
 
+        // Record how this session was opened. Written AFTER the login and after
+        // the regenerate above, so it lands in the new session rather than the
+        // one that was just thrown away - and before the callback returns, so
+        // the very first page this browser loads already carries the marker.
+        session()->put(self::SESSION_PROVIDER_KEY, $provider);
+
         return ['user' => $user];
+    }
+
+    /**
+     * The provider that opened this session, or null when it was a password
+     * sign-in (or nobody is signed in).
+     *
+     * A STATIC reader on purpose. `isUsable()` reads settings and runs on every
+     * page render through AssetComposer; this is called from the account screens,
+     * which want one fact and must not drag the OAuth configuration behind it.
+     *
+     * The value is validated against self::PROVIDERS before it is returned, so a
+     * stale or hand-edited session entry reads as "no provider" instead of being
+     * interpolated into a message. Null rather than a throw when there is no
+     * session store at all: this is called from a view composer, and a console or
+     * queue context must not be able to take a page down.
+     */
+    public static function sessionProvider(): ?string
+    {
+        try {
+            if (!app()->bound('session.store')) {
+                return null;
+            }
+
+            $provider = session()->get(self::SESSION_PROVIDER_KEY);
+
+            return is_string($provider) && isset(self::PROVIDERS[$provider]) ? $provider : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

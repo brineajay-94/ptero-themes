@@ -6,6 +6,7 @@ import routes from '@/routers/routes';
 import http from '@/api/http';
 import { backgroundStyle, brandName } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
+import { normalizeAccountPath, THEME_ACCOUNT_ROUTES } from '@/lib/accountRoutes';
 import type { ServerEggVariable } from '@/api/server/types';
 
 export interface AppShellProps {
@@ -60,7 +61,14 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, chi
               THEME_SERVER_ROUTES.find((route) => subPath === `/${route.path}`)?.name ||
               'Server'
             : isAccount
-            ? matched?.name || 'Account'
+            ? matched?.name ||
+              // Same reason for the account pages: /account/email is the theme's,
+              // so it is not in routes.account and the fallback below would
+              // title it "Account". Compared through the same normaliser the
+              // router uses, because the two tables spell the overview
+              // differently (`/` against '').
+              THEME_ACCOUNT_ROUTES.find((route) => route.path === normalizeAccountPath(subPath))?.name ||
+              'Account'
             : 'Dashboard';
 
     const subtitle = mode === 'server' ? serverName || 'Loading server' : brandName();

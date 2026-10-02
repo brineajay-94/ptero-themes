@@ -21,6 +21,7 @@ import {
     faUserCircle,
     faUserFriends,
     faShieldAlt,
+    faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
@@ -28,8 +29,9 @@ import type { ServerEggVariable } from '@/api/server/types';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
 import routes from '@/routers/routes';
-import { brandName, logoUrl } from '@/lib/brand';
+import { brandName, logoUrl, accountAccess } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
+import { normalizeAccountPath, THEME_ACCOUNT_ROUTES } from '@/lib/accountRoutes';
 import { candidateJarKinds } from '@/lib/serverFamily';
 import { hasJarDirectory, type JarKind } from '@/api/server/jars';
 
@@ -71,6 +73,7 @@ const ACCOUNT_ICONS: Record<string, IconDefinition> = {
     'API Credentials': faKey,
     'SSH Keys': faLock,
     Activity: faHistory,
+    'Email Address': faEnvelope,
 };
 
 const Section: React.FC<{ label: string }> = ({ label }) => <div className={'pt-nav-section'}>{label}</div>;
@@ -89,23 +92,48 @@ const Item: React.FC<{
     </NavLink>
 );
 
-const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => (
-    <>
-        {routes.account
-            .filter((route) => !!route.name)
-            .map(({ path, name }) => (
+/**
+ * The account navigation: the panel's own entries, then the theme's.
+ *
+ * The panel's table is used as-is - it is a panel file the theme does not ship,
+ * and it is the same list DashboardRouter filters - and the theme's own routes
+ * are appended rather than merged into it. Both are compared through
+ * `normalizeAccountPath()`, because the panel spells the overview `/` where the
+ * theme spells it `''`, and a literal comparison would list Account twice.
+ *
+ * The theme entry is rendered only for a session that is allowed to use it: on
+ * a Google or Discord sign-in the change-email page shows the reason instead of
+ * the form, and a nav item that leads to a refusal is worse than no nav item.
+ */
+const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => {
+    const { canChangeEmail } = accountAccess();
+
+    const panelItems = routes.account
+        .filter((route) => !!route.name)
+        .filter((route) => !THEME_ACCOUNT_ROUTES.some((entry) => entry.path === normalizeAccountPath(route.path)))
+        .map(({ path, name }) => ({ path: normalizeAccountPath(path), name: name! }));
+
+    const themeItems = THEME_ACCOUNT_ROUTES.filter((route) => route.path !== '' && canChangeEmail).map((route) => ({
+        path: route.path,
+        name: route.name,
+    }));
+
+    return (
+        <>
+            {[...panelItems, ...themeItems].map(({ path, name }) => (
                 <Item
-                    key={path}
-                    to={`/account/${path}`.replace('//', '/')}
-                    icon={ACCOUNT_ICONS[name!] || faUserCircle}
-                    exact={path === '/'}
+                    key={path === '' ? 'overview' : path}
+                    to={path === '' ? '/account' : `/account/${path}`}
+                    icon={ACCOUNT_ICONS[name] || faUserCircle}
+                    exact={path === ''}
                     onClick={onNavigate}
                 >
                     {name}
                 </Item>
             ))}
-    </>
-);
+        </>
+    );
+};
 
 export default ({ mode, serverId, serverUuid, serverVariables, matchUrl, onNavigate, onLogout }: SidebarProps) => {
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);

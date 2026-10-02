@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Formik, FormikHelpers } from 'formik';
 import { object, ref, string } from 'yup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleQuestion, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import updatePassword from '@/api/client/account';
+import { AccountCard, AccountField } from '@/components/account/AccountCard';
+import { accountAccess } from '@/lib/brand';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -13,7 +16,7 @@ interface Values {
 }
 
 /**
- * The account page: one form, for changing your password.
+ * The account page: the password form, and the way on to changing the address.
  *
  * WHY IT IS ONLY THIS
  * -------------------
@@ -30,28 +33,28 @@ interface Values {
  * navigation list is not filtered, and DashboardRouter still renders the panel's
  * own `/account/*` sub-routes. This is the overview page only.
  *
- * THE MARKUP IS HAND-WRITTEN RATHER THAN BUILT ON THE PANEL'S <Field>/<Input>
- * ----------------------------------------------------------------------
- * The reference puts a glyph INSIDE the input, on a light fill, and the label
- * above it. The panel's Input wraps the <input> in its own div, so the box
- * cannot be made a single flex row containing glyph and field - the glyph would
- * have to be positioned over it with `top: 50%` arithmetic, which is exactly the
- * fragility the auth screens are littered with comments about (see
- * `.pt-auth-field-icon`, which computes its offset from three separate values).
+ * THE CHANGE EMAIL BUTTON, AND WHY IT IS NOT ALWAYS THERE
+ * ------------------------------------------------------
+ * The green button under Update Password opens the change-email page, which asks
+ * for the current password before it will touch the address. A session opened
+ * with Google or Discord gets a sentence explaining why instead of the button:
+ * such an account has no password its owner was ever given - it was stored with
+ * a 48-character random one when the provider created it - so the form could
+ * only ever end in a refusal. Offering it would be offering a dead end.
  *
- * Here the glyph is a real flex sibling of the <input> inside one light box, so
- * there is no positioning to get wrong and no label-height constant to keep in
- * step. The label is a real <label> with a `for`, so the association is
- * structural rather than positional.
+ * That is a UI decision, not the enforcement. AssetComposer decides it (see
+ * `accountAccess()`) and the endpoint re-checks it, and the password check there
+ * is the one that actually holds.
+ *
+ * THE MARKUP IS THE SHARED ACCOUNT CARD
+ * ------------------------------------
+ * The card and the fields come from AccountCard.tsx, because the change-email
+ * page is a second form built from exactly the same parts. See that file for why
+ * the fields are hand-written rather than built on the panel's <Field>/<Input>.
  */
 const AccountOverviewContainer: React.FC = () => {
     const { addFlash, clearAndAddHttpError } = useFlash();
-
-    // The help toggle in the card header. A button rather than a permanent
-    // paragraph because the reference hides it behind the "?" affordance, and
-    // because the field already carries the length rule - this is the fuller
-    // explanation for someone who wants it, not the only place it is stated.
-    const [helpOpen, setHelpOpen] = useState(false);
+    const { canChangeEmail, signedInWith } = accountAccess();
 
     const onSubmit = (values: Values, { setSubmitting, resetForm }: FormikHelpers<Values>) => {
         updatePassword({
@@ -90,142 +93,91 @@ const AccountOverviewContainer: React.FC = () => {
             })}
         >
             {({ isSubmitting, errors, touched, submitForm }) => (
-                <div className={'pt-acct'}>
-                    <form
-                        className={'pt-acct-card'}
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            submitForm();
-                        }}
-                    >
-                        <div className={'pt-acct-head'}>
-                            <h1 className={'pt-acct-title'}>Password</h1>
-                            <button
-                                type={'button'}
-                                className={'pt-acct-help-btn'}
-                                aria-expanded={helpOpen}
-                                aria-controls={'pt-acct-help'}
-                                onClick={() => setHelpOpen((open) => !open)}
-                            >
-                                <FontAwesomeIcon icon={faCircleQuestion} aria-hidden={'true'} />
-                                <span className={'sr-only'}>About this form</span>
-                            </button>
-                        </div>
+                <AccountCard
+                    title={'Password'}
+                    help={
+                        'Changing your password does not sign you out anywhere else, and it does not affect ' +
+                        'API keys or sub-users. If two-step verification is on, it stays on and is still asked ' +
+                        'for at your next sign-in.'
+                    }
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        submitForm();
+                    }}
+                >
+                    <AccountField
+                        id={'pt-acct-current'}
+                        name={'currentPassword'}
+                        type={'password'}
+                        label={'Current Password'}
+                        icon={faLock}
+                        autoComplete={'current-password'}
+                        error={touched.currentPassword && errors.currentPassword ? errors.currentPassword : undefined}
+                        disabled={isSubmitting}
+                    />
 
-                        {helpOpen && (
-                            <div className={'pt-acct-help'} id={'pt-acct-help'}>
-                                <p style={{ margin: 0 }}>
-                                    Changing your password does not sign you out anywhere else, and it does not affect
-                                    API keys or sub-users. If two-step verification is on, it stays on and is
-                                    still asked for at your next sign-in.
-                                </p>
-                            </div>
+                    <AccountField
+                        id={'pt-acct-new'}
+                        name={'newPassword'}
+                        type={'password'}
+                        label={'New Password'}
+                        icon={faLock}
+                        autoComplete={'new-password'}
+                        error={touched.newPassword && errors.newPassword ? errors.newPassword : undefined}
+                        disabled={isSubmitting}
+                        hint={
+                            <p className={'pt-acct-hint'}>
+                                Your new password should be at least 8 characters in length and unique to this website.
+                            </p>
+                        }
+                    />
+
+                    <AccountField
+                        id={'pt-acct-confirm'}
+                        name={'passwordConfirmation'}
+                        type={'password'}
+                        label={'Confirm New Password'}
+                        icon={faLock}
+                        autoComplete={'new-password'}
+                        error={
+                            touched.passwordConfirmation && errors.passwordConfirmation
+                                ? errors.passwordConfirmation
+                                : undefined
+                        }
+                        disabled={isSubmitting}
+                    />
+
+                    <div className={'pt-acct-actions'}>
+                        <button type={'submit'} className={'pt-acct-submit'} disabled={isSubmitting}>
+                            <FontAwesomeIcon icon={faLock} aria-hidden={'true'} />
+                            <span>{isSubmitting ? 'Updating...' : 'Update Password'}</span>
+                        </button>
+
+                        {/*
+                         * A Link, not a button with an onClick. It goes somewhere,
+                         * and an anchor keeps middle-click, open-in-new-tab and
+                         * copy-link working - none of which survive a div. It is
+                         * also the only interactive sibling of the submit button
+                         * that cannot submit the form by accident: an anchor has
+                         * no type, and a stray `type` here would be the kind of
+                         * thing that changes what the form does.
+                         */}
+                        {canChangeEmail ? (
+                            <Link to={'/account/email'} className={'pt-acct-submit pt-acct-submit-link'}>
+                                <FontAwesomeIcon icon={faEnvelope} aria-hidden={'true'} />
+                                <span>Change Email</span>
+                            </Link>
+                        ) : (
+                            <p className={'pt-acct-note'}>
+                                {signedInWith
+                                    ? `Signed in with ${signedInWith}, so the address on this account cannot be changed here.`
+                                    : 'The address on this account cannot be changed from here.'}
+                            </p>
                         )}
-
-                        <div className={'pt-acct-body'}>
-                            <Field
-                                id={'pt-acct-current'}
-                                name={'currentPassword'}
-                                type={'password'}
-                                label={'Current Password'}
-                                autoComplete={'current-password'}
-                                error={touched.currentPassword && errors.currentPassword ? errors.currentPassword : undefined}
-                                disabled={isSubmitting}
-                            />
-
-                            <Field
-                                id={'pt-acct-new'}
-                                name={'newPassword'}
-                                type={'password'}
-                                label={'New Password'}
-                                autoComplete={'new-password'}
-                                error={touched.newPassword && errors.newPassword ? errors.newPassword : undefined}
-                                disabled={isSubmitting}
-                            >
-                                <p className={'pt-acct-hint'}>
-                                    Your new password should be at least 8 characters in length and unique to this
-                                    website.
-                                </p>
-                            </Field>
-
-                            <Field
-                                id={'pt-acct-confirm'}
-                                name={'passwordConfirmation'}
-                                type={'password'}
-                                label={'Confirm New Password'}
-                                autoComplete={'new-password'}
-                                error={
-                                    touched.passwordConfirmation && errors.passwordConfirmation
-                                        ? errors.passwordConfirmation
-                                        : undefined
-                                }
-                                disabled={isSubmitting}
-                            />
-
-                            <div className={'pt-acct-actions'}>
-                                <button type={'submit'} className={'pt-acct-submit'} disabled={isSubmitting}>
-                                    <FontAwesomeIcon icon={faLock} aria-hidden={'true'} />
-                                    <span>{isSubmitting ? 'Updating...' : 'Update Password'}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                </AccountCard>
             )}
         </Formik>
-    );
-};
-
-/**
- * One labelled control: label above, then a light box holding the glyph and the
- * input side by side.
- *
- * The glyph is a flex sibling rather than an overlay, so the box is exactly one
- * row and cannot drift out of the input - see the class docblock above.
- */
-const Field: React.FC<{
-    id: string;
-    name: keyof Values;
-    type: string;
-    label: string;
-    autoComplete: string;
-    error?: string;
-    disabled: boolean;
-    children?: React.ReactNode;
-}> = ({ id, name, type, label, autoComplete, error, disabled, children }) => {
-    // `touched && errors` is decided by the caller, so this only has to render.
-    const invalid = Boolean(error);
-
-    return (
-        <div className={`pt-acct-field${invalid ? ' is-invalid' : ''}`}>
-            <label className={'pt-acct-label'} htmlFor={id}>
-                {label}
-            </label>
-
-            <div className={'pt-acct-control'}>
-                <span className={'pt-acct-icon'} aria-hidden={'true'}>
-                    <FontAwesomeIcon icon={faLock} />
-                </span>
-                <input
-                    id={id}
-                    name={name}
-                    type={type}
-                    className={'pt-acct-input'}
-                    autoComplete={autoComplete}
-                    disabled={disabled}
-                    aria-invalid={invalid || undefined}
-                    aria-describedby={invalid ? `${id}-error` : undefined}
-                />
-            </div>
-
-            {children}
-
-            {invalid && (
-                <p className={'pt-acct-error'} id={`${id}-error`} role={'alert'}>
-                    {error}
-                </p>
-            )}
-        </div>
     );
 };
 

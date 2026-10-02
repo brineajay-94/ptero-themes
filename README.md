@@ -118,6 +118,17 @@ What it changes on top of the stock panel:
     a confirmation token that only the stock password path mints, and quietly
     bypassing it would turn social sign-in into a way around a factor the user
     deliberately enabled. They are sent to the password form with an explanation.
+  - **A successful sign-in records the provider in the session.** That is session
+    state and not account state on purpose — an account can be signed in with a
+    password in one tab and with Google in another, and only the session knows
+    which is which. What reads it is [Change email](#what-it-changes-on-top-of-the-stock-panel)
+    below, which will not touch the address from a provider session. It is not the
+    enforcement by itself: "remember me" reopens a session from its cookie with a
+    fresh session store, so the marker can be absent on a social user. That is fine,
+    because an account created through a provider holds a 48-character random
+    password nobody was ever given, and the password check refuses it anyway. The
+    marker is what lets the page say *why* instead of failing on a password the user
+    was never handed.
 
   The buttons are plain anchors, not JS-navigating buttons, so middle-click,
   open-in-new-tab and copy-link all keep working. Both brand marks are inlined
@@ -138,6 +149,11 @@ What it changes on top of the stock panel:
   with `aria-expanded`, not a decorative circle. The confirm is **green**, matching
   the reference's account screen rather than the panel's blue submit.
 
+  Under the confirm sits a second **green button, Change Email**, which opens
+  `/account/email`. It is a `<Link>`, not a button with an `onClick`, so
+  middle-click, open-in-new-tab and copy-link keep working — and an anchor cannot
+  submit the form it happens to sit inside.
+
   It posts to the panel's own `/api/client/account/password`, so the current
   password is verified and the new one hashed by the panel's normal code — a
   reskin, not a reimplementation of authentication. The other account screens are
@@ -152,6 +168,39 @@ What it changes on top of the stock panel:
   computed from the label's line box, its margin and the input's half-height. Here
   the glyph is a real flex sibling, so there is no arithmetic to keep in step, and
   the labels are real `<label for>` rather than positional associations.
+- **Change email** — `/account/email` is a themed page for changing the address on
+  the account: the current address shown as a value, then **New Email**, **Confirm
+  New Email**, and — last, on purpose — the **Current Password** that gates the
+  whole thing. Changing the address is how an account is taken over, and it is the
+  one account change the panel does not confirm with a second factor, so the
+  password is the page rather than a footnote.
+
+  The password is checked **server-side**, by the panel's own `Hasher`. There is no
+  client-side version of that rule to bypass by editing the form.
+
+  A session opened with **Google or Discord cannot do this**, and that is enforced
+  twice. `SocialAuthService` records the provider in the session on a social
+  sign-in; `AccountEmailController` refuses such a session before it even looks at
+  the password — before it on purpose, so a session that may not make the change
+  cannot use it to test whether a password is correct either. On top of that, an
+  account created through a provider holds a 48-character random password that
+  nobody was ever given, so there is nothing to type into the box; the password
+  check refuses it regardless, which also covers the case where the session marker
+  is gone because “remember me” reopened the session from its cookie.
+
+  In the UI that means a **sentence in place of the button**, not a disabled one:
+  *Signed in with Google, so the address on this account cannot be changed here.*
+  Offering a form that can only end in a refusal is offering a dead end. Visiting
+  `/account/email` directly gets the same explanation and a way back.
+
+  The write itself is entirely the panel's — `UserUpdateService`, the model's own
+  `getRulesForUpdate()` validation, the panel's own three-changes-per-day email
+  budget on the panel's own rate-limit key, and the `user:account.email-changed`
+  activity log. Only the policy above is new. What forces a theme endpoint rather
+  than the panel's own `PUT /api/client/account/email` is that `routes/api-client.php`
+  is a panel file the theme does not ship, so there is nowhere to hang a middleware
+  that knows about social sessions; hiding the button would have been the whole of
+  the enforcement, and hiding a button is not a check.
 - **Console** â€” terminal chrome (window bar, dots, title, command hint) in
   navy-black, neutral stat cards with blue accents, a branded header with a
   status chip, and a green **Start** call-to-action.
@@ -608,6 +657,11 @@ render, so they match the panel.
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
 | `routers/AuthenticationRouter.tsx` | replace |
+| `components/account/AccountCard.tsx` | create - the card, the labelled control and the read-only value the two account screens share |
+| `components/account/AccountOverviewContainer.tsx` | create - the password form, plus the green **Change Email** button under the confirm |
+| `components/account/AccountEmailContainer.tsx` | create - `/account/email`: new address, confirmation, and the current password that gates the change |
+| `api/client/account.ts` | create - `POST /api/client/account/password` (the panel's) and `PUT /auth/account/email` (the theme's, see *Change email* above) |
+| `lib/accountRoutes.ts` | create - the account routes the theme owns, shared by router/topbar/sidebar |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
 | `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
 | `components/elements/DropdownMenu.tsx` | replace - viewport-clamped `position: fixed` panel (see *File actions menu* below) |
@@ -624,17 +678,18 @@ render, so they match the panel.
 | `app/Http/Controllers/Admin/RegistrationController.php` | create - enable/disable public sign-up |
 | `resources/views/admin/registration.blade.php` | create - Admin -> Registration page |
 | `app/Http/Controllers/Auth/RegisterController.php` | create - `POST /auth/register` creates the user via the panel's `UserCreationService` |
+| `app/Http/Controllers/Auth/AccountEmailController.php` | create - `PUT /auth/account/email`: refuses a provider session first, then the panel's `Hasher` checks the current password, then the panel's `UserUpdateService` does the write |
 | `app/Services/Social/SocialAuthService.php` | create - the Google/Discord OAuth2 flow: state, code exchange, profile, account resolution. No Socialite, no Composer change |
-| `app/Http/Controllers/Auth/SocialAuthController.php` | create - `GET /auth/social/{provider}/redirect` and `/callback` |
+| `app/Http/Controllers/Auth/SocialAuthController.php` | create - `GET /auth/social/{provider}/redirect` and `/callback`. A successful callback also records the provider in the session, which is what keeps a social session out of *Change email* |
 | `app/Http/Controllers/Admin/SocialAuthController.php` | create - Admin -> Social Login: client id, encrypted secret, per-provider switch, clear-secret |
 | `resources/views/admin/social-auth.blade.php` | create - one card per provider, with the copyable callback URL to register |
-| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` / `.social.providers` |
-| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` + the two social routes, no recaptcha middleware |
+| `app/Http/ViewComposers/AssetComposer.php` | replace - exposes `SiteConfiguration.logo` / `.registration` / `.backgrounds` / `.social.providers` / `.account` |
+| `routes/auth.php` | replace - stock routes + `GET/POST /auth/register` + the two social routes + `PUT /auth/account/email`, no recaptcha middleware |
 | `routes/admin.php` | replace - stock routes + `/admin/site-settings` (+ `/illustration` save and clear) + `/admin/registration` + `/admin/social-auth` |
 | `app/Support/IllustrationProcessor.php` | removed - the hero illustration it keyed and cropped is gone with the split layout |
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration + Social Login menu items, icon favicon |
 | `resources/scripts/components/auth/SocialLoginButtons.tsx` | create - the provider button row, or nothing when none is configured; both marks inlined SVG |
-| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()` from `SiteConfiguration` |
+| `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()`/`accountAccess()` from `SiteConfiguration` |
 | `resources/scripts/lib/theme.ts` | create â€” `ptColor` (Chart.js helper; dark-only, no theme state) |
 
 Server-side rendering, permissions and the database are unaffected. The API
@@ -1275,8 +1330,30 @@ webpack 5.105) with this package installed:
   on the palette stylesheet.
 - `install.sh` and `install.ps1` round-tripped against a fixture panel root,
   driven through the `brine` menu entry point on both platforms:
-  status (not installed) â†’ install â†’ status (installed) â†’ double install refused
-  â†’ update (single original backup kept, works only while installed) â†’
-  uninstall â†’ status (not installed), with every original file verified
+  status (not installed) → install → status (installed) → double install refused
+  → update (single original backup kept, works only while installed) →
+  uninstall → status (not installed), with every original file verified
   byte-identical to the pristine fixture afterwards.
+
+### Checked for the change-email release, in this checkout
+
+No panel checkout was present here, so the checks above were not re-run. What was
+run, and what it covered:
+
+- `php -l` clean on `AccountEmailController.php`, `SocialAuthService.php`,
+  `AssetComposer.php` and `routes/auth.php` under PHP 8.4.
+- `tsc --noEmit` over every touched TS/TSX file, in a scratch project with the
+  third-party typings (react 18, formik, yup, react-router 5, fontawesome 6)
+  installed and `@/*` mapped at the theme's own `resources/scripts`. Clean apart
+  from `TS2307` for the panel modules the theme does not ship, and the
+  `Spinner`/`twin.macro` cascade that follows from them — none of it in the files
+  this change touches.
+- Stylesheet braces balanced 325/325.
+- `manifest.json` parses; 72 entries, and all 70 `create`/`replace` payloads are
+  present under `theme/`.
+
+The panel-side checks that actually exercise this feature — signing in with
+Google and confirming the button is absent, signing in with a password and
+changing the address, and `yarn build:production` against a real panel — are still
+to be run wherever the panel is available.
 

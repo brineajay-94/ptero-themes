@@ -10,6 +10,7 @@ interface BrandWindow extends Window {
         };
         links?: { home?: string | null; discord?: string | null; status?: string | null };
         social?: { providers?: { id: string; label: string }[] };
+        account?: { can_change_email?: boolean; signed_in_with?: string | null };
     };
 }
 
@@ -112,10 +113,52 @@ export const socialProviders = (): SocialProvider[] => {
 /**
  * Where a provider's sign-in flow starts.
  *
- * A plain path rather than a React route: the provider redirects the browser
+ * A plain path rather than a React route: the provider redirects the browser to
  * somewhere a SPA router cannot follow, so this leaves the client entirely.
  */
 export const socialRedirectUrl = (provider: string): string => `/auth/social/${encodeURIComponent(provider)}/redirect`;
+
+export interface AccountAccess {
+    /** May this session open the change-email page at all? */
+    canChangeEmail: boolean;
+    /**
+     * Display name of the provider that opened this session, or null for a
+     * password sign-in. Null on a refusal for any other reason (a guest, or a
+     * panel whose AssetComposer has not been rebuilt), which is why the message
+     * it feeds has wording that works either way.
+     */
+    signedInWith: string | null;
+}
+
+/**
+ * What the account screens are allowed to offer this session.
+ *
+ * AssetComposer decides it server-side: false for a guest, and false for a
+ * session opened with Google or Discord, because the address a provider owns is
+ * not one a password-less session should be able to rewrite.
+ *
+ * This decides whether to DRAW the button, nothing more. The endpoint behind it
+ * re-checks all of it, and the password check there is the one that actually
+ * holds - a provider-created account holds a 48-character random password that
+ * nobody was ever told, so the marker is best understood as what lets the page
+ * explain itself instead of failing on a password the user does not have.
+ *
+ * Defaults to the closed state. That value is read from a global a Blade view
+ * writes, and a panel still running the previous AssetComposer has no `account`
+ * key at all - in which case offering a button that will be refused is worse than
+ * not offering one.
+ */
+export const accountAccess = (): AccountAccess => {
+    const account = (window as BrandWindow).SiteConfiguration?.account;
+    const id = typeof account?.signed_in_with === 'string' ? account.signed_in_with : null;
+
+    return {
+        canChangeEmail: account?.can_change_email === true,
+        // The id is resolved to its label through the provider list the login
+        // screen already uses, rather than a second copy of the names here.
+        signedInWith: socialProviders().find((provider) => provider.id === id)?.label ?? null,
+    };
+};
 
 /**
  * Build the inline style that points a background layer at the configured

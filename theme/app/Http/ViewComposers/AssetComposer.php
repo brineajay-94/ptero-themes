@@ -83,6 +83,20 @@ class AssetComposer
             'social' => [
                 'providers' => $this->socialProviders(),
             ],
+            // brine-theme: what this session is allowed to do on the account
+            // screens.
+            //
+            // `can_change_email` is false for a guest, and false for a session
+            // that was opened with Google or Discord - the address a provider
+            // owns is not one this panel should let a password-less session
+            // rewrite. `signed_in_with` carries the provider id (never a secret;
+            // it is the same id the login buttons are built from) so the UI can
+            // name the provider in the message instead of saying "a social
+            // account" at someone who only ever used one.
+            //
+            // This hides the button. It is not the only thing standing in the
+            // way - AccountEmailController re-checks all of it server-side.
+            'account' => $this->accountAccess(),
             // brine-theme: background images set in Admin -> Site Settings -> Background.
             // Each slot is null when the switch is off or no image was chosen, so
             // the React components simply skip the background layer.
@@ -136,6 +150,34 @@ class AssetComposer
             );
         } catch (\Throwable) {
             return [];
+        }
+    }
+
+    /**
+     * What the signed-in session may change about itself.
+     *
+     * Wrapped in try/catch for the same reason `socialProviders()` is: this
+     * composer runs on every view in the panel, so anything that throws here
+     * would take down pages that have nothing to do with the account screens.
+     *
+     * The default on failure is the PERMISSIVE one being false - `false` means
+     * "no change-email button", which is a missing affordance rather than a 500
+     * and cannot be talked into granting access. The endpoint behind it does
+     * not read this flag.
+     *
+     * @return array{can_change_email: bool, signed_in_with: string|null}
+     */
+    private function accountAccess(): array
+    {
+        try {
+            $provider = SocialAuthService::sessionProvider();
+
+            return [
+                'can_change_email' => auth()->check() && $provider === null,
+                'signed_in_with' => $provider,
+            ];
+        } catch (\Throwable) {
+            return ['can_change_email' => false, 'signed_in_with' => null];
         }
     }
 

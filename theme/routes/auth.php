@@ -88,5 +88,38 @@ Route::post('/logout', [Auth\LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('auth.logout');
 
+/*
+|--------------------------------------------------------------------------
+| Change Email Address
+|--------------------------------------------------------------------------
+|
+| Endpoint: /auth/account/email
+|
+| brine-theme: change the address on the signed-in account, with the current
+| password required and a session opened with Google or Discord refused.
+|
+| A WEB route rather than the panel's PUT /api/client/account/email, because the
+| rule that a provider session may not make this change is one the panel has no
+| way to express - there is nowhere to hang middleware for it, since
+| routes/api-client.php is a panel file this theme does not ship. Hiding the
+| button would be the whole of the enforcement that way, and hiding a button is
+| not a check. The controller verifies the session, the provider and the current
+| password, then hands the write to the panel's own UserUpdateService.
+|
+| `withoutMiddleware('guest')` + `auth` is the pair the logout route above uses,
+| for the same reason: this whole file is mounted inside the panel's `guest`
+| group, which bounces a signed-in user away before any handler runs.
+|
+| Deliberately outside the `throttle:authentication` group - that limiter is ten
+| requests a minute across every auth action, which is the wrong shape for an
+| endpoint that is allowed three calls a DAY. The controller applies the panel's
+| own daily email-change budget instead, on the same key, so the two paths share
+| one allowance.
+*/
+Route::put('/account/email', [Auth\AccountEmailController::class, 'update'])
+    ->withoutMiddleware('guest')
+    ->middleware('auth')
+    ->name('auth.account.email');
+
 // Catch any other combinations of routes and pass them off to the React component.
 Route::fallback([Auth\LoginController::class, 'index']);

@@ -262,7 +262,16 @@ export default ({
                 {mode === 'server' ? (
                     <>
                         <Section label={'Server'} />
-                        <Item to={'/'} icon={faThLarge} onClick={onNavigate}>
+                        {/*
+                         * `exact` is load-bearing and was missing. `NavLink` matches
+                         * when the current path STARTS WITH `to`, and `to` here is
+                         * `/` - which every path on the panel starts with. So this
+                         * item read as the active one on Files, Console, Databases,
+                         * every page, and lit up alongside whichever entry actually
+                         * matched - two highlighted rows at once, on every server
+                         * page, which is what it looked like.
+                         */}
+                        <Item to={'/'} icon={faThLarge} exact onClick={onNavigate}>
                             Dashboard
                         </Item>
                         {/* There used to be a non-clickable row here showing the current

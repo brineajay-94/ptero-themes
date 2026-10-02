@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBolt, faCog, faCopy, faPlug, faPowerOff, faStop, faSyncAlt, faTag } from '@fortawesome/free-solid-svg-icons';
+import { faBolt, faCog, faPlay, faStop, faSyncAlt, faTag } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
 import Can from '@/components/elements/Can';
-import CopyOnClick from '@/components/elements/CopyOnClick';
 import { Dialog } from '@/components/elements/dialog';
 import getServerEggs from '@/api/server/eggs';
-import getServerResourceUsage from '@/api/server/getServerResourceUsage';
 import { serverVersionLabel } from '@/lib/serverFamily';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
@@ -18,41 +16,42 @@ type PowerSignal = 'start' | 'stop' | 'restart' | 'kill';
 type IconProp = React.ComponentProps<typeof FontAwesomeIcon>['icon'];
 
 /**
- * The Aternos-style status block at the top of a server's page.
+ * The status block at the top of a server page: what it runs, what version, and
+ * the power controls.
  *
- * WHAT IS IN THE REFERENCE, AND WHAT HAPPENS TO IT HERE
- * ---------------------------------------------------
- *   Address card + "Connect"  Kept. The heading is the server's address, and the
- *                             button copies it - Aternos's Connect opens a
- *                             launcher dialog and this panel has nothing to
- *                             launch, so the title says "copy" rather than the
- *                             button pretending to open something.
- *   Full-width status bar     Kept, and it is the one thing here that has to be
- *                             right: red for offline, green for running, amber
- *                             while it is changing state.
- *   Green Start button        Kept as the primary action, becoming a red Stop
- *                             when the server is up. Restart and Forcibly-stop
- *                             sit beside it as small buttons - the reference
- *                             shows only Start, but dropping restart and kill
- *                             would take away what the panel's own power
- *                             controls offer.
- *   Blue RAM-boost banner     DROPPED. It is Aternos selling an upgrade; here
- *                             it would advertise a product that does not exist.
- *   Address / Software /      Kept. Address from the server's allocation,
- *   Version rows              Software from /auth/servers/eggs (the panel's own
- *                             server payload carries no egg name), Version from
- *                             the egg's variables.
- *   "Change" buttons          Rendered only where they lead somewhere, which is
- *                             the whole point. Software is an egg change: this
- *                             panel's updateBuild takes allocations and limits
- *                             and no egg_id, so it is an admin action and the
- *                             button appears for a root admin pointing at the
- *                             admin Software tab, and for anyone else there is
- *                             no button. Version is different - the panel's
- *                             Startup page is exactly where a user changes
- *                             these values - so that one is always there.
- *   Empty left card           Filled with live CPU / memory / disk rather than
- *                             left blank.
+ * ORDER, AND WHY IT IS NOT THE REFERENCE'S ORDER
+ * ----------------------------------------------
+ * The reference reads top to bottom as address card, status bar, banner, Start,
+ * then Address / Software / Version. This is: SOFTWARE and VERSION first, then the
+ * power buttons, and the address moved down beside the console.
+ *
+ * The address was the odd one out up here - it is the thing a PLAYER needs, and
+ * the player is looking at the console, not at a heading - while Software and
+ * Version are the things an OWNER checks before touching anything. They are also
+ * the two rows that carry an action, and an action is worth more next to the power
+ * controls than stranded above them. There is no Connect button: Aternos's Connect
+ * opens a launcher dialog and this panel has nothing to launch, so it went rather
+ * than becoming a button that quietly copies something.
+ *
+ * WHAT THE REFERENCE GOT AND WHAT IT DIDN'T
+ * -----------------------------------------
+ *   Blue RAM-boost banner      DROPPED. It is Aternos selling an upgrade; on this
+ *                              panel it advertises a product that does not exist.
+ *   One large Start            Start and Stop, with Restart and Forcibly-stop
+ *                              beside them in the SAME treatment. The reference
+ *                              shows only Start, but these are four signals the
+ *                              panel offers and the second row of tiny square
+ *                              icons it was replaced with read as a different,
+ *                              lesser class of action than the one beside them.
+ *   Software -> Change         Only for a root admin, to the admin Software tab.
+ *                              Changing the egg is an admin action here -
+ *                              updateBuild takes allocations and limits and no
+ *                              egg_id - so for anyone else there is NO button.
+ *                              A button that goes nowhere is the same failure as
+ *                              the "No egg assigned" string this theme shipped
+ *                              once.
+ *   Version -> Change          Always, to the panel's Startup page, which is
+ *                              genuinely where a user changes these values.
  *
  * WHY POWER GOES OVER THE SOCKET
  * -----------------------------
@@ -75,22 +74,6 @@ const statusLabel = (status?: string): string => {
     if (status === 'stopping') return 'Stopping';
 
     return 'Offline';
-};
-
-/** Bytes as the largest unit that still leaves a readable number. */
-const formatBytes = (bytes: number): string => {
-    if (!bytes || bytes < 0) return '0 B';
-
-    const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
-    let value = bytes;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        unit += 1;
-    }
-
-    return `${value >= 100 || unit === 0 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
 };
 
 /**
@@ -118,7 +101,6 @@ const ServerStatusPanel: React.FC = () => {
 
     const internalId = ServerContext.useStoreState((state) => state.server.data!.internalId);
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
-    const allocations = ServerContext.useStoreState((state) => state.server.data!.allocations);
     const variables = ServerContext.useStoreState((state) => state.server.data!.variables);
 
     const status = ServerContext.useStoreState((state) => state.status.value);
@@ -129,14 +111,6 @@ const ServerStatusPanel: React.FC = () => {
 
     const [confirmingKill, setConfirmingKill] = useState(false);
     const [eggName, setEggName] = useState<string | null>(null);
-    const [usage, setUsage] = useState<{ cpu: number; memory: number; disk: number } | null>(null);
-
-    // The primary allocation. `isDefault` is the panel's own flag for it; the
-    // fallback to the first entry is because a server mid-transfer can have none
-    // marked, and the first allocation is still the one the panel shows as the
-    // address elsewhere.
-    const primary = allocations?.find((allocation) => allocation.isDefault) || allocations?.[0];
-    const address = primary ? `${primary.ip}:${primary.port}` : '';
 
     // The egg name. The server payload carries none, so this is the only source,
     // and a failure leaves the row on its fallback rather than taking the page
@@ -162,42 +136,6 @@ const ServerStatusPanel: React.FC = () => {
         };
     }, [uuid]);
 
-    // Live usage for the left card. Polled, because the card IS a usage card.
-    // Skipped entirely while the server is offline - the daemon has nothing to
-    // report and asking anyway only fills the panel log, which is the same
-    // complaint the jar-flavour probe raises.
-    useEffect(() => {
-        if (!uuid || status !== 'running') {
-            setUsage(null);
-            return;
-        }
-
-        let active = true;
-
-        const read = () =>
-            getServerResourceUsage(uuid)
-                .then((stats) => {
-                    if (active) {
-                        setUsage({
-                            cpu: stats.cpuUsagePercent,
-                            memory: stats.memoryUsageInBytes,
-                            disk: stats.diskUsageInBytes,
-                        });
-                    }
-                })
-                // The daemon can refuse mid-restart. Leave the card on its last
-                // reading rather than blanking it on one failed poll.
-                .catch(() => undefined);
-
-        read();
-        const timer = setInterval(read, 10000);
-
-        return () => {
-            active = false;
-            clearInterval(timer);
-        };
-    }, [uuid, status]);
-
     const send = (signal: PowerSignal) => {
         setConfirmingKill(false);
 
@@ -214,73 +152,101 @@ const ServerStatusPanel: React.FC = () => {
 
     return (
         <div className={'pt-sv'}>
-            <div className={'pt-sv-hero'}>
-                <h1 className={'pt-sv-host'} title={address || undefined}>
-                    {address || 'No allocation assigned'}
-                </h1>
+            {/*
+             * Software and Version first, as full-width labelled blocks. These
+             * are the two facts an owner checks before touching anything, and
+             * both carry an action - which is worth having next to the power
+             * controls rather than stranded above them.
+             */}
+            <div className={'pt-sv-rows pt-sv-rows-top'}>
+                <Row label={'Software'} icon={faCog}>
+                    <span className={'pt-sv-row-value'}>{eggName || 'Unknown'}</span>
+                    {rootAdmin && internalId !== undefined && internalId !== null && (
+                        <a
+                            className={'pt-sv-row-btn is-success'}
+                            href={`/admin/servers/view/${internalId}/software`}
+                            target={'_blank'}
+                            rel={'noreferrer'}
+                        >
+                            <FontAwesomeIcon icon={faCog} aria-hidden={'true'} />
+                            <span>Change</span>
+                        </a>
+                    )}
+                </Row>
 
-                {address && (
-                    <CopyOnClick text={address}>
-                        <button type={'button'} className={'pt-sv-connect'} title={'Copy the address to your clipboard'}>
-                            <FontAwesomeIcon icon={faPlug} aria-hidden={'true'} />
-                            <span>Connect</span>
-                        </button>
-                    </CopyOnClick>
-                )}
+                <Row label={'Version'} icon={faTag}>
+                    <span className={'pt-sv-row-value'}>{version || 'Not set by this software'}</span>
+                    <Link className={'pt-sv-row-btn is-success'} to={`/server/${internalId}/startup`}>
+                        <FontAwesomeIcon icon={faTag} aria-hidden={'true'} />
+                        <span>Change</span>
+                    </Link>
+                </Row>
             </div>
 
             {/*
-             * A live region on purpose: the state changes on a socket push, with
-             * no navigation and no focus move, which is exactly what
-             * role="status" is for.
+             * The status band, and then the power controls. A live region, on
+             * purpose: the state changes on a socket push, with no navigation and
+             * no focus move, which is exactly what role="status" is for.
              */}
             <div className={`pt-sv-status is-${kind}`} role={'status'} aria-live={'polite'}>
                 <span className={'pt-sv-dot'} aria-hidden={'true'} />
                 <span>{statusLabel(status)}</span>
             </div>
 
+            {/*
+             * All four signals in one treatment. They were a large Start with two
+             * small square icons beside it, and the two sizes read as two
+             * different classes of action when they are the same class: any of
+             * them that the panel exposes.
+             */}
             <div className={'pt-sv-power'}>
-                <Can action={['control.start', 'control.stop']} matchAny>
+                <Can action={'control.start'}>
                     <button
                         type={'button'}
-                        className={`pt-sv-power-btn ${isRunning ? 'is-stop' : 'is-start'}`}
-                        // Offline is the only state Start means anything in, and a
-                        // state already in flight would be refused by the daemon.
-                        disabled={isBusy || locked}
-                        onClick={() => send(isRunning ? 'stop' : 'start')}
+                        className={'pt-sv-power-btn is-start'}
+                        disabled={isRunning || isBusy || locked}
+                        onClick={() => send('start')}
                     >
-                        <FontAwesomeIcon icon={isRunning ? faStop : faPowerOff} aria-hidden={'true'} />
-                        <span>{isRunning ? 'Stop' : 'Start'}</span>
+                        <FontAwesomeIcon icon={faPlay} aria-hidden={'true'} />
+                        <span>Start</span>
                     </button>
                 </Can>
 
-                <div className={'pt-sv-power-alt'}>
-                    <Can action={'control.restart'}>
-                        <button
-                            type={'button'}
-                            className={'pt-sv-icon-btn'}
-                            disabled={!isRunning || locked}
-                            onClick={() => send('restart')}
-                            title={'Restart this server'}
-                            aria-label={'Restart this server'}
-                        >
-                            <FontAwesomeIcon icon={faSyncAlt} aria-hidden={'true'} />
-                        </button>
-                    </Can>
+                <Can action={'control.stop'}>
+                    <button
+                        type={'button'}
+                        className={'pt-sv-power-btn is-stop'}
+                        disabled={!isRunning || isBusy || locked}
+                        onClick={() => send('stop')}
+                    >
+                        <FontAwesomeIcon icon={faStop} aria-hidden={'true'} />
+                        <span>Stop</span>
+                    </button>
+                </Can>
 
-                    <Can action={'control.stop'}>
-                        <button
-                            type={'button'}
-                            className={'pt-sv-icon-btn is-danger'}
-                            disabled={!isRunning || locked}
-                            onClick={() => setConfirmingKill(true)}
-                            title={'Forcibly stop this server'}
-                            aria-label={'Forcibly stop this server'}
-                        >
-                            <FontAwesomeIcon icon={faBolt} aria-hidden={'true'} />
-                        </button>
-                    </Can>
-                </div>
+                <Can action={'control.restart'}>
+                    <button
+                        type={'button'}
+                        className={'pt-sv-power-btn is-restart'}
+                        disabled={!isRunning || isBusy || locked}
+                        onClick={() => send('restart')}
+                    >
+                        <FontAwesomeIcon icon={faSyncAlt} aria-hidden={'true'} />
+                        <span>Restart</span>
+                    </button>
+                </Can>
+
+                <Can action={'control.stop'}>
+                    <button
+                        type={'button'}
+                        className={'pt-sv-power-btn is-kill'}
+                        disabled={!isRunning || isBusy || locked}
+                        onClick={() => setConfirmingKill(true)}
+                    >
+                        <FontAwesomeIcon icon={faBolt} aria-hidden={'true'} />
+                        <span>Kill</span>
+                    </button>
+                </Can>
 
                 {locked && (
                     <p className={'pt-sv-locked'}>
@@ -293,79 +259,14 @@ const ServerStatusPanel: React.FC = () => {
                 )}
             </div>
 
-            <div className={'pt-sv-grid'}>
-                <div className={'pt-sv-usage'}>
-                    {usage ? (
-                        <dl className={'pt-sv-usage-list'}>
-                            <div>
-                                <dt>CPU</dt>
-                                <dd>{usage.cpu.toFixed(1)}%</dd>
-                            </div>
-                            <div>
-                                <dt>Memory</dt>
-                                <dd>{formatBytes(usage.memory)}</dd>
-                            </div>
-                            <div>
-                                <dt>Disk</dt>
-                                <dd>{formatBytes(usage.disk)}</dd>
-                            </div>
-                        </dl>
-                    ) : (
-                        <p className={'pt-sv-usage-empty'}>
-                            {isRunning
-                                ? 'Reading resource usage...'
-                                : 'Resource usage appears while the server is running.'}
-                        </p>
-                    )}
-                </div>
-
-                <div className={'pt-sv-rows'}>
-                    <Row label={'Address'} icon={faPlug}>
-                        <span className={'pt-sv-row-value'}>{address || 'No allocation assigned'}</span>
-                        {/*
-                         * CopyOnClick does the copy AND the confirmation, and it
-                         * clones its child's onClick over its own - so this button
-                         * carries no click handler of its own. It used to, to flip
-                         * the label to "Copied", which meant two independent
-                         * confirmation mechanisms racing each other for the same
-                         * click: the panel's toast and a label that could go stale
-                         * if the component unmounted inside its own timeout.
-                         */}
-                        {address && (
-                            <CopyOnClick text={address}>
-                                <button type={'button'} className={'pt-sv-row-btn is-primary'}>
-                                    <FontAwesomeIcon icon={faCopy} aria-hidden={'true'} />
-                                    <span>Copy</span>
-                                </button>
-                            </CopyOnClick>
-                        )}
-                    </Row>
-
-                    <Row label={'Software'} icon={faCog}>
-                        <span className={'pt-sv-row-value'}>{eggName || 'Unknown'}</span>
-                        {rootAdmin && internalId !== undefined && internalId !== null && (
-                            <a
-                                className={'pt-sv-row-btn is-success'}
-                                href={`/admin/servers/view/${internalId}/software`}
-                                target={'_blank'}
-                                rel={'noreferrer'}
-                            >
-                                <FontAwesomeIcon icon={faCog} aria-hidden={'true'} />
-                                <span>Change</span>
-                            </a>
-                        )}
-                    </Row>
-
-                    <Row label={'Version'} icon={faTag}>
-                        <span className={'pt-sv-row-value'}>{version || 'Not set by this software'}</span>
-                        <Link className={'pt-sv-row-btn is-success'} to={`/server/${internalId}/startup`}>
-                            <FontAwesomeIcon icon={faTag} aria-hidden={'true'} />
-                            <span>Change</span>
-                        </Link>
-                    </Row>
-                </div>
-            </div>
-
+            {/*
+             * The address, the live usage card and the panel's uptime/resource
+             * details all moved DOWN beside the console, into
+             * ServerConsoleContainer. What is left here is what belongs above it:
+             * what the server runs, what version, and the power controls. The
+             * address in particular is the thing a PLAYER wants, and the player is
+             * reading the console.
+             */}
             <Dialog.Confirm
                 open={confirmingKill}
                 hideCloseIcon

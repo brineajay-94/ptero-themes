@@ -242,21 +242,33 @@ waits for anything `AppShell` renders. Grep for
 `ServerContext.useStoreState|useStoreActions` and confirm each hit is only
 reachable from `ServerRouter`.
 
-**The status panel at the top of the console**, matching the reference top to
-bottom: the address card with a **Connect** button, a full-width status bar (red
-offline, green running, amber in between), a large green **Start**, and the
-**Address / Software / Version** rows beside a live CPU/memory/disk card.
+**The status panel at the top of the console.** Order is **Software, Version, then
+the status band, then the four power buttons** — and the address moved down beside
+the console, which is where it belongs: one is what an *owner* checks before
+touching anything, the other is what a *player* needs while reading console
+output. There is no Connect button; Aternos's opens a launcher dialog and nothing
+on this panel does.
+
+All four power signals share **one** button class — Start, Stop, Restart, Kill.
+They were a large Start with two small square icons beside it, and two sizes read
+as two different classes of action when they are the same class. Colour carries
+the difference now: green start, red stop/kill, blue restart. They wrap rather
+than scroll, because a power control you have to scroll sideways to find is one
+you do not use.
+
+The **address** sits above the terminal, next to `ServerDetailsBlock` (uptime,
+CPU, memory, disk, network) — where you connect, and how the thing is doing.
 
 What did *not* survive the translation, and why:
 
 | Reference | Here | Why |
 | --- | --- | --- |
 | Blue RAM-boost banner | **Dropped** | It is Aternos selling an upgrade. On this panel it advertises a product that does not exist. |
-| One large **Start** | Start, **plus Restart and Forcibly-stop** beside it | The reference shows only Start, but dropping two power signals the panel offers would be a regression dressed as a match. |
-| **Connect** opens a launcher | **Connect** copies the address | Aternos's Connect dialog has no panel equivalent; the button's `title` says it copies. |
+| Connect button | **Dropped** | It opens a launcher dialog; there is nothing to launch here. |
+| One large **Start** | Four buttons, same class | Dropping two power signals the panel offers would be a regression dressed as a match. |
 | Software → **Change** | Only for a **root admin**, to the admin Software tab | Changing the egg is an admin action here — `updateBuild` takes allocations and limits and no `egg_id`. For anyone else there is **no button**, because a button that goes nowhere is the same failure as the “No egg assigned” string this theme already shipped once. |
 | Version → **Change** | Always, to the panel's **Startup** page | That page is genuinely where a user changes those values. |
-| Empty left card | Live CPU / memory / disk | — |
+| Empty left card | Dropped | Its CPU/memory/disk readings are already in the console's own detail column, so a second card repeated them. |
 
 Power goes over the `ServerContext` socket with `socket.send('set state', …)`,
 exactly as the panel's own `PowerButtons` does — the socket is already open here
@@ -1499,10 +1511,24 @@ checking — that is what turned the second one from "looks wrong" into a hard p
 error. For the non-Blade PHP (`app/`, `routes/`), a plain `php -l` over each file
 is enough, and all 12 pass.
 
-### Two checks that are not optional, and are not `tsc`
+### Three checks that are not optional, and are not `tsc`
 
 Both of these are classes of bug that typecheck clean and lint clean and still
 take the panel down.
+
+**3. Paired Tailwind colours invert with the palette.** This theme deliberately
+flips the neutral ramp — 50-500 become ink, 600-900 become surfaces — which is
+what lets the stock panel's ~200 colour utilities re-skin onto a light page
+without a component edit. But any panel component that pairs a *light* text step
+with a *dark* surface step inverts into light-on-light and becomes invisible, and
+nothing warns: it is valid CSS, it just reads as blank.
+
+The one that bit is the copy toast, emitted by `CopyOnClick` as
+`text-gray-200 bg-neutral-600/95`. It is now overridden in the stylesheet as an
+exact class **combination**, because `text-gray-200` on its own is correct all
+over the panel and overriding that half would darken half the panel to fix one
+toast. When you add a panel component that pairs the ramp against itself, check
+both halves explicitly rather than trusting either one's polarity.
 
 **1. FontAwesome names must exist in the panel's installed set.** The panel pins
 `@fortawesome/free-solid-svg-icons` to `^5.15.1` and `@fortawesome/react-fontawesome`

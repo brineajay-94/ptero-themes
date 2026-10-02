@@ -70,8 +70,12 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         visible: false,
     };
 
+    /** Pending reposition, coalesced to one per animation frame. See below. */
+    frame: number | null = null;
+
     componentWillUnmount() {
         this.removeListeners();
+        this.cancelFrame();
     }
 
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>) {
@@ -95,10 +99,39 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         window.removeEventListener('scroll', this.repositionListener, true);
     };
 
-    repositionListener = () => {
-        if (this.state.visible) {
-            this.position();
+    cancelFrame = () => {
+        if (this.frame !== null) {
+            window.cancelAnimationFrame(this.frame);
+            this.frame = null;
         }
+    };
+
+    /**
+     * WHY THIS IS COALESCED
+     * ---------------------
+     * The scroll listener is registered with `capture: true`, so it hears every
+     * scroller in the document rather than just the window. `position()` then
+     * WRITES `top` and `left`. When the panel is not laid out against the
+     * viewport - which happens whenever an ancestor between it and <body> has a
+     * transform, a filter or a backdrop-filter, because that makes `position:
+     * fixed` resolve against that ancestor instead - writing `top` changes the
+     * document height. That fires another scroll. That repositions again. The
+     * menu oscillates, and hovering it keeps re-triggering the loop, which is the
+     * vibration on the file rows' "..." menu.
+     *
+     * One reposition per frame bounds it, and the guard inside `position()` stops
+     * the write entirely when nothing moved - which breaks the feedback edge
+     * rather than only slowing it down.
+     */
+    repositionListener = () => {
+        if (!this.state.visible || this.frame !== null) {
+            return;
+        }
+
+        this.frame = window.requestAnimationFrame(() => {
+            this.frame = null;
+            this.position();
+        });
     };
 
     position = () => {
@@ -123,8 +156,19 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         const flipped = below + height > window.innerHeight - margin;
         const top = flipped && rect ? Math.max(margin, rect.top - height - 4) : below;
 
-        menu.style.left = `${Math.round(left)}px`;
-        menu.style.top = `${Math.round(top)}px`;
+        const nextLeft = `${Math.round(left)}px`;
+        const nextTop = `${Math.round(top)}px`;
+
+        // Only write on an actual move. Assigning the same value still dirties
+        // style, and - inside a transformed ancestor - still shifts the document
+        // height that the scroll listener above is watching.
+        if (menu.style.left !== nextLeft) {
+            menu.style.left = nextLeft;
+        }
+
+        if (menu.style.top !== nextTop) {
+            menu.style.top = nextTop;
+        }
     };
 
     onClickHandler = (e: React.MouseEvent<any, MouseEvent>) => {

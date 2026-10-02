@@ -7,12 +7,21 @@ import Spinner from '@/components/elements/Spinner';
 import Features from '@feature/Features';
 import Console from '@/components/server/console/Console';
 import StatGraphs from '@/components/server/console/StatGraphs';
-import PowerButtons from '@/components/server/console/PowerButtons';
+import ServerStatusPanel from '@/components/server/status/ServerStatusPanel';
 import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
 import { Alert } from '@/components/elements/alert';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
+/**
+ * The console, under the Aternos-style status panel.
+ *
+ * The power controls that used to sit in this header moved INTO that panel,
+ * where the reference has a single large Start: one place that both says what
+ * state the server is in and offers to change it, rather than a status chip and
+ * a row of buttons telling you the same thing twice. `PowerButtons` is kept and
+ * still imported elsewhere in the panel; nothing was deleted.
+ */
 const ServerConsoleContainer = () => {
     const name = ServerContext.useStoreState((state) => state.server.data!.name);
     const description = ServerContext.useStoreState((state) => state.server.data!.description);
@@ -20,10 +29,6 @@ const ServerConsoleContainer = () => {
     const isTransferring = ServerContext.useStoreState((state) => state.server.data!.isTransferring);
     const eggFeatures = ServerContext.useStoreState((state) => state.server.data!.eggFeatures, isEqual);
     const isNodeUnderMaintenance = ServerContext.useStoreState((state) => state.server.data!.isNodeUnderMaintenance);
-    const status = ServerContext.useStoreState((state) => state.status.value);
-
-    const statusLabel = !status || status === 'offline' ? 'Offline' : status === 'running' ? 'Running' : status;
-    const statusKind = status === 'running' ? 'online' : status && status !== 'offline' ? 'busy' : 'offline';
 
     return (
         <ServerContentBlock title={'Console'}>
@@ -36,23 +41,15 @@ const ServerConsoleContainer = () => {
                         : 'This server is currently being transferred to another node and all actions are unavailable.'}
                 </Alert>
             )}
-            <div className={'pt-console-head'}>
-                <div className={'min-w-0'}>
-                    <p className={'pt-hero-eyebrow'}>Server console</p>
-                    <h1>{name}</h1>
-                    <p className={'pt-console-desc'}>
-                        <span className={`pt-chip pt-chip--${statusKind} mr-2 align-middle`}>{statusLabel}</span>
-                        {description || 'Live output, power controls and resource usage for this server.'}
-                    </p>
-                </div>
-                <div className={'pt-console-actions'}>
-                    <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                        <PowerButtons
-                            className={'flex flex-wrap justify-start sm:justify-end gap-2 w-full sm:w-auto'}
-                        />
-                    </Can>
-                </div>
+
+            <ServerStatusPanel />
+
+            <div className={'pt-console-sub'}>
+                <p className={'pt-hero-eyebrow'}>Server console</p>
+                <h1>{name}</h1>
+                {description && <p className={'pt-console-desc'}>{description}</p>}
             </div>
+
             <div className={'grid grid-cols-4 gap-2 sm:gap-4 mb-4'}>
                 <div className={'flex col-span-4 lg:col-span-3'}>
                     <Spinner.Suspense>

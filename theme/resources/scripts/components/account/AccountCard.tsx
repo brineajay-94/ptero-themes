@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 
 /**
  * The two pieces the account screens share: the dark chrome card they live in,
  * and the labelled control inside it.
  *
- * THEY ARE HERE RATHER THAN IN EITHER CONTAINER
- * --------------------------------------------
+ * ICONS ARE THE FA5 NAMES, AND THAT IS NOT A MATTER OF TASTE
+ * ----------------------------------------------------------
+ * The panel pins @fortawesome/free-solid-svg-icons to ^5.15.1 and
+ * @fortawesome/react-fontawesome to ^0.1.11 - the FontAwesome 5 line, with one
+ * copy on disk. A FA6 name is not merely renamed there, it does not exist, and
+ * the import fails at BUILD time: `export 'faCircleQuestion' was not found in
+ * '@fortawesome/free-solid-svg-icons'`. The whole bundle fails, so every page in
+ * the panel goes down over a question mark on the account card.
+ *
+ * This file originally imported `faCircleQuestion`, which is FA6. Nothing caught
+ * it: it typechecked against a scratch project with FA6 typings installed, and
+ * the panel was never built. The names to use are the FA5 ones -
+ * `faQuestionCircle`, `faSyncAlt`, `faCog` - and `faCircleQuestion`,
+ * `faArrowsRotate` and `faGears` must not appear in the theme payload at all.
+ *
+ * THEY ARE SHARED RATHER THAN DUPLICATED PER CONTAINER
+ * ---------------------------------------------------
  * The change-email page is a second form built from the same parts - the same
- * card, the same light box holding a glyph and an input side by side, the same
+ * card, the same light box holding a glyph and the input side by side, the same
  * real <label for>. Two containers each carrying their own copy is how the two
  * pages end up a shade apart while both claim to be the reference's account
  * screen, and how a fix to the field lands on one of them.
@@ -63,7 +78,7 @@ export const AccountCard: React.FC<{
                         aria-controls={'pt-acct-help'}
                         onClick={() => setHelpOpen((open) => !open)}
                     >
-                        <FontAwesomeIcon icon={faCircleQuestion} aria-hidden={'true'} />
+                        <FontAwesomeIcon icon={faQuestionCircle} aria-hidden={'true'} />
                         <span className={'sr-only'}>About this form</span>
                     </button>
                 </div>

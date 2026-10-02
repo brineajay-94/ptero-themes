@@ -70,6 +70,18 @@
     --pt-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --pt-font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
+    /* Monospace, for the things that are VALUES rather than prose: the file path
+     * bar, the console, and a server's short identifier.
+     *
+     * Defined here because two rules were already asking for
+     * `var(--pt-font-mono)` and the token did not exist, so both were silently
+     * inheriting the body font - which is how the file manager's monospace path
+     * bar ended up rendering in the panel's sans-serif. A custom property that
+     * resolves to nothing is not an error in CSS, it just quietly does the wrong
+     * thing, so there is nothing to grep for and nothing to fail a build on. The
+     * one literal stack in the file is pointed here instead of being repeated. */
+    --pt-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
     /* Primary - buttons, links, active rows, focus rings.
      *
      * The roles are unchanged from the dark palette and only the polarity
@@ -225,6 +237,17 @@
     --pt-glass-radius-sm: 10px;
     --pt-glass-radius-lg: 20px;
     --pt-glass-shadow: var(--pt-shadow-lg);
+
+    /* ----------------------------------------------------------- topbar --
+     * The topbar's height, as a token rather than a literal in two rules.
+     *
+     * It is needed twice: once for the bar itself, and once for the desktop
+     * rail, which is `position: fixed` and has to start BELOW the sticky bar.
+     * A literal `4rem` in both is the same duplication that produced the
+     * hand-written box-shadows above - change one and the rail either overlaps
+     * the bar or leaves a gap under it, and neither looks like a token problem
+     * when it happens. */
+    --pt-topbar-h: 4rem;
 
     /* --------------------------------------------------------- elevation --
      * Three steps, used by everything that sits above the page. These existed
@@ -917,7 +940,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.9rem;
-    height: 4rem;
+    height: var(--pt-topbar-h);
     padding: 0 1.25rem;
     /* One of the two dark chrome islands: the reference is a white page with a
      * slate bar across the top, so the bar is dark on purpose and the rest of the
@@ -2666,6 +2689,449 @@
     text-decoration: underline;
 }
 
+/* ------------------------------------------------------------- desktop rail -- */
+/* The fixed left column, on SERVER PAGES ONLY, from lg up.
+ *
+ * The dashboard and account pages are still the topbar-only shell: there are
+ * three destinations on the dashboard and four on the account page, and the
+ * topbar carries all of them as icon-over-label items. A server page is a
+ * different animal - ten destinations (Console, Files, Databases, Schedules,
+ * Users, Backups, Startup, Network, Settings, Activity) plus the theme's own
+ * Plugins and Mods - and two topbar icons cannot hold that without hiding them.
+ *
+ * Hidden below lg rather than unmounted, so crossing the breakpoint does not
+ * have to construct a component. It is `aria-hidden` in the markup for the same
+ * reason: the mobile drawer is the real navigation at those widths, and two
+ * navigations for one page is a screen reader reading the same list twice.
+ *
+ * `position: fixed` rather than a flex sibling so it does not scroll away - the
+ * reference's column is full height with its own overflow, and a long server
+ * page would otherwise drag the navigation off the top of the screen. */
+.pt-rail {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .pt-shell.has-rail .pt-rail {
+        display: flex;
+        position: fixed;
+        top: var(--pt-topbar-h);
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+        width: 15rem;
+        flex-direction: column;
+        background-color: rgb(var(--pt-chrome));
+        border-right: 1px solid rgb(var(--pt-chrome-deep));
+        box-shadow: var(--pt-shadow-md);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    /* The topbar spans the full width and sits above the rail, so the rail starts
+     * under it; the body only has to clear the rail horizontally. */
+    .pt-shell.has-rail .pt-shell-body {
+        padding-left: 15rem;
+    }
+}
+
+/* The rail's header: which server this column belongs to. A wide column of ten
+ * links with nothing saying WHICH server is the failure mode when a user has
+ * several open - the tab title is the only other thing naming it. */
+.pt-rail-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: none;
+    padding: 0.9rem 1.1rem;
+    background-color: rgb(var(--pt-navy-900));
+    border-left: 3px solid rgb(var(--pt-red-500));
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-rail-id {
+    font-family: var(--pt-font-mono);
+    font-size: 0.7rem;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+/* The power dot. `data-status` on the parent rather than a class on the dot, so
+ * the two cannot be set independently and disagree. */
+.pt-rail-dot {
+    flex: none;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background-color: rgb(var(--pt-red-500));
+}
+
+.pt-rail-head[data-status='running'] .pt-rail-dot {
+    background-color: rgb(var(--pt-green-500));
+}
+
+/* ------------------------------------------------------ server status panel -- */
+/* The Aternos-shaped block at the top of a server page: the address, the status
+ * bar, the power button, and the Address / Software / Version rows.
+ *
+ * Every surface here is one of the two dark chrome islands the theme already has
+ * (--pt-chrome for a card, --pt-chrome-deep for a row set into it), so this
+ * reads as the same vocabulary as the topbar and the server cards rather than a
+ * fourth treatment. */
+.pt-sv {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+/* The address card. Centred, because that is what the reference does and because
+ * the address is the one thing on the page a player is looking for. */
+.pt-sv-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.4rem 1.25rem 1.25rem;
+    border-radius: 0;
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
+    box-shadow: var(--pt-shadow-md);
+    overflow: hidden;
+}
+
+.pt-sv-host {
+    margin: 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-align: center;
+    color: rgb(var(--pt-chrome-ink));
+    /* An address is a single unbreakable token; a long one must break rather than
+     * push the card's padding open on a narrow screen. */
+    overflow-wrap: anywhere;
+}
+
+/* The light button under the address. Light rather than filled: the green below
+ * is the only filled call to action on the page, and two filled buttons would
+ * compete for the same attention. */
+.pt-sv-connect {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 1.1rem;
+    border: 0;
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-white));
+    color: rgb(var(--pt-navy-900));
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+}
+
+.pt-sv-connect:hover,
+.pt-sv-connect:focus-visible {
+    filter: brightness(0.94);
+    outline: none;
+}
+
+.pt-sv-connect:active {
+    transform: translateY(1px);
+}
+
+/* The full-width status bar. This is the one thing on the page that has to be
+ * right at a glance, so it is a filled band in the state colour with white text
+ * rather than a chip - a chip is what the old console header used, and it was the
+ * least noticeable thing on the screen. */
+.pt-sv-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    border-radius: 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.pt-sv-status.is-offline {
+    background-color: rgb(var(--pt-red-500));
+}
+
+.pt-sv-status.is-online {
+    background-color: rgb(var(--pt-green-500));
+}
+
+.pt-sv-status.is-busy {
+    background-color: rgb(var(--pt-gold-400));
+    color: rgb(var(--pt-navy-900));
+}
+
+.pt-sv-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background-color: currentColor;
+    flex: none;
+}
+
+/* The primary power action. Centred and large, as in the reference. */
+.pt-sv-power {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.pt-sv-power-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-width: 12rem;
+    padding: 0.95rem 2.2rem;
+    border: 0;
+    border-radius: var(--pt-glass-radius-sm);
+    font-family: var(--pt-font-heading);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    cursor: pointer;
+    transition: filter var(--pt-dur-base) ease, transform var(--pt-dur-fast) ease;
+}
+
+.pt-sv-power-btn.is-start {
+    background-color: rgb(var(--pt-green-500));
+}
+
+.pt-sv-power-btn.is-stop {
+    background-color: rgb(var(--pt-red-500));
+}
+
+.pt-sv-power-btn:hover:not(:disabled),
+.pt-sv-power-btn:focus-visible:not(:disabled) {
+    filter: brightness(1.08);
+    outline: none;
+}
+
+.pt-sv-power-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.pt-sv-power-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Restart and forcibly-stop. Beside the primary rather than in it: the reference
+ * shows only Start, but the panel offers all four signals and dropping two would
+ * be a regression dressed as a match. */
+.pt-sv-power-alt {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pt-sv-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgb(var(--pt-chrome-deep));
+    border-radius: var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: filter var(--pt-dur-base) ease;
+}
+
+.pt-sv-icon-btn.is-danger:hover:not(:disabled),
+.pt-sv-icon-btn.is-danger:focus-visible:not(:disabled) {
+    background-color: rgb(var(--pt-red-500));
+    color: #ffffff;
+}
+
+.pt-sv-icon-btn:hover:not(:disabled),
+.pt-sv-icon-btn:focus-visible:not(:disabled) {
+    filter: brightness(1.12);
+    outline: none;
+}
+
+.pt-sv-icon-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.pt-sv-locked {
+    margin: 0;
+    font-size: 0.8rem;
+    text-align: center;
+    color: rgb(var(--pt-gray-500));
+}
+
+/* The two-column row: live usage on the left, the labelled rows on the right.
+ * One column below lg, where 15rem of rail has already taken a third of the
+ * width. */
+.pt-sv-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+}
+
+@media (min-width: 1024px) {
+    .pt-sv-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        align-items: stretch;
+    }
+}
+
+.pt-sv-usage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem;
+    border-radius: 0;
+    background-color: rgb(var(--pt-chrome));
+    color: rgb(var(--pt-chrome-ink));
+    box-shadow: var(--pt-shadow-sm);
+}
+
+.pt-sv-usage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    width: 100%;
+    margin: 0;
+}
+
+.pt-sv-usage-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.pt-sv-usage-list dt {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+.pt-sv-usage-list dd {
+    margin: 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: rgb(var(--pt-chrome-ink));
+}
+
+.pt-sv-usage-empty {
+    margin: 0;
+    font-size: 0.82rem;
+    text-align: center;
+    color: rgb(var(--pt-chrome-muted));
+}
+
+/* A labelled row. The label is a tab sitting on the top-left edge of the value,
+ * which is the reference's shape and the reason this is not a description list:
+ * the label is beside the value, not above it. */
+.pt-sv-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    min-width: 0;
+}
+
+.pt-sv-row-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.8rem;
+    border-radius: var(--pt-glass-radius-sm) var(--pt-glass-radius-sm) 0 0;
+    background-color: rgb(var(--pt-blue-500));
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.pt-sv-row-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0 var(--pt-glass-radius-sm) var(--pt-glass-radius-sm) var(--pt-glass-radius-sm);
+    background-color: rgb(var(--pt-chrome-deep));
+    color: rgb(var(--pt-chrome-ink));
+    min-width: 0;
+}
+
+.pt-sv-row-value {
+    font-family: var(--pt-font-heading);
+    font-size: 0.98rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.pt-sv-row-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: none;
+    padding: 0.4rem 0.85rem;
+    border: 0;
+    border-radius: var(--pt-glass-radius-sm);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter var(--pt-dur-base) ease;
+}
+
+.pt-sv-row-btn.is-primary {
+    background-color: rgb(var(--pt-blue-500));
+}
+
+.pt-sv-row-btn.is-success {
+    background-color: rgb(var(--pt-green-500));
+}
+
+.pt-sv-row-btn:hover,
+.pt-sv-row-btn:focus-visible {
+    filter: brightness(1.08);
+    outline: none;
+}
+
+/* The strip that replaced the old console header, which held the power buttons.
+ * Those moved into the status panel above, so all that is left here is the page's
+ * own label - and it is deliberately NOT a dark island: the panel above it is one,
+ * and two stacked dark bars with a gap read as one broken one. */
+.pt-console-sub {
+    margin-bottom: 0.9rem;
+}
+
+.pt-console-sub h1 {
+    margin: 0.15rem 0 0;
+    font-family: var(--pt-font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: rgb(var(--pt-navy-900));
+}
+
+.pt-console-desc {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    color: rgb(var(--pt-gray-500));
+}
+
 /* --------------------------------------------------------------- console -- */
 
 /* The console header is the third dark chrome island, like the topbar and the
@@ -2816,7 +3282,7 @@
        mid grey text - unreadable. It is a light well with dark ink instead. */
     background-color: rgb(var(--pt-gray-700));
     color: rgb(var(--pt-gray-200));
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-family: var(--pt-font-mono);
     font-size: 0.8rem;
     line-height: 1.5;
     overflow-x: auto;
@@ -2935,8 +3401,36 @@
 .pt-auth-emblem,
 .pt-auth-signup,
 .pt-auth-social-btn,
+.pt-sv-connect,
+.pt-sv-power-btn,
+.pt-sv-icon-btn,
+.pt-sv-row-label,
+.pt-sv-row-body,
+.pt-sv-row-btn,
 .pt-auth button[type='submit'] {
     border-radius: var(--pt-glass-radius-sm) !important;
+}
+
+/* The status panel's own surfaces. A different group from the controls above:
+ * these are cards and bands, so they take the standard radius rather than the
+ * small one, and the bands (the status bar) stay square because a rounded corner
+ * on a full-bleed strip reads as a button. */
+.pt-sv-hero,
+.pt-sv-usage,
+.pt-rail-head {
+    border-radius: var(--pt-glass-radius) !important;
+}
+
+.pt-sv-status {
+    border-radius: 0 !important;
+}
+
+/* The power dot and the rail's status dot are the only two genuinely round
+ * things in this block, so they get the one `50%` rule rather than inheriting the
+ * squaring reset and rendering as squares. */
+.pt-sv-dot,
+.pt-rail-dot {
+    border-radius: 50% !important;
 }
 
 /* The auth form controls are the panel's own Input/Field components, which the

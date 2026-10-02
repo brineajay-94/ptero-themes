@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useRouteMatch } from 'react-router-dom';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { type SidebarVariant } from '@/components/Sidebar';
 import NavigationBar from '@/components/NavigationBar';
 import routes from '@/routers/routes';
 import http from '@/api/http';
@@ -43,6 +43,8 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, chi
             : normalize(location.pathname.replace(/^\/account/, ''));
 
     const isAccount = location.pathname.startsWith('/account');
+    // The desktop rail is a server-page thing only. See the note at its render.
+    const rail = mode === 'server';
     const routeSet = mode === 'server' ? routes.server : routes.account;
     const matched = routeSet
         .filter((route) => !!route.name)
@@ -97,9 +99,10 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, chi
         });
     };
 
-    const sidebar = (onNavigate?: () => void) => (
+    const sidebar = (onNavigate?: () => void, sidebarVariant?: SidebarVariant) => (
         <Sidebar
             mode={mode}
+            variant={sidebarVariant}
             serverId={serverId}
             serverUuid={serverUuid}
             serverVariables={serverVariables}
@@ -110,14 +113,34 @@ const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, chi
     );
 
     return (
-        <div className={'pt-shell'} style={backgroundStyle('dashboard')}>
+        <div className={`pt-shell${rail ? ' has-rail' : ''}`} style={backgroundStyle('dashboard')}>
             {/*
-             * No desktop sidebar. The reference layout is a topbar-only shell and
-             * the navigation that lived in the sidebar now sits in the topbar as
-             * icon-over-label items (see NavigationBar). The drawer below still
-             * renders the same Sidebar component, so narrow screens keep the full
-             * navigation - this is a layout change, not a loss of nav.
+             * No desktop sidebar on the dashboard or account pages. The reference
+             * layout is a topbar-only shell there and the navigation that lived in
+             * the sidebar moved into the topbar as icon-over-label items (see
+             * NavigationBar). The drawer below still renders the same Sidebar
+             * component, so a phone keeps the full navigation either way.
+             *
+             * ON SERVER PAGES IT IS BACK, and the rail only shows from lg up. That
+             * is a deliberate exception: a server page is a workbench with ten
+             * destinations in it (Console, Files, Database, Backups, Settings and
+             * the rest), and cramming those into two topbar icons hides them. It is
+             * rendered here rather than in ServerRouter so that `mode` stays the
+             * one thing that decides the shell, and so the drawer and the rail
+             * cannot disagree about what a server page looks like.
+             *
+             * The rail is always in the DOM and hidden with CSS below lg, so a
+             * resize across the breakpoint does not have to mount a component -
+             * and it is aria-hidden there, because the drawer is the real
+             * navigation at those widths and two navigations for one page is how
+             * a screen reader reads the same list twice.
              */}
+            {rail && (
+                <aside className={'pt-rail'} aria-hidden={'true'}>
+                    {sidebar(undefined, 'rail')}
+                </aside>
+            )}
+
             <div className={'pt-shell-body'}>
                 <NavigationBar
                     title={title}

@@ -148,3 +148,69 @@ export const serverFamilyLabel = (variables: { envVariable: string }[] = []): st
 
     return null;
 };
+
+/** The variable shape this module needs, widened from the panel's own type. */
+interface VersionVariable {
+    envVariable: string;
+    serverValue?: string | null;
+    defaultValue?: string | null;
+}
+
+/**
+ * Variable names worth showing as "the version", most specific first.
+ *
+ * BUILD_NUMBER leads because it is the one that reads like a version - a Paper
+ * egg's is "74" - where MINECRAFT_VERSION is the game version the egg was
+ * configured against and is very often left blank. A blank value is skipped
+ * rather than rendered as an empty string, which is why this is a preference
+ * LIST and not a single lookup.
+ */
+const VERSION_PREFERENCE = [
+    'BUILD_NUMBER',
+    'MINECRAFT_VERSION',
+    'VANILLA_VERSION',
+    'BUNGEE_VERSION',
+    'FORGE_VERSION',
+    'FABRIC_VERSION',
+    'QUILT_VERSION',
+    'NEOFORGE_VERSION',
+    'TS_VERSION',
+    'FRAMEWORK',
+    'SRCDS_APPID',
+];
+
+/**
+ * The version this server reports, or null when no variable carries one.
+ *
+ * Reads `serverValue` first and falls back to `defaultValue`, which is how the
+ * panel itself resolves a variable: a server that never had the variable
+ * changed still has the egg's default, and showing nothing for those would be
+ * wrong rather than cautious.
+ *
+ * Only user_viewable variables reach the browser at all
+ * (`includeVariables()` filters on it), so this cannot show a value the user is
+ * not allowed to see - and equally, an egg whose only version-ish variables are
+ * hidden will return null, which callers must handle rather than print.
+ */
+export const serverVersionLabel = (variables: VersionVariable[] = []): string | null => {
+    const values = new Map<string, string>();
+
+    for (const variable of variables) {
+        const key = (variable.envVariable || '').toUpperCase();
+        const value = (variable.serverValue ?? variable.defaultValue ?? '').trim();
+
+        if (key && value) {
+            values.set(key, value);
+        }
+    }
+
+    for (const name of VERSION_PREFERENCE) {
+        const found = values.get(name);
+
+        if (found) {
+            return found;
+        }
+    }
+
+    return null;
+};

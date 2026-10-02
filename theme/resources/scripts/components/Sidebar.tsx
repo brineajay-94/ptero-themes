@@ -25,6 +25,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
+import { ServerContext } from '@/state/server';
 import type { ServerEggVariable } from '@/api/server/types';
 import Can from '@/components/elements/Can';
 import Avatar from '@/components/Avatar';
@@ -35,8 +36,26 @@ import { normalizeAccountPath, THEME_ACCOUNT_ROUTES } from '@/lib/accountRoutes'
 import { candidateJarKinds } from '@/lib/serverFamily';
 import { hasJarDirectory, type JarKind } from '@/api/server/jars';
 
+/**
+ * How the sidebar is being used.
+ *
+ * `drawer` is the mobile one: brand block on top, account/admin navigation for
+ * the dashboard, and the avatar + sign-out footer. `rail` is the fixed desktop
+ * column on a server page, which the reference shapes differently - the server
+ * identity sits at the top, and there is no brand block (the logo is in the
+ * topbar directly above it) and no footer (the topbar carries the avatar and
+ * sign-out there too).
+ *
+ * Two variants rather than two components on purpose: the NAVIGATION is one
+ * list and must stay one list, or the rail and the drawer drift into offering
+ * different destinations. Only the frame around it changes.
+ */
+export type SidebarVariant = 'drawer' | 'rail';
+
 export interface SidebarProps {
     mode: 'dashboard' | 'server';
+    /** Which frame to render around the navigation. Defaults to the drawer. */
+    variant?: SidebarVariant;
     serverId?: number | string | null;
     /**
      * Only set in server mode. Used to decide which jar flavours this server can
@@ -135,10 +154,30 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
     );
 };
 
-export default ({ mode, serverId, serverUuid, serverVariables, matchUrl, onNavigate, onLogout }: SidebarProps) => {
+export default ({
+    mode,
+    variant = 'drawer',
+    serverId,
+    serverUuid,
+    serverVariables,
+    matchUrl,
+    onNavigate,
+    onLogout,
+}: SidebarProps) => {
     const panelName = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const username = useStoreState((state: ApplicationStore) => state.user.data?.username);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data?.rootAdmin);
+
+    // The rail's own header: which server this column is about, and whether it is
+    // up. Read through ServerContext rather than passed in, so it follows the same
+    // store every other part of a server page reads and cannot disagree with the
+    // status bar at the top of the page. Safe from here: App.tsx mounts the
+    // provider ABOVE ServerRouter, so AppShell - and this component - are inside
+    // it. The dashboard mode never renders a rail, and it is the only mode whose
+    // shell sits outside a server context.
+    const serverName = ServerContext.useStoreState((state) => state.server.data?.name);
+    const serverIdentifier = ServerContext.useStoreState((state) => state.server.data?.identifier);
+    const serverStatus = ServerContext.useStoreState((state) => state.status.value);
 
     // Which jar flavours this server can take. The panel does not expose the egg
     // name, so this is an egg fingerprint (free, from the variables that are
@@ -185,15 +224,33 @@ export default ({ mode, serverId, serverUuid, serverVariables, matchUrl, onNavig
 
     return (
         <>
-            <Link to={'/'} className={'pt-brand'} onClick={onNavigate}>
-                <span className={'pt-brand-mark'}>
-                    {logoUrl() ? <img src={logoUrl()!} alt={''} /> : brandName().charAt(0).toUpperCase()}
-                </span>
-                <span className={'min-w-0'}>
-                    <span className={'pt-brand-name block truncate'}>{brandName()}</span>
-                    <span className={'pt-brand-sub'}>Panel</span>
-                </span>
-            </Link>
+            {/*
+             * The rail puts the server's own identity at the top, where the
+             * reference has it: name, short identifier, and a dot that carries the
+             * power state. A wide column with ten destinations and no indication
+             * of WHICH server it belongs to is the thing that goes wrong when a
+             * user has several open - the tab title is the only other thing
+             * naming it, and it is not always visible.
+             */}
+            {variant === 'rail' ? (
+                <div className={'pt-rail-head'} data-status={serverStatus === 'running' ? 'running' : 'offline'}>
+                    <div className={'min-w-0'}>
+                        <strong className={'truncate block'}>{serverName || 'Server'}</strong>
+                        <span className={'pt-rail-id truncate block'}>{serverIdentifier ? `#${serverIdentifier}` : ''}</span>
+                    </div>
+                    <span className={'pt-rail-dot'} aria-hidden={'true'} />
+                </div>
+            ) : (
+                <Link to={'/'} className={'pt-brand'} onClick={onNavigate}>
+                    <span className={'pt-brand-mark'}>
+                        {logoUrl() ? <img src={logoUrl()!} alt={''} /> : brandName().charAt(0).toUpperCase()}
+                    </span>
+                    <span className={'min-w-0'}>
+                        <span className={'pt-brand-name block truncate'}>{brandName()}</span>
+                        <span className={'pt-brand-sub'}>Panel</span>
+                    </span>
+                </Link>
+            )}
 
             <nav className={'pt-nav'}>
                 {mode === 'server' ? (
@@ -278,30 +335,35 @@ export default ({ mode, serverId, serverUuid, serverVariables, matchUrl, onNavig
                 )}
             </nav>
 
-            <div className={'pt-sidebar-foot'}>
-                <div className={'flex items-center gap-3'}>
-                    <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
-                        <span>
-                            <Avatar.User />
+            {/* The rail has no footer: the topbar directly above it already
+                carries the avatar and sign-out, and the reference shows them
+                there rather than twice. */}
+            {variant === 'drawer' && (
+                <div className={'pt-sidebar-foot'}>
+                    <div className={'flex items-center gap-3'}>
+                        <span className={'pt-avatar-btn'} style={{ cursor: 'default' }}>
+                            <span>
+                                <Avatar.User />
+                            </span>
                         </span>
-                    </span>
-                    <span className={'min-w-0 flex-1'}>
-                        <strong className={'truncate'}>{username || 'User'}</strong>
-                        <span className={'truncate block'}>{panelName}</span>
-                    </span>
-                    {onLogout && (
-                        <button
-                            type={'button'}
-                            className={'pt-logout-btn'}
-                            onClick={onLogout}
-                            title={'Sign Out'}
-                            aria-label={'Sign Out'}
-                        >
-                            <FontAwesomeIcon icon={faSignOutAlt} />
-                        </button>
-                    )}
+                        <span className={'min-w-0 flex-1'}>
+                            <strong className={'truncate'}>{username || 'User'}</strong>
+                            <span className={'truncate block'}>{panelName}</span>
+                        </span>
+                        {onLogout && (
+                            <button
+                                type={'button'}
+                                className={'pt-logout-btn'}
+                                onClick={onLogout}
+                                title={'Sign Out'}
+                                aria-label={'Sign Out'}
+                            >
+                                <FontAwesomeIcon icon={faSignOutAlt} />
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
         </>
     );
 };

@@ -201,6 +201,56 @@ What it changes on top of the stock panel:
   is a panel file the theme does not ship, so there is nowhere to hang a middleware
   that knows about social sessions; hiding the button would have been the whole of
   the enforcement, and hiding a button is not a check.
+
+### Server pages — the Aternos layout
+
+Server pages get the reference's shape, in two parts.
+
+**A fixed left rail, from `lg` up.** The dashboard and account pages are still the
+topbar-only shell — three destinations and four respectively, and the topbar
+carries them all as icon-over-label items. A server page is different: ten
+destinations (Console, Files, Databases, Schedules, Users, Backups, Startup,
+Network, Settings, Activity) plus the theme's own Plugins and Mods, and two
+topbar icons cannot hold that without hiding them. So the rail is back — **on
+server pages only**, which does mean server pages look different from the
+dashboard. Say the word if you want it everywhere.
+
+The rail's header shows the server's own name, short identifier and a power dot,
+read from the same `ServerContext` the page reads, so it cannot disagree with the
+status bar at the top. Below `lg` it is hidden with CSS and `aria-hidden` in the
+markup — the mobile drawer is the real navigation at those widths, and two
+navigations for one page is a screen reader reading the same list twice.
+
+`Sidebar` gained a `variant` prop (`'drawer' | 'rail'`) rather than becoming two
+components. The **navigation** must stay one list; only the frame around it
+changes. Two components is how the rail and the drawer drift into offering
+different destinations.
+
+**The status panel at the top of the console**, matching the reference top to
+bottom: the address card with a **Connect** button, a full-width status bar (red
+offline, green running, amber in between), a large green **Start**, and the
+**Address / Software / Version** rows beside a live CPU/memory/disk card.
+
+What did *not* survive the translation, and why:
+
+| Reference | Here | Why |
+| --- | --- | --- |
+| Blue RAM-boost banner | **Dropped** | It is Aternos selling an upgrade. On this panel it advertises a product that does not exist. |
+| One large **Start** | Start, **plus Restart and Forcibly-stop** beside it | The reference shows only Start, but dropping two power signals the panel offers would be a regression dressed as a match. |
+| **Connect** opens a launcher | **Connect** copies the address | Aternos's Connect dialog has no panel equivalent; the button's `title` says it copies. |
+| Software → **Change** | Only for a **root admin**, to the admin Software tab | Changing the egg is an admin action here — `updateBuild` takes allocations and limits and no `egg_id`. For anyone else there is **no button**, because a button that goes nowhere is the same failure as the “No egg assigned” string this theme already shipped once. |
+| Version → **Change** | Always, to the panel's **Startup** page | That page is genuinely where a user changes those values. |
+| Empty left card | Live CPU / memory / disk | — |
+
+Power goes over the `ServerContext` socket with `socket.send('set state', …)`,
+exactly as the panel's own `PowerButtons` does — the socket is already open here
+carrying the resource stats, and an HTTP call would be a second channel to the
+same daemon.
+
+Software is read from `GET /auth/servers/eggs`, because the panel's server
+payload carries no egg name at all; Version comes from `serverVersionLabel()` over
+the egg's variables, reading `serverValue` before `defaultValue` the way the panel
+itself resolves a variable.
 - **Dashboard server cards** — the third line of each card is the server **family**,
   not the egg name, because the panel never sends the egg name to the browser.
   `ServerTransformer` returns neither an egg name nor an egg id (`egg_features` is
@@ -680,8 +730,8 @@ render, so they match the panel.
 
 | File | Action |
 | --- | --- |
-| `resources/scripts/components/AppShell.tsx` | create â€” topbar + drawer shell, no desktop sidebar |
-| `resources/scripts/components/Sidebar.tsx` | create â€” full nav list; drawer-only since the topbar took over desktop |
+| `resources/scripts/components/AppShell.tsx` | create — topbar + drawer shell on every page, plus a fixed desktop rail on SERVER pages only. The rail lives here rather than in ServerRouter so `mode` stays the one thing that decides the shell
+| `resources/scripts/components/Sidebar.tsx` | create — full nav list, used in the mobile drawer everywhere and in the fixed desktop rail on server pages. A `variant` prop swaps the frame (brand + footer in the drawer, server identity block in the rail) without forking the navigation into two lists
 | `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, and a `pt-topbar-account` group (username, logout, avatar) that cannot be squeezed |
 | `resources/scripts/routers/DashboardRouter.tsx` | replace â€” wraps in `AppShell` |
 | `resources/scripts/routers/ServerRouter.tsx` | replace â€” wraps in `AppShell` |
@@ -691,6 +741,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - the card's third line is the server's **software**, from `GET /auth/servers/eggs`, because the panel's servers list carries no egg name (see *Dashboard server cards* below) |
+| `components/server/status/ServerStatusPanel.tsx` | create - the Aternos-shaped block at the top of a server page: address card, status bar, large power button, Address/Software/Version rows |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
@@ -1431,4 +1482,53 @@ Run it against the **panel's** PHP, not whatever is on the machine doing the
 checking — that is what turned the second one from "looks wrong" into a hard parse
 error. For the non-Blade PHP (`app/`, `routes/`), a plain `php -l` over each file
 is enough, and all 12 pass.
+
+### Two checks that are not optional, and are not `tsc`
+
+Both of these are classes of bug that typecheck clean and lint clean and still
+take the panel down.
+
+**1. FontAwesome names must exist in the panel's installed set.** The panel pins
+`@fortawesome/free-solid-svg-icons` to `^5.15.1` and `@fortawesome/react-fontawesome`
+to `^0.1.11` — the FontAwesome **5** line, one copy on disk. A FA6 name is not
+merely renamed there, it does not exist, and the import fails at **build** time:
+
+```
+export 'faCircleQuestion' was not found in '@fortawesome/free-solid-svg-icons'
+```
+
+That takes down *every* page in the panel, over a question mark on one card. The
+theme shipped `faCircleQuestion` in the account card for two releases; nothing
+caught it, because it typechecks against whatever typings are installed locally
+and the panel was never built. Use the FA5 names — `faQuestionCircle`,
+`faSyncAlt`, `faCog` — and never `faCircleQuestion`, `faArrowsRotate` or `faGears`.
+
+```bash
+cd /var/www/pterodactyl
+grep -rhoE "import \{[^}]*\} from '@fortawesome/free-solid-svg-icons'" resources/scripts \
+  | sed 's/import {//; s/} from.*//' | tr ',' '\n' | tr -d ' ' | grep -E '^fa[A-Z]' | sort -u \
+  | while read -r n; do
+      grep -qE "(^|[^A-Za-z0-9_])$n([^A-Za-z0-9_]|$)" node_modules/@fortawesome/free-solid-svg-icons/index.d.ts \
+        && echo "OK   $n" || echo "MISS $n"
+    done
+```
+
+Match only names inside the `import { … }` statement. A plain grep also matches
+icon names mentioned in prose — a file that *warns against* `faCircleQuestion`
+then reads as importing it.
+
+**2. `manifest.json` must have no duplicate `path`s.** A duplicate entry means
+the installer copies the same file twice, on every run, and — worse — it hides
+the fact that an entry is stale: the note you are reading may belong to a copy
+that lost the argument six commits ago. `ConvertFrom-Json` accepts duplicates
+happily, so nothing complains.
+
+```powershell
+$m = Get-Content -Raw manifest.json | ConvertFrom-Json
+$m | Group-Object path | Where-Object Count -gt 1 | Select-Object Count, Name
+```
+
+This found a real one: the `DashboardRouter.tsx` entry from the change-email
+release was left behind when its replacement was added alongside it rather than
+in place of it.
 

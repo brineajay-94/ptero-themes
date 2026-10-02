@@ -1,4 +1,5 @@
 import React, { createRef } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components/macro';
 import tw from 'twin.macro';
 import Fade from '@/components/elements/Fade';
@@ -9,36 +10,73 @@ interface Props {
 }
 
 /**
- * The panel used to render `absolute` inside a plain wrapper and be nudged with
- * `left = viewportX - width`. That is only correct when the wrapper happens to
- * sit at the viewport origin: in the file manager the wrapper is a `.file_row`
- * at some x offset, so the panel was pushed off to the right and, because the
- * row clips its own overflow, it never became visible at all. It is `fixed`
- * here so the click coordinates line up, with the vertical placement taken from
- * the toggle's own rect and clamped to the viewport.
+ * THE PANEL IS RENDERED THROUGH A PORTAL INTO <body>, AND THAT IS THE FIX
+ * ==================================================================
+ * Not decoration. The panel used to render `absolute` inside a plain wrapper and
+ * be nudged with `left = viewportX - width`, which is only correct when the
+ * wrapper happens to sit at the viewport origin. In the file manager the wrapper
+ * is a `.file_row` at some x offset, so the panel was pushed off to the right,
+ * the row grew, and the page grew a horizontal scrollbar. The row also clipped
+ * its own overflow, so the panel could not be seen at all.
+ *
+ * Making the panel `position: fixed` was not enough on its own, and this is the
+ * part that is easy to get wrong twice:
+ *
+ * 1. A non-none `transform` on an ANCESTOR makes that ancestor the containing
+ *    block for `position: fixed` - the panel silently stops being positioned
+ *    against the viewport. `.file_row:hover` carries `transform:
+ *    translateY(-1px)`, so the containing block APPEARED AND DISAPPEARED as the
+ *    pointer moved over the row. That is the horizontal jitter: the panel was
+ *    correct in viewport pixels on one frame and row-relative on the next.
+ * 2. `offsetParent` does not rescue you. The spec says it returns null for an
+ *    element whose computed position is fixed, and browsers honour that - so the
+ *    obvious "rebase onto `offsetParent`" is silently a no-op that reads as if it
+ *    were working.
+ *
+ * A portal removes the whole class of problem rather than one instance of it: the
+ * panel's parent is <body>, which is not transformed, is not clipped, and does not
+ * establish a containing block. `position: fixed` then means the viewport, always,
+ * and the coordinates below need no rebasing at all.
+ *
+ * The portal div carries nothing: every token the panel uses is declared on
+ * `:root`, so it inherits them through <body>, and the panel is `fixed` so it
+ * takes up no space in the div and the div takes up no space in the body.
+ *
+ * MOVED WITH A TRANSFORM, NEVER WITH top/left
+ * ------------------------------------------
+ * A transform moves the panel without touching layout, so it cannot change the
+ * document's scrollable width or height and cannot fire a scroll event. Assigning
+ * top/left does the opposite, and that fed straight back into the scroll listener
+ * below: reposition changed the document, the document scrolled, that
+ * repositioned again, forever. That loop is what the user saw as the menu
+ * vibrating once a second.
  */
 const Panel = styled.div`
     position: fixed;
+    top: 0;
+    left: 0;
     z-index: 60;
     width: 12rem;
     max-width: calc(100vw - 1.5rem);
     padding: 0.35rem;
     border: 1px solid var(--pt-glass-border);
     border-radius: var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-gray-800) / 0.97);
+    background-color: rgb(var(--pt-chrome) / 0.98);
     box-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
-    color: rgb(var(--pt-gray-300));
+    color: rgb(var(--pt-chrome-ink));
     font-size: 0.8rem;
     backdrop-filter: blur(var(--pt-glass-blur));
+    will-change: transform;
 `;
 
 export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
     ${tw`p-2 w-full flex items-center rounded text-left`};
-    color: rgb(var(--pt-gray-300));
+    color: rgb(var(--pt-chrome-ink));
     transition: 150ms all ease;
 
     &:hover {
-        color: rgb(var(--pt-gray-50));
+        color: #ffffff;
+        background-color: rgb(var(--pt-chrome-muted) / 0.18);
     }
 
     ${(props) =>
@@ -49,11 +87,7 @@ export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
                     color: rgb(var(--pt-red-300));
                 }
             `
-            : `
-                &:hover {
-                    background-color: rgb(var(--pt-gray-500) / 0.38);
-                }
-            `}
+            : ''}
 `;
 
 interface State {
@@ -73,10 +107,35 @@ class DropdownMenu extends React.PureComponent<Props, State> {
     /** Pending reposition, coalesced to one per animation frame. See below. */
     frame: number | null = null;
 
+    /**
+     * The <body> child the panel is portalled into, created on first use and torn
+     * down with the component. Kept as a field rather than a module-level
+     * singleton because two menus on one page must not share a node, and because a
+     * node left behind after unmount is a node nobody will ever clean up.
+     */
+    portal: HTMLElement | null = null;
+
     componentWillUnmount() {
         this.removeListeners();
         this.cancelFrame();
+
+        if (this.portal) {
+            this.portal.remove();
+            this.portal = null;
+        }
     }
+
+    portalTarget = (): HTMLElement | null => {
+        if (!this.portal) {
+            const node = document.createElement('div');
+
+            node.setAttribute('data-pt-dropdown', '');
+            document.body.appendChild(node);
+            this.portal = node;
+        }
+
+        return this.portal;
+    };
 
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>) {
         if (this.state.visible && !prevState.visible) {
@@ -107,21 +166,13 @@ class DropdownMenu extends React.PureComponent<Props, State> {
     };
 
     /**
-     * WHY THIS IS COALESCED
-     * ---------------------
-     * The scroll listener is registered with `capture: true`, so it hears every
-     * scroller in the document rather than just the window. `position()` then
-     * WRITES `top` and `left`. When the panel is not laid out against the
-     * viewport - which happens whenever an ancestor between it and <body> has a
-     * transform, a filter or a backdrop-filter, because that makes `position:
-     * fixed` resolve against that ancestor instead - writing `top` changes the
-     * document height. That fires another scroll. That repositions again. The
-     * menu oscillates, and hovering it keeps re-triggering the loop, which is the
-     * vibration on the file rows' "..." menu.
-     *
-     * One reposition per frame bounds it, and the guard inside `position()` stops
-     * the write entirely when nothing moved - which breaks the feedback edge
-     * rather than only slowing it down.
+     * WHY THE COALESCING IS STILL HERE
+     * ---------------------------------
+     * The transform is the fix; this is the belt to its braces. `scroll` is
+     * registered with `capture: true`, so it hears every scroller in the document
+     * rather than just the window, and a page with any momentum or nested
+     * scroller produces a burst of them. One reposition per frame bounds the work
+     * to something a human cannot see, and costs nothing when nothing moved.
      */
     repositionListener = () => {
         if (!this.state.visible || this.frame !== null) {
@@ -147,8 +198,9 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         const width = menu.offsetWidth;
         const margin = 12;
 
-        // Prefer hanging the panel off the toggle's right edge, and flip it to
-        // the left of the toggle when that would run past the viewport.
+        // Prefer hanging the panel off the toggle's right edge, and flip it to the
+        // left of the toggle when that would run past the viewport. Both are
+        // VIEWPORT coordinates, which is what the clamp below is measured in.
         const preferredLeft = rect ? rect.right - width : this.state.posX - width;
         const left = Math.min(Math.max(margin, preferredLeft), window.innerWidth - width - margin);
 
@@ -156,18 +208,20 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         const flipped = below + height > window.innerHeight - margin;
         const top = flipped && rect ? Math.max(margin, rect.top - height - 4) : below;
 
-        const nextLeft = `${Math.round(left)}px`;
-        const nextTop = `${Math.round(top)}px`;
+        // Plain viewport pixels, and no scroll correction, which is worth being
+        // explicit about because adding `window.scrollX` here looks right and is
+        // not: the panel is `position: fixed`, so its containing block is the
+        // viewport and `getBoundingClientRect()` above is already measuring in
+        // viewport space. A transform moves a fixed element against its containing
+        // block, so the numbers translate directly. Adding the scroll offset would
+        // put the menu off-screen by exactly the scroll distance on any scrolled
+        // page.
+        const next = `translate3d(${Math.round(left)}px, ${Math.round(top)}px, 0)`;
 
-        // Only write on an actual move. Assigning the same value still dirties
-        // style, and - inside a transformed ancestor - still shifts the document
-        // height that the scroll listener above is watching.
-        if (menu.style.left !== nextLeft) {
-            menu.style.left = nextLeft;
-        }
-
-        if (menu.style.top !== nextTop) {
-            menu.style.top = nextTop;
+        // Only write on an actual move: a redundant style write is a style
+        // recalculation for nothing.
+        if (menu.style.transform !== next) {
+            menu.style.transform = next;
         }
     };
 
@@ -199,20 +253,35 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         }));
 
     render() {
+        // Hoisted, because narrowing `this.portalTarget()` in the guard below
+        // does not narrow the second call to the same method - TypeScript widens
+        // it straight back to `HTMLElement | null`.
+        const portalTarget = this.portalTarget();
+
         return (
             <div ref={this.toggle}>
                 {this.props.renderToggle(this.onClickHandler)}
-                <Fade timeout={150} in={this.state.visible} unmountOnExit>
-                    <Panel
-                        ref={this.menu}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            this.setState({ visible: false });
-                        }}
-                    >
-                        {this.props.children}
-                    </Panel>
-                </Fade>
+                {/*
+                 * The Fade wrapper travels through the portal with the panel, not
+                 * around it: fading in a wrapper that is still in the row would
+                 * animate the row's own opacity, so the whole file list would fade
+                 * with the menu.
+                 */}
+                {portalTarget &&
+                    createPortal(
+                        <Fade timeout={150} in={this.state.visible} unmountOnExit>
+                            <Panel
+                                ref={this.menu}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    this.setState({ visible: false });
+                                }}
+                            >
+                                {this.props.children}
+                            </Panel>
+                        </Fade>,
+                        portalTarget,
+                    )}
             </div>
         );
     }

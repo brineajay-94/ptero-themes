@@ -40,10 +40,9 @@ import { hasJarDirectory, type JarKind } from '@/api/server/jars';
  *
  * `drawer` is the mobile one: brand block on top, account/admin navigation for
  * the dashboard, and the avatar + sign-out footer. `rail` is the fixed desktop
- * column on a server page, which the reference shapes differently - the server
- * identity sits at the top, and there is no brand block (the logo is in the
- * topbar directly above it) and no footer (the topbar carries the avatar and
- * sign-out there too).
+ * column on a server page, which the reference shapes differently - it has NO
+ * top block at all and NO footer, because the topbar directly above it already
+ * carries the logo, the server's name, the avatar and the sign-out.
  *
  * Two variants rather than two components on purpose: the NAVIGATION is one
  * list and must stay one list, or the rail and the drawer drift into offering
@@ -55,21 +54,6 @@ export interface SidebarProps {
     mode: 'dashboard' | 'server';
     /** Which frame to render around the navigation. Defaults to the drawer. */
     variant?: SidebarVariant;
-    /**
-     * The server's identity, for the rail's header. Props and NOT a
-     * ServerContext read, which is a correction rather than a style choice.
-     *
-     * AppShell renders this component for the mobile drawer on EVERY page, and
-     * `ServerContext.Provider` is mounted only around `/server/:id` - the
-     * dashboard route has no provider at all. So a hook here runs with no store
-     * on `/` and `/account`, easy-peasy throws, and the panel's ErrorBoundary
-     * puts "An error was encountered by the application while rendering this
-     * view" in place of the dashboard. All three of these are optional because
-     * on the non-server pages they are genuinely absent, not defaulted.
-     */
-    serverName?: string | null;
-    serverIdentifier?: string | null;
-    serverStatus?: string | null;
     serverId?: number | string | null;
     /**
      * Only set in server mode. Used to decide which jar flavours this server can
@@ -171,9 +155,6 @@ const AccountItems: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) => 
 export default ({
     mode,
     variant = 'drawer',
-    serverName,
-    serverIdentifier,
-    serverStatus,
     serverId,
     serverUuid,
     serverVariables,
@@ -231,22 +212,30 @@ export default ({
     return (
         <>
             {/*
-             * The rail puts the server's own identity at the top, where the
-             * reference has it: name, short identifier, and a dot that carries the
-             * power state. A wide column with ten destinations and no indication
-             * of WHICH server it belongs to is the thing that goes wrong when a
-             * user has several open - the tab title is the only other thing
-             * naming it, and it is not always visible.
+             * No rail header. There was a block here carrying the server's name,
+             * its short identifier and a power dot, and it was removed: the topbar
+             * directly above already names the server (page title plus the name
+             * beneath it), and the status band at the top of the content already
+             * carries the state. Two more copies of the same two facts, in the
+             * one place the eye lands first, was not carrying its weight.
+             *
+             * Removing it also removes the reason this component ever needed the
+             * server's identity passed to it - which had to be a PROP rather than
+             * a ServerContext hook, because AppShell renders Sidebar for the
+             * mobile drawer on every page and App.tsx mounts that provider only
+             * around /server/:id. A hook here threw on / and /account and the
+             * panel's ErrorBoundary replaced the whole dashboard with "An error
+             * was encountered by the application while rendering this view".
+             * Nothing in here reads the server store now, so that trap is gone
+             * rather than documented.
+             *
+             * And with the header gone the rail has NO top block at all - which is
+             * why the brand below is drawer-only. The topbar directly above the
+             * rail already carries the logo; putting it here as well would print
+             * it twice, stacked, one scroll-position apart. The rail goes
+             * straight into its navigation, flush with the topbar above it.
              */}
-            {variant === 'rail' ? (
-                <div className={'pt-rail-head'} data-status={serverStatus === 'running' ? 'running' : 'offline'}>
-                    <div className={'min-w-0'}>
-                        <strong className={'truncate block'}>{serverName || 'Server'}</strong>
-                        <span className={'pt-rail-id truncate block'}>{serverIdentifier ? `#${serverIdentifier}` : ''}</span>
-                    </div>
-                    <span className={'pt-rail-dot'} aria-hidden={'true'} />
-                </div>
-            ) : (
+            {variant === 'drawer' && (
                 <Link to={'/'} className={'pt-brand'} onClick={onNavigate}>
                     <span className={'pt-brand-mark'}>
                         {logoUrl() ? <img src={logoUrl()!} alt={''} /> : brandName().charAt(0).toUpperCase()}

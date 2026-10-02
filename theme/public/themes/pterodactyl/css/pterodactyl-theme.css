@@ -62,9 +62,9 @@
  * alternative; there is no separate "default" slug any more - `:root` *is* the
  * default, so a panel with nothing stored renders these tokens).
  *
- *   page #0b0b0d Ãƒâ€šÃ‚Â· surface #141417 Ãƒâ€šÃ‚Â· raised #060608 Ãƒâ€šÃ‚Â· border #1c1c20
- *   text #f5f5f7 Ãƒâ€šÃ‚Â· muted #94949c Ãƒâ€šÃ‚Â· accent #c8ccd0 Ãƒâ€šÃ‚Â· glow #5c6064
- *   success #22c55e Ãƒâ€šÃ‚Â· danger #ef4444 Ãƒâ€šÃ‚Â· warning #f59e0b
+ *   page #0b0b0d ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· surface #141417 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· raised #060608 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· border #1c1c20
+ *   text #f5f5f7 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· muted #94949c ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· accent #c8ccd0 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· glow #5c6064
+ *   success #22c55e ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· danger #ef4444 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· warning #f59e0b
  */
 :root {
     --pt-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -2744,48 +2744,20 @@
     }
 }
 
-/* The rail's header: which server this column belongs to. A wide column of ten
- * links with nothing saying WHICH server is the failure mode when a user has
- * several open - the tab title is the only other thing naming it. */
-.pt-rail-head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex: none;
-    padding: 0.9rem 1.1rem;
-    background-color: rgb(var(--pt-navy-900));
-    border-left: 3px solid rgb(var(--pt-red-500));
-    color: rgb(var(--pt-chrome-ink));
-}
-
-.pt-rail-id {
-    font-family: var(--pt-font-mono);
-    font-size: 0.7rem;
-    color: rgb(var(--pt-chrome-muted));
-}
-
-/* The power dot. `data-status` on the parent rather than a class on the dot, so
- * the two cannot be set independently and disagree. */
-.pt-rail-dot {
-    flex: none;
-    width: 0.65rem;
-    height: 0.65rem;
-    border-radius: 50%;
-    background-color: rgb(var(--pt-red-500));
-}
-
-.pt-rail-head[data-status='running'] .pt-rail-dot {
-    background-color: rgb(var(--pt-green-500));
-}
-
 /* ------------------------------------------------------ server status panel -- */
-/* The Aternos-shaped block at the top of a server page: the address, the status
- * bar, the power button, and the Address / Software / Version rows.
+/* The power block at the top of a server page: four buttons, then a status band.
  *
- * Every surface here is one of the two dark chrome islands the theme already has
- * (--pt-chrome for a card, --pt-chrome-deep for a row set into it), so this
- * reads as the same vocabulary as the topbar and the server cards rather than a
- * fourth treatment. */
+ * It used to carry an address heading, a Software row and a Version row as well.
+ * All three are gone - the address was the third place the same fact appeared, and
+ * Software / Version repeated what the console's own Startup page says. That
+ * removal is why this section is short: what is left is the one thing the block
+ * was ever for, which is whether the server is running and what you can do about
+ * it.
+ *
+ * Both surfaces are the two dark chrome islands the theme already has
+ * (--pt-chrome for a card, --pt-chrome-deep for a row set into it), so this reads
+ * as the same vocabulary as the topbar and the server cards rather than a fourth
+ * treatment. */
 .pt-sv {
     display: flex;
     flex-direction: column;
@@ -2793,13 +2765,6 @@
     margin-bottom: 1.25rem;
 }
 
-/* Software and Version, as full-width labelled rows at the top of the page.
- *
- * `top` only removes the bottom margin the rows normally carry, because at the
- * very top of the panel there is nothing above them to be separated from. */
-.pt-sv-rows-top {
-    gap: 0.55rem;
-}
 
 /* The full-width status bar. This is the one thing on the page that has to be
  * right at a glance, so it is a filled band in the state colour with white text
@@ -2847,9 +2812,12 @@
  * The colour carries the difference instead - green to start, red to stop or
  * kill, blue to restart - so the shape stays uniform and only the hue says which.
  *
- * Wraps rather than scrolls: four buttons on one line overflow on a narrow
- * screen, and a power control you have to scroll sideways to find is a control
- * you do not use.
+ * They wrap rather than scroll, and below `sm` they become a full-width column:
+ * four buttons side by side overflow on a narrow screen, and a power control you
+ * have to scroll sideways to find is a control you do not use. `flex: 1 1 9.5rem`
+ * is what does the wrapping - the buttons grow to share each row rather than
+ * sitting left-aligned in ragged gaps, so a wrapped row still reads as one row of
+ * equal buttons.
  */
 .pt-sv-power {
     display: flex;
@@ -2863,7 +2831,8 @@
     align-items: center;
     justify-content: center;
     gap: 0.55rem;
-    min-width: 9.5rem;
+    flex: 1 1 9.5rem;
+    min-width: 0;
     padding: 0.8rem 1.6rem;
     border: 0;
     border-radius: var(--pt-glass-radius-sm);
@@ -2911,90 +2880,28 @@
     color: rgb(var(--pt-gray-500));
 }
 
-/* The address row above the terminal, in the console column.
+/* Below `sm` the four buttons stop trying to share a row and become one
+ * full-width stack.
  *
- * A margin, not the row's own vertical gap: it is the last element in a flex
- * column and needs to clear the terminal below it, which the `.pt-sv-rows` gap
- * (a sibling-to-sibling gap) does not reach.
- *
- * `.flex` on that column sets `flex-direction: column`, so this is a plain block
- * in normal flow and needs no extra display work. */
-.pt-console-address {
-    margin-bottom: 0.6rem;
+ * `flex: 1 1 9.5rem` alone is not enough: at 400px it puts two buttons on a row
+ * at about 190px each, which fits, but at 320px - still a real phone width - the
+ * gap and padding leave a label wide enough to break mid-word. One column is the
+ * only arrangement where every button is the same width as the panel it sits in,
+ * which is also the arrangement a thumb expects for the one control people reach
+ * for on a phone. The label stays a single line at this size. */
+@media (max-width: 639px) {
+    .pt-sv-power {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.5rem;
+    }
+
+    .pt-sv-power-btn {
+        width: 100%;
+        padding: 0.85rem 1rem;
+    }
 }
 
-/* A labelled row. The label is a tab sitting on the top-left edge of the value,
- * which is the reference's shape and the reason this is not a description list:
- * the label is beside the value, not above it. */
-.pt-sv-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-    min-width: 0;
-}
-
-.pt-sv-row-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.28rem 0.8rem;
-    border-radius: var(--pt-glass-radius-sm) var(--pt-glass-radius-sm) 0 0;
-    background-color: rgb(var(--pt-blue-500));
-    color: #ffffff;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-
-.pt-sv-row-body {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
-    border-radius: 0 var(--pt-glass-radius-sm) var(--pt-glass-radius-sm) var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-chrome-deep));
-    color: rgb(var(--pt-chrome-ink));
-    min-width: 0;
-}
-
-.pt-sv-row-value {
-    font-family: var(--pt-font-heading);
-    font-size: 0.98rem;
-    font-weight: 700;
-    overflow-wrap: anywhere;
-}
-
-.pt-sv-row-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    flex: none;
-    padding: 0.4rem 0.85rem;
-    border: 0;
-    border-radius: var(--pt-glass-radius-sm);
-    color: #ffffff;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-decoration: none;
-    cursor: pointer;
-    transition: filter var(--pt-dur-base) ease;
-}
-
-.pt-sv-row-btn.is-primary {
-    background-color: rgb(var(--pt-blue-500));
-}
-
-.pt-sv-row-btn.is-success {
-    background-color: rgb(var(--pt-green-500));
-}
-
-.pt-sv-row-btn:hover,
-.pt-sv-row-btn:focus-visible {
-    filter: brightness(1.08);
-    outline: none;
-}
 
 /* The strip that replaced the old console header, which held the power buttons.
  * Those moved into the status panel above, so all that is left here is the page's
@@ -3298,31 +3205,22 @@
 .pt-auth-emblem,
 .pt-auth-signup,
 .pt-auth-social-btn,
+.pt-social-btn,
 .pt-sv-power-btn,
-.pt-sv-row-label,
-.pt-sv-row-body,
-.pt-sv-row-btn,
 .pt-auth button[type='submit'] {
     border-radius: var(--pt-glass-radius-sm) !important;
 }
 
-/* The status panel's own surfaces. A different group from the controls above:
- * these are cards and bands, so they take the standard radius rather than the
- * small one, and the bands (the status bar) stay square because a rounded corner
- * on a full-bleed strip reads as a button. */
-.pt-rail-head {
-    border-radius: var(--pt-glass-radius) !important;
-}
-
+/* The status band, square: a rounded corner on a full-bleed strip reads as a
+ * button. */
 .pt-sv-status {
     border-radius: 0 !important;
 }
 
-/* The power dot and the rail's status dot are the only two genuinely round
- * things in this block, so they get the one `50%` rule rather than inheriting the
- * squaring reset and rendering as squares. */
-.pt-sv-dot,
-.pt-rail-dot {
+/* The dot in the status band is the one genuinely round thing left in this block,
+ * so it gets the single `50%` rule rather than inheriting the squaring reset and
+ * rendering as a square. */
+.pt-sv-dot {
     border-radius: 50% !important;
 }
 

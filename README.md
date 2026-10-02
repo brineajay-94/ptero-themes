@@ -215,49 +215,64 @@ topbar icons cannot hold that without hiding them. So the rail is back — **on
 server pages only**, which does mean server pages look different from the
 dashboard. Say the word if you want it everywhere.
 
-The rail's header shows the server's own name, short identifier and a power dot,
-read from the same `ServerContext` the page reads, so it cannot disagree with the
-status bar at the top. Below `lg` it is hidden with CSS and `aria-hidden` in the
-markup — the mobile drawer is the real navigation at those widths, and two
-navigations for one page is a screen reader reading the same list twice.
+The rail has **no header**. It used to show the server's own name, short identifier
+and a power dot, read from the same `ServerContext` the page reads — but the
+topbar directly above already names the server, and the status band at the top of
+the content already carries the state. Two more copies of the same two facts, in
+the one place the eye lands first, was not carrying its weight. With the header
+gone the rail has no top block at all, and the brand block became **drawer-only**,
+because the topbar directly above the rail already carries the logo. Below `lg` the
+rail is hidden with CSS and `aria-hidden` in the markup — the mobile drawer is the
+real navigation at those widths, and two navigations for one page is a screen
+reader reading the same list twice.
 
 `Sidebar` gained a `variant` prop (`'drawer' | 'rail'`) rather than becoming two
 components. The **navigation** must stay one list; only the frame around it
 changes. Two components is how the rail and the drawer drift into offering
 different destinations.
 
-The rail's server identity arrives as **props**, and that is load-bearing rather
-than stylistic. `AppShell` renders `Sidebar` for the mobile drawer on *every*
-page, while `App.tsx` mounts `ServerContext.Provider` only around `/server/:id` —
-so a `ServerContext` hook in `Sidebar` throws on `/` and `/account`, and the
-panel's `ErrorBoundary` replaces the whole dashboard with **“An error was
-encountered by the application while rendering this view. Try refreshing the
-page.”** That is a *client-side* React render error, so it never reaches
-`storage/logs` — a log check finds nothing at all, which is exactly what makes it
-expensive. `ServerRouter` reads the values and passes them down; it is the only
-place guaranteed to be inside the context.
+**The trap that header used to sit on** is worth keeping, because removing the
+header did not remove the trap — it removed the one reason anybody was tempted to
+walk into it. `AppShell` renders `Sidebar` for the mobile drawer on *every* page,
+while `App.tsx` mounts `ServerContext.Provider` only around `/server/:id` — so a
+`ServerContext` hook in `Sidebar` throws on `/` and `/account`, and the panel's
+`ErrorBoundary` replaces the whole dashboard with **“An error was encountered by
+the application while rendering this view. Try refreshing the page.”** That is a
+*client-side* React render error, so it never reaches `storage/logs` — a log check
+finds nothing at all, which is exactly what makes it expensive.
 
-Worth knowing before adding a component that reads server state: the same trap
-waits for anything `AppShell` renders. Grep for
+The header needed the server's identity, which is why it arrived as **props**:
+`ServerRouter` read the values and passed them down through `AppShell`, being the
+only place guaranteed to be inside the context. All of that is now gone — nothing
+in `Sidebar` reads the server store, so the trap is gone rather than documented.
+Worth knowing before adding a component that reads server state anyway: the same
+trap waits for anything `AppShell` renders. Grep for
 `ServerContext.useStoreState|useStoreActions` and confirm each hit is only
 reachable from `ServerRouter`.
 
-**The status panel at the top of the console.** Order is **Software, Version, then
-the status band, then the four power buttons** — and the address moved down beside
-the console, which is where it belongs: one is what an *owner* checks before
-touching anything, the other is what a *player* needs while reading console
-output. There is no Connect button; Aternos's opens a launcher dialog and nothing
-on this panel does.
+**The power block at the top of the console.** Order is **the four buttons first,
+then the status band.** The first thing on the page is what you can do; the second
+is what state you are in.
 
 All four power signals share **one** button class — Start, Stop, Restart, Kill.
 They were a large Start with two small square icons beside it, and two sizes read
 as two different classes of action when they are the same class. Colour carries
 the difference now: green start, red stop/kill, blue restart. They wrap rather
-than scroll, because a power control you have to scroll sideways to find is one
-you do not use.
+than scroll (`flex: 1 1 9.5rem`, so a wrapped row still reads as one row of equal
+buttons), and below `sm` they become a full-width single column — the only
+arrangement where every button is as wide as the panel it sits in, and the one a
+thumb expects for the control people reach for on a phone. Kill confirms because
+it is the one irreversible action; Start, Stop and Restart do not.
 
-The **address** sits above the terminal, next to `ServerDetailsBlock` (uptime,
-CPU, memory, disk, network) — where you connect, and how the thing is doing.
+What is left of this block is much smaller than it was. The address heading with
+its Connect button, the Software row and the Version row are **all gone**, and the
+removals were not only cosmetic: the egg name cost a request to
+`GET /auth/servers/eggs` plus a state hook and a fallback chain, for a label, and
+taking those rows out took that request off every console page load. Software and
+Version repeated what the console's own Startup page says; the address was the
+third place the same fact appeared, after the dashboard card and the panel's own
+sub-navigation. What remains reads nothing from the app store and fetches nothing,
+so it cannot fail in a way that takes the page with it.
 
 What did *not* survive the translation, and why:
 
@@ -266,8 +281,9 @@ What did *not* survive the translation, and why:
 | Blue RAM-boost banner | **Dropped** | It is Aternos selling an upgrade. On this panel it advertises a product that does not exist. |
 | Connect button | **Dropped** | It opens a launcher dialog; there is nothing to launch here. |
 | One large **Start** | Four buttons, same class | Dropping two power signals the panel offers would be a regression dressed as a match. |
-| Software → **Change** | Only for a **root admin**, to the admin Software tab | Changing the egg is an admin action here — `updateBuild` takes allocations and limits and no `egg_id`. For anyone else there is **no button**, because a button that goes nowhere is the same failure as the “No egg assigned” string this theme already shipped once. |
-| Version → **Change** | Always, to the panel's **Startup** page | That page is genuinely where a user changes those values. |
+| Address card | **Dropped** | The third copy of a fact the dashboard card and the sub-navigation already carry, and it was never what an owner opens a server page to read. |
+| Software row | **Dropped** | Repeated the Startup page, and cost a request on every console page load for a label. |
+| Version row | **Dropped** | Repeated the Startup page, which is genuinely where a user changes those values. |
 | Empty left card | Dropped | Its CPU/memory/disk readings are already in the console's own detail column, so a second card repeated them. |
 
 Power goes over the `ServerContext` socket with `socket.send('set state', …)`,
@@ -275,10 +291,45 @@ exactly as the panel's own `PowerButtons` does — the socket is already open he
 carrying the resource stats, and an HTTP call would be a second channel to the
 same daemon.
 
-Software is read from `GET /auth/servers/eggs`, because the panel's server
-payload carries no egg name at all; Version comes from `serverVersionLabel()` over
-the egg's variables, reading `serverValue` before `defaultValue` the way the panel
-itself resolves a variable.
+`GET /auth/servers/eggs` is **still shipped and still used**, by the dashboard
+cards. Only the server page stopped needing it. For the same reason
+`serverVersionLabel()` is gone from `lib/serverFamily.ts` — its only consumer was
+the Version row, and an exported helper with no caller is just a second place to
+keep in sync.
+
+**The file row dropdown, and the two mistakes that made it shake.** The stock panel
+rendered `absolute` inside a plain wrapper and nudged it with
+`left = viewportX - width`, which is only correct when the wrapper happens to sit
+at the viewport origin. Inside a `.file_row` at some x offset it was pushed off to
+the right, the row grew, and the page grew a horizontal scrollbar.
+
+Changing it to `position: fixed` is **not** the fix, which is the part worth
+knowing:
+
+- A non-`none` `transform` on an **ancestor** makes that ancestor the containing
+  block for `position: fixed`. `.file_row:hover` carries
+  `transform: translateY(-1px)`, so the containing block *appeared and disappeared*
+  as the pointer crossed the row — the panel was viewport-relative on one frame and
+  row-relative on the next. That is the horizontal jitter.
+- `offsetParent` does not rescue you. The spec says it returns `null` for an element
+  whose computed position is `fixed`, and browsers honour that, so the obvious
+  “rebase the coordinates onto `offsetParent`” is a silent no-op that reads as
+  though it works.
+- Writing `top`/`left` feeds straight back into the scroll listener that repositions
+  the panel: reposition changed the document, the document scrolled, that
+  repositioned again. The panel moved with a **transform**, never with `top`/`left`,
+  so it cannot change the document's scrollable size and cannot fire that event.
+
+So the panel is rendered through a **portal into `<body>`**: its parent is not
+transformed, not clipped and establishes no containing block, which makes
+`position: fixed` mean the viewport unconditionally and removes the need to rebase
+at all. Every token it uses is declared on `:root`, so it still inherits them
+through `<body>`, and being `fixed` it takes no space in the portal div.
+
+No scroll correction is applied to those coordinates, deliberately: for a `fixed`
+element the containing block is the viewport and `getBoundingClientRect()` is
+already measuring in viewport space, so adding `window.scrollX` would displace the
+menu by exactly the scroll distance on any scrolled page.
 - **Dashboard server cards** — the third line of each card is the server **family**,
   not the egg name, because the panel never sends the egg name to the browser.
   `ServerTransformer` returns neither an egg name nor an egg id (`egg_features` is
@@ -784,7 +835,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `resources/scripts/components/AppShell.tsx` | create — topbar + drawer shell on every page, plus a fixed desktop rail on SERVER pages only. The rail lives here rather than in ServerRouter so `mode` stays the one thing that decides the shell
-| `resources/scripts/components/Sidebar.tsx` | create — full nav list, used in the mobile drawer everywhere and in the fixed desktop rail on server pages. A `variant` prop swaps the frame (brand + footer in the drawer, server identity block in the rail) without forking the navigation into two lists
+| `resources/scripts/components/Sidebar.tsx` | create — full nav list, used in the mobile drawer everywhere and in the fixed desktop rail on server pages. A `variant` prop swaps the frame (brand + footer in the drawer, nothing at the top in the rail, because the topbar directly above already carries both) without forking the navigation into two lists. Nothing in it reads the server store
 | `resources/scripts/components/NavigationBar.tsx` | replace â€” brand lockup, icon-over-label nav, and a `pt-topbar-account` group (username, logout, avatar) that cannot be squeezed |
 | `resources/scripts/routers/DashboardRouter.tsx` | replace â€” wraps in `AppShell` |
 | `resources/scripts/routers/ServerRouter.tsx` | replace â€” wraps in `AppShell` |
@@ -794,7 +845,7 @@ render, so they match the panel.
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - the card's third line is the server's **software**, from `GET /auth/servers/eggs`, because the panel's servers list carries no egg name (see *Dashboard server cards* below) |
-| `components/server/status/ServerStatusPanel.tsx` | create - the Aternos-shaped block at the top of a server page: address card, status bar, large power button, Address/Software/Version rows |
+| `components/server/status/ServerStatusPanel.tsx` | create - the power block at the top of a server page: the four power buttons first, then the status band. The address card and the Software/Version rows are gone, and with them the egg request they needed |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |
@@ -806,7 +857,7 @@ render, so they match the panel.
 | `lib/accountRoutes.ts` | create - the account routes the theme owns, shared by router/topbar/sidebar |
 | `components/elements/{PageContentBlock.tsx,button/style.module.css}` | replace |
 | `components/elements/Spinner.tsx` | replace - round, small loading ring (see *Loading spinner* below) |
-| `components/elements/DropdownMenu.tsx` | replace - viewport-clamped `position: fixed` panel (see *File actions menu* below) |
+| `components/elements/DropdownMenu.tsx` | replace - panel rendered through a portal into `<body>`, moved by `transform` so it cannot change the document's scrollable size (see *File actions menu* below) |
 | `components/elements/Field.tsx` | replace - adds an optional `labelAction` on the label row |
 | `components/server/console/{ServerConsoleContainer,PowerButtons,Console,StatBlock,StatGraphs,chart.ts,style.module.css}` | replace |
 | `components/server/files/{FileManagerContainer,FileManagerBreadcrumbs,FileObjectRow,FileDropdownMenu,MassActionsBar,style.module.css}` | replace |

@@ -38,14 +38,8 @@ export default () => {
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [error, setError] = useState('');
 
-    const id = ServerContext.useStoreState((state) => state.server.data?.id);
-    const name = ServerContext.useStoreState((state) => state.server.data?.name);
-    // The rail's header needs these two, and they are read HERE rather than in
-    // Sidebar because this is the only place guaranteed to be inside
-    // ServerContext - AppShell is also mounted on the dashboard and the auth
-    // screens, where there is no provider at all.
-    const identifier = ServerContext.useStoreState((state) => state.server.data?.identifier);
-    const powerState = ServerContext.useStoreState((state) => state.status.value);
+const id = ServerContext.useStoreState((state) => state.server.data?.id);
+    const name = ServerContext.useStoreState((state) => state.server.data!.name);
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
     const inConflictState = ServerContext.useStoreState((state) => state.server.inConflictState);
     const serverId = ServerContext.useStoreState((state) => state.server.data?.internalId);
@@ -85,8 +79,6 @@ export default () => {
             <AppShell
                 mode={'server'}
                 serverName={name}
-                serverIdentifier={identifier}
-                serverStatus={powerState}
                 serverId={serverId}
                 serverUuid={uuid || undefined}
                 serverVariables={variables}

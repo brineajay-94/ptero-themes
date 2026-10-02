@@ -25,8 +25,18 @@
     background-color: rgb(var(--pt-gray-700));
     /* Deliberately not `overflow: hidden`. The row has a square corner radius, so
      * nothing here needs clipping, and clipping swallowed the per-row dropdown
-     * that is anchored to this row. Text truncation is handled by .details. */
-    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease, transform var(--pt-dur-base) ease;
+     * that is anchored to this row. Text truncation is handled by .details.
+     *
+     * The dropdown no longer depends on that, though: it is portalled into <body>
+     * (see elements/DropdownMenu), so it is not inside this row at all. This
+     * transform is kept because it is the hover lift, and it is safe now only
+     * because of the portal - a non-none transform on an ancestor turns that
+     * ancestor into the containing block for any `position: fixed` child, which
+     * is the trap that put the menu at the far right of the page and gave the
+     * document a horizontal scrollbar. Do not add another fixed-position child in
+     * here. */
+    transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease,
+        transform var(--pt-dur-base) ease;
 
     &:hover {
         border-color: rgb(var(--pt-gold-400) / 0.75);

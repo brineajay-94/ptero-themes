@@ -12,17 +12,6 @@ import type { ServerEggVariable } from '@/api/server/types';
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
     serverName?: string;
-    /**
-     * The server's short identifier and power state, forwarded to the rail's
-     * header.
-     *
-     * Both are read in ServerRouter and passed down rather than read here,
-     * because this component is ALSO mounted by DashboardRouter and
-     * AuthenticationRouter, where there is no ServerContext to read. See the
-     * note on SidebarProps, which is where that mistake actually landed.
-     */
-    serverIdentifier?: string;
-    serverStatus?: string | null;
     serverId?: number | string | null;
     /**
      * Passed down so the sidebar can decide whether to offer the Plugins item.
@@ -43,16 +32,7 @@ const normalize = (value: string) => (value === '' || value === '/' ? '/' : valu
  */
 const basePath = (path: string) => normalize(path.replace(/\/:[^(]+(?:\([^)]*\))?/, ''));
 
-const AppShell = ({
-    mode,
-    serverName,
-    serverIdentifier,
-    serverStatus,
-    serverId,
-    serverUuid,
-    serverVariables,
-    children,
-}: AppShellProps) => {
+const AppShell = ({ mode, serverName, serverId, serverUuid, serverVariables, children }: AppShellProps) => {
     const location = useLocation();
     const match = useRouteMatch<{ id: string }>();
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -123,9 +103,6 @@ const AppShell = ({
         <Sidebar
             mode={mode}
             variant={sidebarVariant}
-            serverName={serverName}
-            serverIdentifier={serverIdentifier}
-            serverStatus={serverStatus}
             serverId={serverId}
             serverUuid={serverUuid}
             serverVariables={serverVariables}

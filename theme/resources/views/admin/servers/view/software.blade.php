@@ -23,6 +23,12 @@
      * front which of the two things is about to happen: a safe swap, or a wipe.
      * The family comes from ServerSoftwareService, which is the same code the
      * POST path uses, so what is described here is what actually happens.
+     *
+     * The bucket is applied through an explicit if rather than the
+     * `${$bucket}Family` variable-variable that used to be here. That syntax is
+     * a PARSE error on PHP 8.2 and later, so the whole Software page died with
+     * "syntax error, unexpected identifier \"Family\"" before it ever rendered -
+     * Blade passes it through untouched, since it is not a Blade construct.
      */
     $sameFamily = [];
     $crossFamily = [];
@@ -31,11 +37,15 @@
             if ((int) $egg->id === (int) $server->egg_id) {
                 continue;
             }
-            $bucket = \Pterodactyl\Services\ServerSoftwareService::needsReinstall(
+            $crosses = \Pterodactyl\Services\ServerSoftwareService::needsReinstall(
                 $currentFamily,
                 \Pterodactyl\Services\ServerSoftwareService::familyFor($egg),
-            ) ? 'cross' : 'same';
-            ${$bucket}Family[$nestName][] = $egg;
+            );
+            if ($crosses) {
+                $crossFamily[$nestName][] = $egg;
+            } else {
+                $sameFamily[$nestName][] = $egg;
+            }
         }
     }
 @endphp

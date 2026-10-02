@@ -1357,3 +1357,38 @@ Google and confirming the button is absent, signing in with a password and
 changing the address, and `yarn build:production` against a real panel — are still
 to be run wherever the panel is available.
 
+### Compiling every Blade template — do not skip this
+
+`php -l` does **not** work on a `.blade.php` file: the file is mostly markup, so
+the linter reads the first tag as PHP and reports a parse error on a template
+that is perfectly fine. That mistake hid two genuinely broken templates for
+several releases. Passing `php -l` on a Blade template means nothing.
+
+The check that does work is to compile each template with the panel's own
+compiler and lint the **output**:
+
+```php
+// run in the panel root, as the web user
+$app = require_once 'bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$compiler = $app->make('blade.compiler');
+foreach (glob('resources/views/**/*.blade.php') as $f) {
+    file_put_contents('/tmp/out.php', $compiler->compileString(file_get_contents($f)));
+    passthru('php -l /tmp/out.php');
+}
+```
+
+Two failures came out of exactly this, and neither was visible anywhere except as
+a 500 on one admin page:
+
+| Template | What was wrong | What it broke |
+| --- | --- | --- |
+| `admin/servers/partials/navigation.blade.php` | A raw `<?php` opener with a Blade `@endphp` closer. Blade only rewrites an `@php`/`@endphp` *pair*, so the `@endphp` reached the compiled view verbatim, and the untouched `<?php` really did open a block that ran into the markup below: `syntax error, unexpected token "class"`. | **Every** `/admin/servers/view/*` page, because `view/index.blade.php` includes this partial. It is also what made a *successful* server creation look broken: `CreateServerController@store()` ends with a redirect to `/admin/servers/view/{id}`, so the browser landed straight on the 500 and it read as "create is broken". |
+| `admin/servers/view/software.blade.php` | `${$bucket}Family[$nestName][] = $egg` — the `${...}` variable-variable is a **parse error** on PHP 8.2+. Blade passes it through untouched, since it is not a Blade construct. | The Software tab, on any PHP 8.2+ install. |
+
+Run it against the **panel's** PHP, not whatever is on the machine doing the
+checking — that is what turned the second one from "looks wrong" into a hard parse
+error. For the non-Blade PHP (`app/`, `routes/`), a plain `php -l` over each file
+is enough, and all 12 pass.
+

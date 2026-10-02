@@ -1,7 +1,22 @@
-<?php
+{{-- brine-theme: @php/@endphp, NOT a raw <?php ... ?> block.
 
-/** @var \Pterodactyl\Models\Server $server */
-$router = app('router');
+     The stock partial uses the raw form. This one used to open with `<?php` and
+     close with `@endphp`, which mixes two different conventions and does not
+     work: Blade only rewrites `@php ... @endphp` as a PAIR, so a lone `@endphp`
+     survives into the compiled view verbatim. The raw `<?php` on line one is left
+     alone by Blade and really does open a PHP block, which then runs on through
+     the untouched `@endphp` and into the markup below it - so the compiled view
+     was `<?php ... @endphp <div class="row">`, and PHP died on the `class`
+     attribute with "syntax error, unexpected token \"class\"".
+
+     Every view under /admin/servers/view went down with it, because
+     admin/servers/view/index.blade.php includes this partial. Same reason the
+     other theme Blade files use the @php pair.
+
+     Do not "restore" the stock raw form without also replacing the @endphp. --}}
+@php
+    /** @var \Pterodactyl\Models\Server $server */
+    $router = app('router');
 @endphp
 <div class="row">
     <div class="col-xs-12">

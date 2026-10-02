@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.15.0",
+    "version": "1.15.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -360,12 +360,12 @@
         {
             "path": "resources/views/admin/servers/view/software.blade.php",
             "action": "create",
-            "note": "The Software page. Same-family targets (Paper/Spigot/Purpur) and cross-family ones (anything that needs a reinstall) are in separate columns so it is obvious which is which before submitting. Works without JavaScript - the wipe confirmation is enforced server-side - and the script only adds a live summary and the enable/disable"
+            "note": "The Software page. Same-family targets (Paper/Spigot/Purpur) and cross-family ones (anything that needs a reinstall) are in separate columns so it is obvious which is which before submitting. Works without JavaScript - the wipe confirmation is enforced server-side - and the script only adds a live summary and the enable/disable. The egg grouping is applied through an explicit if rather than a ${$bucket} variable-variable: that syntax is a PARSE error on PHP 8.2 and later, and Blade passes it through untouched because it is not a Blade construct, so the whole page died before it rendered. That shipped broken once too - php -l on a .blade.php file cannot catch either of these two, which is why the Verification section now compiles every template and lints the OUTPUT"
         },
         {
             "path": "resources/views/admin/servers/partials/navigation.blade.php",
             "action": "create",
-            "note": "The server-view tab bar, with a Software tab added between Startup and Database. A copy of the panel partial plus that one entry, because the tab bar is shared by every server sub-page and the theme already replaces other shared panel files"
+            "note": "The server-view tab bar, with a Software tab added between Startup and Database. A copy of the panel partial plus that one entry, because the tab bar is shared by every server sub-page and the theme already replaces other shared panel files. Uses Blade's @php/@endphp rather than the stock raw <?php ... ?> block: mixing the two is a 500 on EVERY /admin/servers/view page, since Blade only rewrites an @php/@endphp pair and a lone @endphp passes straight through into markup, while the raw <?php on the first line really does open a PHP block that then runs into the div tag below it, and PHP died on its class attribute. That shipped broken once - see the README's Verification section"
         }
     ],
     "build": {

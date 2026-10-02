@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.16.1",
+    "version": "1.16.2",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -70,7 +70,7 @@
         {
             "path": "resources/scripts/components/AppShell.tsx",
             "action": "create",
-            "note": "Topbar + mobile drawer shell for dashboard and server routes; applies the dashboard background image. On the dashboard and account pages there is still no desktop sidebar - the reference shell is a topbar only, and the navigation that lived in the sidebar moved into NavigationBar as icon-over-label items; the drawer keeps the full navigation on narrow screens. ON SERVER PAGES a fixed left rail is back, from lg up, because a server page has ten destinations plus the theme's own Plugins and Mods and two topbar icons cannot hold that without hiding them. It is rendered here rather than in ServerRouter so `mode` stays the single thing that decides the shell and the drawer and the rail cannot disagree. The rail is always in the DOM and hidden below lg with CSS so a resize across the breakpoint mounts nothing, and is aria-hidden there because the drawer is the real navigation at those widths and two navigations for one page is a screen reader reading the same list twice. The account page title also resolves through lib/accountRoutes.ts, for the reason the server one does: /account/email is a theme route, so it is not in routes.account and the fallback would title it 'Account'"
+            "note": "Topbar + mobile drawer shell for dashboard and server routes; applies the dashboard background image. On the dashboard and account pages there is still no desktop sidebar - the reference shell is a topbar only, and the navigation that lived in the sidebar moved into NavigationBar as icon-over-label items; the drawer keeps the full navigation on narrow screens. ON SERVER PAGES a fixed left rail is back, from lg up, because a server page has ten destinations plus the theme's own Plugins and Mods and two topbar icons cannot hold that without hiding them. It is rendered here rather than in ServerRouter so `mode` stays the single thing that decides the shell and the drawer and the rail cannot disagree. The rail is always in the DOM and hidden below lg with CSS so a resize across the breakpoint mounts nothing, and is aria-hidden there because the drawer is the real navigation at those widths and two navigations for one page is a screen reader reading the same list twice. The rail's offset is applied to `.pt-shell-main`, never to `.pt-shell-body`: NavigationBar renders the topbar as a direct child of the body, so padding the body pushed the header sideways too and left a 15rem white hole in the top-left corner above the rail. The account page title also resolves through lib/accountRoutes.ts, for the reason the server one does: /account/email is a theme route, so it is not in routes.account and the fallback would title it 'Account'"
         },
         {
             "path": "resources/scripts/components/Sidebar.tsx",

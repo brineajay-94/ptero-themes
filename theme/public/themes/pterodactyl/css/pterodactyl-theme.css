@@ -2728,10 +2728,19 @@
         overscroll-behavior: contain;
     }
 
-    /* The topbar spans the full width and sits above the rail, so the rail starts
-     * under it; the body only has to clear the rail horizontally. */
-    .pt-shell.has-rail .pt-shell-body {
-        padding-left: 15rem;
+    /* Only the CONTENT is offset, never `.pt-shell-body`.
+     *
+     * That looks like a small distinction and it is not: `NavigationBar` renders
+     * `<header class="pt-topbar">` as a direct child of `.pt-shell-body`, so
+     * padding the body pushed the topbar sideways too and left a 15rem white
+     * hole in the top-left corner, above the rail. The topbar has to span the
+     * full width with the rail hanging beneath it - which is also what the
+     * reference does.
+     *
+     * The offset is added to the existing 1.25rem gutter rather than replacing
+     * it, so content is not flush against the rail. */
+    .pt-shell.has-rail .pt-shell-main {
+        padding-left: calc(15rem + 1.25rem);
     }
 }
 

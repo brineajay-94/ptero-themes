@@ -121,16 +121,58 @@ detect_web_user() {
 WEB_USER="$(detect_web_user || true)"
 
 # Read "path"/"action" pairs out of manifest.json without requiring jq.
+#
+# ORDER-INDEPENDENT, AND IT HAS TO STAY THAT WAY
+# ----------------------------------------------
+# This used to print a pair when it reached an `"action"` line, using whatever
+# `"path"` it had seen last:
+#
+#     /"path"/   { p = ... }
+#     /"action"/ { a = ...; print p "\t" a }
+#
+# which silently requires `path` to appear BEFORE `action` in every entry. Two
+# entries serialised as action/note/path instead broke it in a way nothing
+# reported: each one's own path was never emitted, so its file was never
+# installed, and one of them emitted a SPURIOUS pair carrying the PREVIOUS
+# entry's path. The run finished, printed a copy line for every pair it thought
+# it had, built the assets and reported success - with 72 of 73 theme files
+# actually in place. A theme whose header rendered and whose console did not is
+# a much harder bug to read than a manifest that fails to parse.
+#
+# So the pair is now emitted when the entry CLOSES, with both values seen by
+# then, which cannot care what order they arrived in. The key lines are anchored
+# to the start of a line so a `note` - which is free text and may contain the
+# word "path", or a brace - cannot be mistaken for structure.
 PAIRS=()
 while IFS= read -r line; do
     PAIRS+=("$line")
 done < <(awk '
-    /"path"/   { p = $0; sub(/.*"path": *"/, "", p); sub(/".*/, "", p) }
-    /"action"/ { a = $0; sub(/.*"action": *"/, "", a); sub(/".*/, "", a); print p "\t" a }
+    function value(line,   v) {
+        v = line
+        sub(/^[^:]*:[[:space:]]*"/, "", v)
+        sub(/".*$/, "", v)
+        return v
+    }
+    /^[[:space:]]*"path"[[:space:]]*:/   { p = value($0) }
+    /^[[:space:]]*"action"[[:space:]]*:/ { a = value($0) }
+    /^[[:space:]]*\}[[:space:]]*,?[[:space:]]*$/ {
+        if (p != "" && a != "") print p "\t" a
+        p = ""; a = ""
+    }
 ' "$MANIFEST")
 
 if [ "${#PAIRS[@]}" -eq 0 ]; then
     echo "error: could not parse any files out of manifest.json." >&2
+    exit 1
+fi
+
+# Every entry must produce exactly one pair. A count mismatch means an entry was
+# dropped or doubled by the parser above, which is silent data loss at install
+# time - caught here, before a single file is written.
+MANIFEST_ENTRIES="$(awk '/^[[:space:]]*"path"[[:space:]]*:/ { n++ } END { print n + 0 }' "$MANIFEST")"
+if [ "${#PAIRS[@]}" -ne "$MANIFEST_ENTRIES" ]; then
+    echo "error: parsed ${#PAIRS[@]} path/action pairs from manifest.json but it has $MANIFEST_ENTRIES entries." >&2
+    echo "       Refusing to install: some files would be silently skipped." >&2
     exit 1
 fi
 
@@ -344,6 +386,21 @@ while IFS=$'\t' read -r path action; do
 
     mkdir -p "$(dirname "$target")"
     cp -a "$source" "$target"
+
+    # Prove the copy landed, rather than trusting that it did.
+    #
+    # `cp` can report success and still leave the old file in place - a bind mount
+    # or an overlay that shadows the path, a filesystem that silently drops a write
+    # to a path it believes is immutable, an SELinux or AppArmor denial that is
+    # reported as success. The failure mode this guards is the nasty one: the
+    # panel keeps serving a mix of the old and new theme, which compiles, builds,
+    # and reports success, and the symptom is a page that half-renders. Comparing
+    # the two files costs one read and turns that into a loud, named failure.
+    if ! cmp -s "$source" "$target"; then
+        echo "error: $path did not copy cleanly (source and target differ after cp)." >&2
+        echo "       Refusing to continue - the panel would be left with a mix of two theme versions." >&2
+        exit 1
+    fi
 
     # Stamp the copy with the install time.
     #

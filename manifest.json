@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-"version": "1.17.5",
+"version": "1.17.6",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -41,6 +41,16 @@
             "path": "resources/scripts/components/elements/DropdownMenu.tsx",
             "action": "replace",
             "note": "The per-row action menu (file manager, backups, databases, users). Only the panel's paint changes: it was --pt-chrome, the dark navy of the topbar, with --pt-chrome-ink text, which put a shell-coloured menu on a white page and - because the rows are styled with page ink - printed the labels dark grey on navy. It is now a card: --pt-gray-700 fill, --pt-gray-100 ink, hairline, soft shadow, and hover/danger tinted to the palette. The viewport positioning, the portal and the transform-based placement are untouched"
+        },
+        {
+            "path": "resources/scripts/components/elements/TitledGreyBox.tsx",
+            "action": "replace",
+            "note": "The titled panel used by the subuser permission groups and by the settings/startup boxes. The stock one is a dark card with a bg-neutral-900 header and a border-black rule, which is why CONTROL / FILE came out as dark navy blocks with dark grey copy inside a white dialog - the old panel dropped into the themed one. Same shape, token paint: a gray-600 header strip on a gray-700 body, page ink, a real hairline, and the group name in gray-50 so it is findable at a glance"
+        },
+        {
+            "path": "resources/scripts/components/server/users/PermissionRow.tsx",
+            "action": "replace",
+            "note": "One permission row in the subuser dialog. The hover was border-neutral-500 bg-neutral-800, written for a dark row on a dark box and effectively invisible once the box is a card - and it is the only thing telling you which of twenty similarly named rows you are about to tick. Now a tint of the page mid grey with an accent hairline, and the disabled state uses an explicit muted ink instead of an opacity wash"
         },
         {
             "path": "resources/scripts/components/elements/dropdown/style.module.css",

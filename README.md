@@ -961,6 +961,10 @@ nothing about `option`, so the browser painted the version list with its own dar
 default and the rows inherited the field's near-black ink: **Show versions** came
 out grey-on-black, with only the highlighted row legible. They are white fields
 with page ink now, options included.
+
+One more of the same, in the subuser dialog: the permission groups (CONTROL, FILE, ...) are the panel's`n`
+TitledGreyBox`, a dark card with a `bg-neutral-900` header and a `border-black` rule. On a light`npage that is a block of the old panel dropped into the middle of the themed one, with the`npermission names and their descriptions barely legible against it. It is a card now - a`n`gray-600` header strip, `gray-700` body, page ink - and `PermissionRow`'s hover,`nwhich was `border-neutral-500 bg-neutral-800` and therefore invisible once the box was a`ncard, is a tint of the page grey with an accent hairline. That hover is the only thing`ntelling you which of twenty similarly named rows you are about to tick, so it matters.
+
 All six are copies rather than overrides: they are rewritten in `--pt-*` tokens,
 so they follow the palette, and the parts that were already right — the menu's
 viewport positioning, the input's checkbox and disabled states, the modal's

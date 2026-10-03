@@ -1,18 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faBolt,
-    faCog,
-    faMemory,
-    faMicrochip,
-    faPlay,
-    faServer,
-    faStop,
-    faSyncAlt,
-} from '@fortawesome/free-solid-svg-icons';
+import { faBolt, faCog, faPlay, faServer, faStop, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
-import { SocketEvent } from '@/components/server/events';
-import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import Can from '@/components/elements/Can';
 import { Dialog } from '@/components/elements/dialog';
 import getServerEggs from '@/api/server/eggs';
@@ -35,28 +24,27 @@ type PowerSignal = 'start' | 'stop' | 'restart' | 'kill';
  * page reads them in that order. Stacking them instead - identity, then status,
  * then buttons, each full width - spends three vertical bands saying two things.
  *
- * WHY THE META CHIPS ARE BACK
- * ---------------------------
+ * WHY ONLY SOFTWARE AND VERSION ARE HERE
+ * -------------------------------------
  * Software, version, CPU and memory were all removed from this block in 1.16.5,
  * on the grounds that Software repeated the Startup page and cost a request to
  * fetch. That reasoning was right about the OLD layout, where these were two
  * full-width labelled ROWS with their own borders and their own "Change" buttons
  * - three stacked blocks, each the width of the page, for a value the user reads
- * once. As four small chips on one line under the name they are a different
- * proposition entirely: they are a spec line, the thing a server owner's eye goes
- * to first, and they cost one request on a page that already opens a websocket.
+ * once. As small chips on one line under the name they are a different
+ * proposition entirely: a spec line, the thing a server owner's eye goes to first.
+ * So `serverVersionLabel()` is back, and so is the egg request - both scoped to
+ * this component so nothing else on the page depends on them.
  *
- * So `serverVersionLabel()` is back, and so is the egg request - and both are
- * scoped to this component so nothing else on the page depends on them.
- *
- * WHY THE CPU AND MEMORY CHIPS ARE NOT FROM THE DETAILS BLOCK
- * -----------------------------------------------------------
- * They are the same numbers, arriving over the same socket, and they are read
- * here rather than shared because a shared value needs a context provider or a
- * module-level store - and this component is rendered by ServerConsoleContainer
- * while the details block is rendered beside it in a `grid-cols-6` of its own. Two
- * subscriptions to one websocket event is not a cost worth a new abstraction; the
- * panel's own components do exactly this.
+ * CPU and memory are NOT back, and they are the two that were wrong to put here.
+ * They are live numbers, so a stopped server has none, and the honest rendering
+ * of "no number" was an em dash: a header reading `CPU —  Memory —` under a
+ * server name, which looks like a failed read rather than a stopped server. The
+ * same two values are on the page already, as cards in the column beside the
+ * terminal, where they print `Offline` in words when the server is stopped and
+ * carry a bar the moment they start moving. One copy of a number, in the place
+ * that can actually show it, beats two copies where one of them can only ever be
+ * a dash - and it drops a second subscription to the stats socket as well.
  *
  * WHY POWER GOES OVER THE SOCKET
  * -----------------------------
@@ -87,17 +75,6 @@ const statusLabel = (status?: string | null): string => {
     return 'Offline';
 };
 
-/**
- * Megabytes, as a whole number, from a byte count.
- *
- * Deliberately not `bytesToString()`: that switches units as the number grows
- * (1024 MB becomes 1 GB), and a chip reading "0 / 1024 MB" next to a limit the
- * panel also reports in MB cannot become "0 / 1 GB" without the two numbers
- * silently disagreeing about their own units. The limit is in MB too, so both
- * sides of the slash stay in MB.
- */
-const toMb = (bytes: number): number => Math.floor(bytes / 1024 / 1024);
-
 /** One of the small facts under the server name: an icon and a value. */
 const Chip: React.FC<{ icon: Parameters<typeof FontAwesomeIcon>[0]['icon']; children: React.ReactNode }> = ({
     icon,
@@ -114,7 +91,6 @@ const ServerStatusPanel: React.FC = () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const node = ServerContext.useStoreState((state) => state.server.data!.node);
     const variables = ServerContext.useStoreState((state) => state.server.data!.variables);
-    const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
@@ -124,7 +100,6 @@ const ServerStatusPanel: React.FC = () => {
 
     const [confirmingKill, setConfirmingKill] = useState(false);
     const [eggName, setEggName] = useState<string | null>(null);
-    const [stats, setStats] = useState({ cpu: 0, memory: 0 });
 
     // The egg name. The server payload carries none, so this is the only source,
     // and a failure leaves the chip on its fallback rather than taking the page
@@ -150,24 +125,6 @@ const ServerStatusPanel: React.FC = () => {
         };
     }, [uuid]);
 
-    // Live CPU and memory for the chips. Same event the details block listens to;
-    // see the note at the top of the file about why that is two subscriptions
-    // rather than a shared value.
-    useWebsocketEvent(SocketEvent.STATS, (data: string) => {
-        let parsed: any = {};
-
-        try {
-            parsed = JSON.parse(data);
-        } catch (e) {
-            return;
-        }
-
-        setStats({
-            cpu: Number(parsed.cpu_absolute) || 0,
-            memory: Number(parsed.memory_bytes) || 0,
-        });
-    });
-
     const send = (signal: PowerSignal) => {
         setConfirmingKill(false);
 
@@ -181,8 +138,8 @@ const ServerStatusPanel: React.FC = () => {
     const isBusy = kind === 'busy';
     const locked = isInstalling || isTransferring || isNodeUnderMaintenance;
 
-    // The chips, in the order the reference prints them: what it runs, which
-    // version, then the two numbers that are actually moving.
+    // The chips, in the order the reference prints them: what it runs, then which
+    // version. Nothing live goes here - see the note at the top of the file.
     //
     // Software is the egg name when the endpoint answered, the family from the
     // egg's variable names when it did not, and the node as a last resort - the
@@ -193,7 +150,6 @@ const ServerStatusPanel: React.FC = () => {
     // this theme shipped once.
     const software = eggName || serverFamilyLabel(variables || []) || node;
     const version = serverVersionLabel(variables || []);
-    const offline = status === 'offline' || status === null;
 
     return (
         <div className={'pt-sv'}>
@@ -216,10 +172,6 @@ const ServerStatusPanel: React.FC = () => {
                     <ul className={'pt-sv-meta'}>
                         <Chip icon={faServer}>{software}</Chip>
                         {version && <Chip icon={faCog}>{version}</Chip>}
-                        <Chip icon={faMicrochip}>{offline ? '—' : `${stats.cpu.toFixed(0)}% CPU`}</Chip>
-                        <Chip icon={faMemory}>
-                            {offline ? '—' : `${toMb(stats.memory)} / ${limits?.memory ?? 0} MB`}
-                        </Chip>
                     </ul>
                 </div>
 

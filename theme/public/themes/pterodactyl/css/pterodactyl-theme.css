@@ -2947,24 +2947,29 @@ a.pt-rail-footline:focus-visible {
     background-color: rgb(var(--pt-yellow-500));
 }
 
-/* The spec line: software, version, CPU, memory.
+/* The spec line: what it runs, and which version.
  *
  * `grid-column: 1 / -1` puts it on its own row under the name, spanning the
  * mark's column too - the reference does exactly this, and it is what keeps the
  * chips from being squeezed into the width left over beside the name.
  *
- * The chips are separated by hairlines rather than by gaps alone. Four short
- * labels with gaps between them read as one run-on string; the rules make each
- * one a cell, which is what they are. */
+ * NO RULE ABOVE IT. There used to be a `border-top` here, written when the row
+ * carried four chips (software, version, CPU, memory) and a full-width rule read
+ * as the header of a spec table. With two chips left it is a 700px line with one
+ * short label hanging off it, which draws more attention than the chips
+ * themselves, so the separation is spacing instead. The right-hand column is what
+ * divides this block from the controls; a second divider inside it does not.
+ *
+ * The chips are separated by hairlines rather than by gaps alone. Short labels
+ * with gaps between them read as one run-on string; the rules make each one a
+ * cell, which is what they are. */
 .pt-sv-meta {
     grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.35rem 0.85rem;
-    margin: 0.35rem 0 0;
-    padding: 0.55rem 0 0;
-    border-top: 1px solid rgb(var(--pt-gray-600));
+    gap: 0.4rem 0.85rem;
+    margin: 0.55rem 0 0;
     list-style: none;
 }
 
@@ -3209,7 +3214,14 @@ a.pt-rail-footline:focus-visible {
 
 @media (min-width: 1024px) {
     .pt-console-grid {
-        grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+        /* `minmax(16rem, 1fr)` on the side track, not a bare `1fr`. The cards in
+         * that column print `ip:port` and `used / limit`, and at 1fr of a
+         * five-column page each one came out around 120px - narrow enough that the
+         * value truncated to three characters. A floor of 16rem costs the terminal
+         * nothing at this width and is what makes the column readable; the
+         * terminal track stays `minmax(0, 3fr)` so xterm's wide min-content can
+         * still shrink it instead of overflowing the grid. */
+        grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr);
         align-items: start;
     }
 }

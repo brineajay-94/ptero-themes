@@ -259,7 +259,7 @@ reachable from `ServerRouter`.
 
 **The header: identity on the left, controls on the right.** One light card,
 two columns. On the left, the server's mark, its name at heading size, its live
-state, and a row of chips: **software, version, CPU, memory**. On the right, the
+state, and a row of chips: **software, version**. On the right, the
 **status band** and the four **power buttons**.
 
 Two columns rather than three stacked bands because the left column *labels* and
@@ -269,15 +269,25 @@ them in that order. Stacked, it spends three vertical strips saying two things.
 Software and version were removed in 1.16.5 and are back. The reasoning then was
 that Software repeated the Startup page and cost a request — and that was right
 about the layout it was in, where they were two full-width bordered rows with
-their own “Change” buttons. As four chips on one line under the name they are a
+their own “Change” buttons. As chips on one line under the name they are a
 different proposition: a spec line, which is what a server owner's eye goes to
 first, on a page that already holds a websocket. So `serverVersionLabel()` is back
 and so is `GET /auth/servers/eggs`, both scoped to this one component.
 
-CPU and memory are a **second subscription** to the same `STATS` event rather than
-a shared value. A shared value needs a context provider or a module store for two
-components sitting in different grids; two subscriptions to one websocket event is
-not a cost worth that, and the panel's own components do exactly this.
+CPU and memory are **not** in that row, and that is deliberate. They are live
+numbers, so a stopped server has none, and the honest rendering of “no number”
+was an em dash — leaving `CPU —  Memory —` under the server name, which reads as a
+failed request rather than as a stopped server. Both numbers are already on the
+page as cards in the column beside the terminal, where a stopped server prints
+`Offline` in words and the bar starts moving the moment it starts. One copy of a
+number, in the place that can actually show it, beats two copies where one of them
+can only ever be a dash — and it drops a second subscription to the `STATS` event.
+
+There is no rule above the chip row either. It had a `border-top` back when the
+row carried four chips and a full-width line read as the header of a spec table;
+with two chips it is a long rule with one short label hanging off it, which draws
+more attention than the chips do. The right-hand column is what divides identity
+from controls.
 
 All four power signals share **one** button class — Start, Stop, Restart, Kill.
 They were a large Start with two small square icons beside it, and two sizes read
@@ -319,6 +329,21 @@ and keeps the glyph, leaving the text in the DOM for the accessible name.
 
 **The statistics column: six cards.** Address (with a copy button), Uptime, CPU
 Load, Memory, Disk, and one Network card.
+
+**One card per row, at every width.** They used to be `col-span-6 lg:col-span-3`,
+which is two per row from `lg` up — and this column is a fraction of the page, so
+each card came out around 120px wide. The value is the only thing in the card: an
+address truncated to `A... p...` beside a copy button is not a specification, and
+the 2.35rem icon square took what little was left. One per row gives every card
+the full width of the column, which is what it takes to print `ip:port` and a
+`used / limit` pair without clipping either half, and six short cards down the side
+of a tall terminal end level with the console instead of stopping halfway up it.
+Values are **tabular** so the digits sit in the same places frame to frame — which
+is the whole point of a `used / limit` pair and of a rate that ticks.
+
+The side track is `minmax(16rem, 1fr)`, not a bare `1fr`. That floor is what makes
+the cards readable; the terminal track stays `minmax(0, 3fr)` so xterm's wide
+min-content width can still shrink it instead of overflowing the grid.
 
 The stock block renders Network Inbound and Network Outbound as two cards, and the
 merge is not only cosmetic. Two cards for one metric makes the column seven tall.
@@ -364,6 +389,8 @@ What did *not* survive the translation, and why:
 | Empty left card | Dropped | Its CPU/memory/disk readings are already in the statistics column, so a second card repeated them. |
 | Connect button | **Never added** | It opened a launcher dialog on the reference and has no equivalent here. |
 | Software / Version rows | **Chips, not rows** | As full-width bordered rows with their own Change buttons they repeated the Startup page three times over. As one spec line under the name they are the first thing an owner reads. |
+| CPU / memory in that row | **Gone again** | They are live numbers, so a stopped server has none and the honest rendering was an em dash: `CPU - Memory -` under a server name reads as a failed request. Both are already cards beside the terminal, which say `Offline` in words. |
+| Two stat cards per row | **One per row** | Two per row left ~120px per card, which truncated the value to `A... p...`. One per row gives each card the full column, and a 16rem floor on the side track keeps it there. |
 | Network in + out | One card, B/s | See above — cumulative counters read as rates. |
 
 **The file row dropdown, and the two mistakes that made it shake.** The stock panel
@@ -959,7 +986,7 @@ node and does nothing.
 | File | Action |
 | --- | --- |
 | `components/dashboard/{DashboardContainer,ServerRow}.tsx` | replace - the card's third line is the server's **software**, from `GET /auth/servers/eggs`, because the panel's servers list carries no egg name (see *Dashboard server cards* below) |
-| `components/server/status/ServerStatusPanel.tsx` | create - the server page header: identity and its software/version/CPU/memory chips on the left, status band and the four power buttons on the rightus band. The address card and the Software/Version rows are gone, and with them the egg request they needed |
+| `components/server/status/ServerStatusPanel.tsx` | create - the server page header: identity and its software/version chips on the left, status band and the four power buttons on the right. No CPU or memory in that row - they are live numbers, a stopped server has none, and the only honest rendering left two em dashes under the server name. Both are cards beside the terminal instead |
 | `components/auth/{LoginFormContainer,LoginContainer,LoginCheckpointContainer,ForgotPasswordContainer,ResetPasswordContainer}.tsx` | replace - `LoginFormContainer` is the flat dark-page shell shared by every auth screen: emblem centred above the heading, sign-up CTA, form on the page with no card |
 | `components/auth/RegisterContainer.tsx` | create - public sign-up form: accent-split heading, per-field glyph, placeholders, required asterisks, two-up name row |
 | `api/auth/register.ts` | create - CSRF + `POST /auth/register` |

@@ -12,11 +12,23 @@
  *
  * `border-bottom: 3px solid gold` is gone rather than restated thinner. On a
  * light card a coloured bottom border reads as a selection or a tab, not as an
- * edge, and the bar already carries the state colour where it means something. */
+ * edge, and the bar already carries the state colour where it means something.
+ *
+ * ONE CARD PER ROW, AT EVERY WIDTH
+ * -------------------------------
+ * These used to be `col-span-6 lg:col-span-3`, which is two cards per row from
+ * lg up. The column they sit in is a fifth of the page, so each card came out
+ * around 120px wide - and the value is the only thing in the card. An address
+ * truncated to `A... p...` next to a copy button is not a specification, and the
+ * icon square took 2.35rem of what little was left. One per row gives every card
+ * the full width of the column, which is what it takes to print `ip:port` and a
+ * `used / limit` pair without truncating either half. Six short cards down the
+ * side of a tall terminal also reads better than three squashed rows: the column
+ * ends level with the console instead of stopping halfway up it. */
 
 .stat_block {
     @apply relative flex items-center;
-    @apply col-span-6 lg:col-span-3;
+    @apply col-span-6;
     gap: 0.75rem;
     padding: 0.7rem 0.85rem 0.8rem;
 
@@ -81,7 +93,11 @@
 .stat_value {
     @apply font-semibold truncate;
     font-family: var(--pt-font-heading);
-    font-size: 0.86rem;
+    font-size: 0.92rem;
+    /* Tabular figures because the values are read against each other - `used /
+     * limit` pairs and a running byte rate only mean something if the digits sit
+     * in the same places frame to frame. */
+    font-variant-numeric: tabular-nums;
     line-height: 1.35;
     color: rgb(var(--pt-gray-100));
 }

@@ -265,7 +265,24 @@
 }
 
 .select {
-    @apply flex-1 px-2 py-1.5 text-xs min-w-0;
+    @apply px-2 py-1.5 text-xs;
+
+    /*
+     * `width: 100%` with a floor, where this used to be `flex-1 min-w-0`.
+     *
+     * A native select draws its popup at max(control width, widest option), and
+     * `min-w-0` let the control collapse to ~110px while the popup stayed at the
+     * width of the longest version string. The result was a white slab hanging
+     * off a narrow field, with empty space down its right side and the control
+     * peeking out underneath it - it read as a stray panel rather than as the
+     * field's own list.
+     *
+     * Filling the row fixes the geometry rather than hiding it: the popup is then
+     * the control's width, so opening it reveals the field instead of replacing
+     * it with something wider. The floor keeps it legible when the row is tight.
+     */
+    width: 100%;
+    min-width: 15rem;
 
     border: 1px solid rgb(var(--pt-gray-500));
     border-radius: 0;
@@ -293,6 +310,17 @@
 .select optgroup {
     background-color: #ffffff;
     color: rgb(var(--pt-gray-100));
+    /* Row padding so the list reads as a menu of rows rather than as lines of
+     * text on a slab. Short version numbers leave the right of the popup empty,
+     * and that space is only legible as intentional once the rows have height. */
+    padding: 0.25rem 0.5rem;
+    font-family: var(--pt-font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.select option:checked {
+    background-color: rgb(var(--pt-navy-300));
+    color: #ffffff;
 }
 
 .select:focus {

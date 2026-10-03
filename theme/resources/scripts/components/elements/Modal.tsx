@@ -49,7 +49,10 @@ export interface ModalProps extends RequiredModalProps {
 
 export const ModalMask = styled.div`
     ${tw`fixed z-50 overflow-auto flex w-full inset-0`};
-    background: rgba(0, 0, 0, 0.7);
+    /* A cool, slightly stronger wash than stock's flat 0.7 black, so the panel
+     * separates from the page without the whole screen going grey. */
+    background: rgb(15 23 42 / 0.62);
+    backdrop-filter: blur(2px);
 `;
 
 const ModalContainer = styled.div<{ alignTop?: boolean }>`
@@ -69,11 +72,15 @@ const ModalContainer = styled.div<{ alignTop?: boolean }>`
     margin-bottom: auto;
 
     & > .close-icon {
-        ${tw`absolute right-0 p-2 text-white cursor-pointer opacity-50 transition-all duration-150 ease-linear hover:opacity-100`};
+        ${tw`absolute right-0 p-2 cursor-pointer opacity-60 transition-all duration-150 ease-linear hover:opacity-100`};
+        /* Was text-white, on a panel that is now a light card - a white glyph
+         * on a near-white surface, i.e. an invisible close button. */
+        color: rgb(var(--pt-gray-300));
         top: -2.5rem;
 
         &:hover {
-            ${tw`transform rotate-90`}
+            color: rgb(var(--pt-gray-50));
+            ${tw`transform rotate-90`};
         }
 
         & > svg {

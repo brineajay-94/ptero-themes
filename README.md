@@ -937,6 +937,24 @@ that chunk. A theme cannot take a hard build-time dependency on an optional
 plugin and call itself standalone, so the slots are left out. Installing Blueprint
 alongside the theme is fine; it simply has no slot to fill here.
 
+### Popups: menus, dialogs and fields
+
+Every overlay in the panel is one of four stock primitives, and the theme used to
+ship none of them. Each one resolved its colours from the `neutral` / `gray`
+utilities, which this theme repoints at the light page ramp — so what each of them
+did wrong was the same bug wearing different clothes.
+
+| Primitive | What it was doing |
+| --- | --- |
+| `DropdownMenu` (the per-row `…` menu) | Painted on `--pt-chrome`, the dark navy of the topbar and rail, with `--pt-chrome-ink` text — while its rows are styled with *page* ink. A dark menu on a white page, with dark grey labels on navy. Now a card: `--pt-gray-700`, `--pt-gray-100`, hairline, soft shadow. |
+| `dropdown/style.module.css` (headless-ui menus, the egg pickers) | Panel and item text both from `neutral`, so on a palette where the panel resolved dark the labels resolved dark with it — the “version names are invisible” case. Now a card, page ink, a tint of the page's own grey on hover, palette red for danger. |
+| `dialog/style.module.css` + `Modal.tsx` | `bg-gray-600` panel with a `ring-gray-800` — two near-whites on the light ramp, so a dialog had no edge — and a `text-white` close icon sitting on white. Now a card with a real shadow, page ink, a visible close icon, and a cool 0.62 scrim with a 2px blur. |
+| `Input.tsx` / `Select.tsx` | `bg-neutral-600` / `text-neutral-200`. A field is the one place a wrong pair does not look wrong, it looks **broken**: a dark fill with dark ink, i.e. an empty box. `Select` also said nothing about `option`, and browsers paint the option list themselves — so every version in an egg picker could be dark-on-dark while the closed control looked fine. |
+
+All six are copies rather than overrides: they are rewritten in `--pt-*` tokens,
+so they follow the palette, and the parts that were already right — the menu's
+viewport positioning, the input's checkbox and disabled states, the modal's
+behaviour — are carried over untouched.
 ### The modal portal
 
 Every dialog in the panel - `Modal`, `Portal`, and therefore `CopyOnClick` and

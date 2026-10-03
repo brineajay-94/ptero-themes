@@ -1,0 +1,67 @@
+/* The headless-ui dialog shell: the panel, its title, the close icon and the
+ * circular severity badge.
+ *
+ * WHY THIS FILE IS A COPY
+ * -----------------------
+ * The stock panel is `bg-gray-600` with a `ring-gray-800`, chosen when the panel
+ * was dark and the ring was the only thing separating the dialog from the page
+ * behind it. On the light ramp `gray-600` and `gray-800` are two near-whites, so
+ * the ring disappeared and the dialog had no edge at all - it read as a white
+ * rectangle floating on a white page, with a `text-white` close icon on white.
+ *
+ * Everything here is a `--pt-*` token, so it follows the palette, and the panel
+ * is a card: surface fill, hairline, real shadow, page ink.
+ */
+
+.container {
+    @apply flex min-h-full items-center justify-center p-4 text-center;
+}
+
+.panel {
+    @apply relative w-full mx-auto shadow-lg text-left;
+    max-width: 34rem;
+    border-radius: var(--pt-glass-radius) !important;
+    background-color: rgb(var(--pt-gray-700));
+    border: 1px solid rgb(var(--pt-gray-600));
+    box-shadow: 0 24px 60px rgb(15 23 42 / 0.28), 0 2px 8px rgb(15 23 42 / 0.12);
+    color: rgb(var(--pt-gray-100));
+}
+
+.title {
+    @apply font-header text-xl font-medium mb-2 pr-8;
+    color: rgb(var(--pt-gray-50));
+}
+
+.close_icon {
+    @apply w-5 h-5 group-hover:rotate-90 transition-transform duration-100;
+    /* Was white, on what is now a light panel. */
+    color: rgb(var(--pt-gray-400));
+
+    .group:hover & {
+        color: rgb(var(--pt-gray-100));
+    }
+}
+
+.dialog_icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-full mr-4 flex-none;
+
+    &.danger {
+        background-color: rgb(var(--pt-red-500) / 0.14);
+        color: rgb(var(--pt-red-500));
+    }
+
+    &.warning {
+        background-color: rgb(var(--pt-yellow-500) / 0.18);
+        color: rgb(var(--pt-yellow-700));
+    }
+
+    &.success {
+        background-color: rgb(var(--pt-green-500) / 0.14);
+        color: rgb(var(--pt-green-600));
+    }
+
+    &.info {
+        background-color: rgb(var(--pt-navy-300) / 0.16);
+        color: rgb(var(--pt-navy-300));
+    }
+}

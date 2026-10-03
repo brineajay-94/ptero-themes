@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-"version": "1.17.2",
+"version": "1.17.3",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -36,6 +36,36 @@
             "path": "resources/views/templates/wrapper.blade.php",
             "action": "replace",
             "note": "Stock head (title, csrf, robots) + the theme favicon only, plus data-pt-theme on <html> and a theme-color that follows the chosen palette - both server-rendered so a variant never shows the default for a frame. The stylesheet is cache-busted on its own mtime: config(app.version) is the panel version, so it never changes on a theme update and browsers kept the previous stylesheet for the max-age the server sends. The favicon picks the newest custom-logo.* and appends its mtime, and the icon MIME type comes from the extension rather than being hardcoded to image/png"
+        },
+        {
+            "path": "resources/scripts/components/elements/DropdownMenu.tsx",
+            "action": "replace",
+            "note": "The per-row action menu (file manager, backups, databases, users). Only the panel's paint changes: it was --pt-chrome, the dark navy of the topbar, with --pt-chrome-ink text, which put a shell-coloured menu on a white page and - because the rows are styled with page ink - printed the labels dark grey on navy. It is now a card: --pt-gray-700 fill, --pt-gray-100 ink, hairline, soft shadow, and hover/danger tinted to the palette. The viewport positioning, the portal and the transform-based placement are untouched"
+        },
+        {
+            "path": "resources/scripts/components/elements/dropdown/style.module.css",
+            "action": "replace",
+            "note": "The headless-ui menu behind every Dropdown/Select - the account menu and the egg pickers. The stock panel and item colours both came from the `neutral` ramp, so on a light palette they could resolve dark together, which is what made the plugin version picker's option list dark text on a dark fill. Panel is now a card on the page, labels are page ink, hover is a tint of the page mid grey rather than a saturated blue, and the danger row is the palette red"
+        },
+        {
+            "path": "resources/scripts/components/elements/dialog/style.module.css",
+            "action": "replace",
+            "note": "The headless-ui dialog shell. The stock panel was bg-gray-600 with a ring-gray-800, two near-whites on the light ramp, so a dialog had no edge and the text-white close icon sat on white. Now: card fill, hairline, real shadow, page ink, and the four severity badges are tinted squares rather than saturated circles"
+        },
+        {
+            "path": "resources/scripts/components/elements/Input.tsx",
+            "action": "replace",
+            "note": "Text field, textarea and checkbox, restated in --pt-* tokens instead of neutral-* utilities. A field is the one place a wrong pair does not look wrong, it looks broken: with neutral repointed at the light page ramp, the stock bg-neutral-600/text-neutral-200 pair is a dark fill with dark ink, i.e. an empty box - which is what every input in every dialog was showing. Light well, page ink, hairline, accent focus ring, themed disabled and error states"
+        },
+        {
+            "path": "resources/scripts/components/elements/Select.tsx",
+            "action": "replace",
+            "note": "Select, restated in tokens, and - the part that actually mattered - with `option`/`optgroup` colours stated. Browsers paint the option list themselves, so an option inherits the FIELD's colours; on a dark field every version name in an egg picker rendered dark-on-dark while the closed control looked fine. The chevron is a fixed mid ink instead of a hardcoded light glyph"
+        },
+        {
+            "path": "resources/scripts/components/elements/Modal.tsx",
+            "action": "replace",
+            "note": "Only paint: the mask is a cool 0.62 wash with a 2px blur instead of flat 0.7 black, and the close icon is page ink rather than text-white - which on a light card was an invisible button"
         },
         {
             "path": "resources/scripts/lib/theme.ts",

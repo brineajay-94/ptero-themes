@@ -1,0 +1,104 @@
+/* The headless-ui menu: the account menu, the egg/jar pickers, and every other
+ * `Dropdown` in the panel.
+ *
+ * WHY THIS FILE IS A COPY
+ * -----------------------
+ * The stock version is `bg-neutral-900` panel with `bg-blue-500` hover, written
+ * for the panel's dark palette. It is also the reason a `<select>`-shaped control
+ * on a light page came out as a dark box with dark text: the panel takes its
+ * colour from the `neutral` ramp, which this theme repoints at the light page
+ * ramp, and the ITEM text came from the same family - so on a palette where the
+ * panel resolved dark, the labels resolved dark with it and every option in the
+ * list became unreadable. The plugin version picker is a `Dropdown`, so that is
+ * where "the version names are invisible" came from.
+ *
+ * The fix is not a special case for one control: the panel is a card on the page
+ * (`--pt-gray-700`), the labels are page ink (`--pt-gray-100`), hover is a tint of
+ * the page's own mid grey rather than a saturated blue, and the danger row is the
+ * palette's red. Everything is a `--pt-*` token, so it follows the palette.
+ */
+
+.menu {
+    @apply relative inline-block text-left;
+
+    & .button {
+        @apply inline-flex justify-center items-center w-full py-2;
+        @apply transition-all duration-100;
+        border-radius: var(--pt-glass-radius-sm) !important;
+        background-color: rgb(var(--pt-gray-600) / 0.5);
+        color: rgb(var(--pt-gray-100));
+        border: 1px solid rgb(var(--pt-gray-600));
+
+        &:hover,
+        &[aria-expanded='true'] {
+            background-color: rgb(var(--pt-gray-600));
+            color: rgb(var(--pt-gray-50));
+            border-color: rgb(var(--pt-gray-500));
+        }
+
+        &:focus,
+        &:focus-within,
+        &:active {
+            @apply outline-none ring-2;
+            --tw-ring-color: rgb(var(--pt-navy-300) / 0.4);
+            color: rgb(var(--pt-gray-50));
+        }
+
+        & svg {
+            @apply w-5 h-5 transition-transform duration-75;
+        }
+
+        &[aria-expanded='true'] svg[data-animated='true'] {
+            @apply rotate-180;
+        }
+    }
+
+    & .items_container {
+        @apply absolute right-0 mt-2 origin-top-right z-10;
+        border-radius: var(--pt-glass-radius-sm) !important;
+        background-color: rgb(var(--pt-gray-700));
+        border: 1px solid rgb(var(--pt-gray-600));
+        box-shadow: 0 14px 32px rgb(15 23 42 / 0.22), 0 2px 6px rgb(15 23 42 / 0.1);
+        color: rgb(var(--pt-gray-100));
+    }
+}
+
+.menu_item {
+    @apply flex items-center rounded w-full px-2 py-2;
+    color: rgb(var(--pt-gray-100));
+
+    & svg {
+        @apply w-4 h-4 mr-4;
+        color: rgb(var(--pt-gray-400));
+    }
+
+    &:hover,
+    &:focus {
+        background-color: rgb(var(--pt-gray-500) / 0.28);
+        color: rgb(var(--pt-gray-50));
+        outline: none;
+
+        & svg {
+            color: rgb(var(--pt-gray-50));
+        }
+    }
+
+    &.danger {
+        color: rgb(var(--pt-red-500));
+
+        &:hover,
+        &:focus {
+            background-color: rgb(var(--pt-red-500) / 0.16);
+            color: rgb(var(--pt-red-500));
+
+            & svg {
+                color: rgb(var(--pt-red-500));
+            }
+        }
+    }
+
+    &.disabled {
+        @apply cursor-not-allowed;
+        opacity: 0.45;
+    }
+}

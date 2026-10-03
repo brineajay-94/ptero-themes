@@ -34,13 +34,27 @@ interface Props {
  *    were working.
  *
  * A portal removes the whole class of problem rather than one instance of it: the
- * panel's parent is <body>, which is not transformed, is not clipped, and does not
- * establish a containing block. `position: fixed` then means the viewport, always,
+ * panel's parent is <body>, which is not transformed, is not clipped, and does
+ * not establish a containing block. `position: fixed` then means the viewport, always,
  * and the coordinates below need no rebasing at all.
  *
  * The portal div carries nothing: every token the panel uses is declared on
  * `:root`, so it inherits them through <body>, and the panel is `fixed` so it
  * takes up no space in the div and the div takes up no space in the body.
+ *
+ * THE PANEL IS PAGE-SURFACE, NOT CHROME
+ * -------------------------------------
+ * This used to be `rgb(var(--pt-chrome) / 0.98)` with `--pt-chrome-ink` text.
+ * `--pt-chrome` is the topbar and rail colour - a dark navy - and that is right
+ * for a floating bar over the page but wrong for a menu that opens ON the page,
+ * under the cursor, on a white file row. Worse, the rows are styled with PAGE ink
+ * (`--pt-gray-100`), so a dark panel under dark ink is the worst of both: the file
+ * manager's Rename/Move/Delete menu came out as unreadable dark grey on navy, and
+ * the same panel is behind the per-row menus on backups, databases and users.
+ *
+ * So the panel is a card: `--pt-gray-700` fill, `--pt-gray-100` ink, a hairline and
+ * a soft shadow. That is the same material as the row it belongs to, so the menu
+ * reads as part of the list rather than as a piece of the shell that fell onto it.
  *
  * MOVED WITH A TRANSFORM, NEVER WITH top/left
  * ------------------------------------------
@@ -59,32 +73,31 @@ const Panel = styled.div`
     width: 12rem;
     max-width: calc(100vw - 1.5rem);
     padding: 0.35rem;
-    border: 1px solid var(--pt-glass-border);
+    border: 1px solid rgb(var(--pt-gray-600));
     border-radius: var(--pt-glass-radius-sm);
-    background-color: rgb(var(--pt-chrome) / 0.98);
-    box-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
-    color: rgb(var(--pt-chrome-ink));
+    background-color: rgb(var(--pt-gray-700));
+    box-shadow: 0 14px 32px rgb(15 23 42 / 0.22), 0 2px 6px rgb(15 23 42 / 0.1);
+    color: rgb(var(--pt-gray-100));
     font-size: 0.8rem;
-    backdrop-filter: blur(var(--pt-glass-blur));
     will-change: transform;
 `;
 
 export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
     ${tw`p-2 w-full flex items-center rounded text-left`};
-    color: rgb(var(--pt-chrome-ink));
+    color: rgb(var(--pt-gray-100));
     transition: 150ms all ease;
 
     &:hover {
-        color: #ffffff;
-        background-color: rgb(var(--pt-chrome-muted) / 0.18);
+        color: rgb(var(--pt-gray-50));
+        background-color: rgb(var(--pt-gray-500) / 0.28);
     }
 
     ${(props) =>
         props.danger
             ? `
                 &:hover {
-                    background-color: rgb(var(--pt-red-500) / 0.22);
-                    color: rgb(var(--pt-red-300));
+                    background-color: rgb(var(--pt-red-500) / 0.16);
+                    color: rgb(var(--pt-red-500));
                 }
             `
             : ''}
@@ -280,7 +293,7 @@ class DropdownMenu extends React.PureComponent<Props, State> {
                                 {this.props.children}
                             </Panel>
                         </Fade>,
-                        portalTarget,
+                        portalTarget
                     )}
             </div>
         );

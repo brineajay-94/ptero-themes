@@ -38,8 +38,17 @@ export default () => {
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [error, setError] = useState('');
 
-const id = ServerContext.useStoreState((state) => state.server.data?.id);
-    const name = ServerContext.useStoreState((state) => state.server.data!.name);
+    const id = ServerContext.useStoreState((state) => state.server.data?.id);
+    // Optional, like `id` and `uuid` below, and it has to be: this component
+    // renders BEFORE getServer resolves - that is the whole point of the
+    // `!uuid || !id` branch further down. A non-optional `data!.name` therefore
+    // threw on the very first render of every /server/:id page, and because
+    // App.tsx wraps the whole router in Spinner.Suspense (whose ErrorBoundary
+    // sits above AppShell), that single throw replaced the entire view with
+    // "An error was encountered by the application while rendering this view"
+    // over a blank page. The dashboard and the auth screens were unaffected,
+    // which is exactly what it looked like.
+    const name = ServerContext.useStoreState((state) => state.server.data?.name);
     // The rail's server card needs the power state, and it is read HERE rather
     // than in Sidebar because this is the only place guaranteed to be inside
     // ServerContext - AppShell is also mounted on the dashboard and the auth
@@ -115,9 +124,9 @@ const id = ServerContext.useStoreState((state) => state.server.data?.id);
                                             </PermissionRoute>
                                         ))}
                                         {/* Theme routes live outside the panel's routes.server
-                                            * table (see lib/serverExtras) and are rendered after it,
-                                            * so a stock route of the same path would win rather than
-                                            * being shadowed by ours. */}
+                                         * table (see lib/serverExtras) and are rendered after it,
+                                         * so a stock route of the same path would win rather than
+                                         * being shadowed by ours. */}
                                         {THEME_SERVER_ROUTES.map(({ path, permission, jarKind }) => {
                                             const Component = THEME_ROUTE_COMPONENTS[path];
                                             if (!Component) {
@@ -125,7 +134,12 @@ const id = ServerContext.useStoreState((state) => state.server.data?.id);
                                             }
 
                                             return (
-                                                <PermissionRoute key={path} permission={permission} path={to(path)} exact>
+                                                <PermissionRoute
+                                                    key={path}
+                                                    permission={permission}
+                                                    path={to(path)}
+                                                    exact
+                                                >
                                                     <Spinner.Suspense>
                                                         <Component kind={jarKind} />
                                                     </Spinner.Suspense>

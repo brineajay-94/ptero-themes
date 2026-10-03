@@ -13,6 +13,7 @@ import useEventListener from '@/plugins/useEventListener';
 import { debounce } from 'debounce';
 import { usePersistedState } from '@/plugins/usePersistedState';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
+import { ptColor } from '@/lib/theme';
 import classNames from 'classnames';
 import { ChevronDoubleRightIcon, PaperAirplaneIcon } from '@heroicons/react/solid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,10 +22,16 @@ import { faCompress, faExpand } from '@fortawesome/free-solid-svg-icons';
 import 'xterm/css/xterm.css';
 import styles from './style.module.css';
 
+// xterm paints through a 2D canvas, which never sees `var(...)`: handing it
+// `rgb(var(--pt-black))` makes it log "Color ... is invalid using fallback" and
+// render the stock black instead of the palette's. The token has to be resolved
+// to a literal here, exactly like ptColor does for Chart.js.
+const TERMINAL_BACKGROUND = '#040404'; // the palette's --pt-black; xterm needs a literal, not var()
+
 const theme = {
-    background: 'rgb(var(--pt-black))',
+    background: ptColor('black', TERMINAL_BACKGROUND),
     cursor: 'transparent',
-    black: 'rgb(var(--pt-black))',
+    black: ptColor('black', TERMINAL_BACKGROUND),
     red: '#E54B4B',
     green: '#9ECE58',
     yellow: '#FAED70',
@@ -344,7 +351,9 @@ export default () => {
                 </span>
             </div>
 
-            <div className={classNames(styles.container, styles.overflows_container, { 'rounded-b': !canSendCommands })}>
+            <div
+                className={classNames(styles.container, styles.overflows_container, { 'rounded-b': !canSendCommands })}
+            >
                 <div className={'h-full'}>
                     <div id={styles.terminal} ref={ref} />
                 </div>

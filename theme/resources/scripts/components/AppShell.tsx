@@ -8,6 +8,11 @@ import { backgroundStyle, brandName } from '@/lib/brand';
 import { THEME_SERVER_ROUTES } from '@/lib/serverExtras';
 import { normalizeAccountPath, THEME_ACCOUNT_ROUTES } from '@/lib/accountRoutes';
 import type { ServerEggVariable } from '@/api/server/types';
+// The sidebar and topbar are not what needs it - the dialogs inside them are.
+// Imported for the side effect: every Modal/Portal on the dashboard and on every
+// server page mounts into #modal-portal, and React hard-crashes the view when
+// that node is missing. See lib/portal.ts.
+import '@/lib/portal';
 
 export interface AppShellProps {
     mode: 'dashboard' | 'server';
@@ -41,7 +46,15 @@ const normalize = (value: string) => (value === '' || value === '/' ? '/' : valu
  */
 const basePath = (path: string) => normalize(path.replace(/\/:[^(]+(?:\([^)]*\))?/, ''));
 
-const AppShell = ({ mode, serverName, serverStatus, serverId, serverUuid, serverVariables, children }: AppShellProps) => {
+const AppShell = ({
+    mode,
+    serverName,
+    serverStatus,
+    serverId,
+    serverUuid,
+    serverVariables,
+    children,
+}: AppShellProps) => {
     const location = useLocation();
     const match = useRouteMatch<{ id: string }>();
     const [drawerOpen, setDrawerOpen] = useState(false);

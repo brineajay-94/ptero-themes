@@ -880,13 +880,56 @@ Roboto, `Helvetica Neue`, Arial) for both `--pt-font-body` and
 first paint is instant.
 
 
-### Chart.js
+### Chart.js and xterm
 
 Canvas does not resolve `var()`, so the console graphs cannot take Tailwind
 colours directly. `ptColor()` in `resources/scripts/lib/theme.ts` reads the
 token back out of the computed style and returns a literal `rgb()` / `rgba()`
 string for Chart.js. Grid and tick colours are re-resolved on every chart
 render, so they match the panel.
+
+The terminal is the same story for a different reason: xterm paints through a
+2D canvas, so handing it `rgb(var(--pt-black))` only earns a
+`Color ... is invalid using fallback` warning and the stock black. The terminal
+background and the black ANSI colour are resolved through `ptColor()` as well.
+
+### No Blueprint extension slots
+
+The Blueprint plugin publishes a few injection points through its `@blueprint`
+webpack alias - `Server/Terminal/BeforeInformation` and
+`Server/Terminal/AfterInformation` beside the console statistics, and
+`Server/Files/Browse/DropdownItems` in the file row menu. The theme does **not**
+render them, and that is a deliberate call rather than an oversight.
+
+That alias only resolves when the Blueprint plugin is installed. On a stock panel
+webpack cannot resolve the import, so it emits a module that **throws the moment
+the lazily-loaded `server` chunk is evaluated** - which means every `/server/:id`
+page dies with the error-boundary message over a blank page while the dashboard,
+the account pages and the login screens keep working, because none of them load
+that chunk. A theme cannot take a hard build-time dependency on an optional
+plugin and call itself standalone, so the slots are left out. Installing Blueprint
+alongside the theme is fine; it simply has no slot to fill here.
+
+### The modal portal
+
+Every dialog in the panel - `Modal`, `Portal`, and therefore `CopyOnClick` and
+every confirm dialog - mounts into `#modal-portal`, which it resolves with
+`document.getElementById` and passes straight to `createPortal`. **If that node
+is missing, React throws "Target container is not a DOM element" (minified error
+#200) on the first render that uses one, and the error boundary replaces the
+whole view** with "An error was encountered by the application while rendering
+this view."
+
+The node is rendered by `resources/views/templates/base/core.blade.php`, which
+this theme does not ship, so anything that rewrites that view - a second theme,
+a Blueprint plugin, a hand edit - removes it silently. The symptom is a blank
+panel on exactly the pages that open a dialog and no symptom at all on the pages
+that do not: the console is one of the first to break, because its stat blocks
+portal through `CopyOnClick`, while the dashboard and the login screens keep
+rendering. `resources/scripts/lib/portal.ts` re-creates the node when it is
+absent (imported for that side effect by `AppShell.tsx`), so the theme no longer
+depends on a view it does not control. On a stock panel it finds the existing
+node and does nothing.
 
 ## What changes
 
@@ -955,7 +998,10 @@ render, so they match the panel.
 | `resources/views/layouts/admin.blade.php` | replace - Site Settings + Registration + Social Login menu items, icon favicon |
 | `resources/scripts/components/auth/SocialLoginButtons.tsx` | create - the provider button row, or nothing when none is configured; both marks inlined SVG |
 | `resources/scripts/lib/brand.ts` | create - `brandName()`/`logoUrl()`/`registrationEnabled()`/`backgroundStyle()`/`linkHref()`/`socialProviders()`/`themeCredit()` (the single source for the design credit, which appears in both the page footer and the rail) -`accountAccess()` from `SiteConfiguration` |
-| `resources/scripts/lib/theme.ts` | create — `ptColor` (Chart.js helper; dark-only, no theme state) |
+| `resources/scripts/lib/theme.ts` | create — `ptColor` (Chart.js and xterm helper; dark-only, no theme state) |
+| `resources/scripts/lib/portal.ts` | create - guarantees `#modal-portal` exists, so a view the theme does not ship cannot blank every page that opens a dialog |
+
+**Social sign-in, account email and server eggs**
 
 Server-side rendering, permissions and the database are unaffected. The API
 routes are too, apart from the one addition noted above: social sign-in is

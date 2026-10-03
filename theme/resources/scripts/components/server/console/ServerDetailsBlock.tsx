@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    faClock,
-    faHdd,
-    faLink,
-    faMemory,
-    faMicrochip,
-    faWifi,
-} from '@fortawesome/free-solid-svg-icons';
+import { faClock, faHdd, faLink, faMemory, faMicrochip, faWifi } from '@fortawesome/free-solid-svg-icons';
 import { bytesToString, ip, mbToBytes } from '@/lib/formatters';
 import { ServerContext } from '@/state/server';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
@@ -15,9 +8,6 @@ import StatBlock, { StatTone } from '@/components/server/console/StatBlock';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
-
-import BeforeInformation from '@blueprint/components/Server/Terminal/BeforeInformation';
-import AfterInformation from '@blueprint/components/Server/Terminal/AfterInformation';
 
 type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime' | 'rx' | 'tx', number>;
 
@@ -163,8 +153,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-3', className)}>
-            <BeforeInformation />
-
             {/* The address is the one card with no bar: it is not a quantity, and
                 a bar under it would imply a proportion of something. The copy
                 button replaces it, and it is the only card whose value is worth
@@ -176,11 +164,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             {/* Red when the server is not running, which is the reference's own
                 choice and the only saturated card on the page - it is meant to be
                 the thing that catches the eye when something is wrong. */}
-            <StatBlock
-                icon={faClock}
-                title={'Uptime'}
-                tone={status === 'running' ? 'blue' : 'red'}
-            >
+            <StatBlock icon={faClock} title={'Uptime'} tone={status === 'running' ? 'blue' : 'red'}>
                 {status === null ? (
                     'Offline'
                 ) : stats.uptime > 0 ? (
@@ -228,8 +212,6 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             <StatBlock icon={faWifi} title={'Network'} tone={'blue'}>
                 {offline ? <span className={'text-gray-400'}>Offline</span> : `${bytesToString(throughput)}/s`}
             </StatBlock>
-
-            <AfterInformation />
         </div>
     );
 };

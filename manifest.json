@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-    "version": "1.17.0",
+"version": "1.17.1",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -25,7 +25,7 @@
         {
             "path": "resources/scripts/components/server/files/FileDropdownMenu.tsx",
             "action": "replace",
-            "note": "Per-file actions panel. The stock rows hovered to bg-neutral-100 on text-neutral-700, which on the black palette is a near-white bar with near-black text across a dark menu; rows are now tinted to the palette so hover brightens by one step and Delete reads as destructive without turning white. Toggle matches the file-row hover and names the file for screen readers. Same behaviour as stock, including the pterodactyl:files:ctx right-click event"
+            "note": "Per-file actions panel. The stock rows hovered to bg-neutral-100 on text-neutral-700, which on the black palette is a near-white bar with near-black text across a dark menu; rows are now tinted to the palette so hover brightens by one step and Delete reads as destructive without turning white. Toggle matches the file-row hover and names the file for screen readers. Same behaviour as stock, including the pterodactyl:files:ctx right-click event. No Blueprint DropdownItems slot, for the same reason the console has none: `@blueprint` only resolves when the Blueprint plugin is installed, and a static import of it makes the whole file-manager chunk throw on a stock panel"
         },
         {
             "path": "tailwind.config.js",
@@ -40,7 +40,12 @@
         {
             "path": "resources/scripts/lib/theme.ts",
             "action": "create",
-            "note": "ptColor() helper for Chart.js - dark-only, no theme state"
+            "note": "ptColor() helper for Chart.js and xterm - dark-only, no theme state"
+        },
+        {
+            "path": "resources/scripts/lib/portal.ts",
+            "action": "create",
+            "note": "Re-creates #modal-portal when it is absent. Modal/Portal resolve it with getElementById and hand it to createPortal, so a missing node (another theme or a Blueprint plugin rewriting templates/base/core.blade.php) makes React throw error #200 and blank every page that opens a dialog - i.e. every server page, while the dashboard and login keep working"
         },
         {
             "path": "resources/scripts/lib/serverExtras.ts",
@@ -375,7 +380,7 @@
         {
             "path": "resources/scripts/components/server/console/ServerDetailsBlock.tsx",
             "action": "replace",
-            "note": "The column of statistics beside the console, as SIX light cards: Address (with a copy button), Uptime, CPU Load, Memory, Disk and one Network card. The stock block renders Network Inbound and Network Outbound as two cards; the merge is not only cosmetic. Two cards for one metric makes the column seven tall and pushes the rest below a shorter fold, and the numbers are CUMULATIVE byte counts - `network.tx_bytes` is bytes sent since the process started - so printing it in a card labelled Network beside a Memory card in MB invites reading it as a current rate. This prints bytes per second from the delta between two frames, with the elapsed time floored at one second: a socket reconnect delivers two frames back to back, and dividing by the real near-zero interval produces a rate in the gigabytes that then decays over the next few pushes, a visible spike of nonsense every time the connection drops. The first frame after a connect has nothing to subtract from and reports 0 rather than the cumulative total, because a wrong number that looks plausible is worse than a zero that is merely uninteresting for two seconds. A stopped server has no stats, so CPU, memory and network read Offline rather than showing the stale zero from before the last stop. The panel's own 80%/90% pressure thresholds are kept, now as tones, because 80-to-warn and 90-to-shout is a judgement about headroom that does not change because the card got prettier. Uptime is the one red card when the server is not running, matching the reference: it is meant to be the thing that catches the eye. BeforeInformation/AfterInformation are kept so the blueprint extension points survive"
+            "note": "The column of statistics beside the console, as SIX light cards: Address (with a copy button), Uptime, CPU Load, Memory, Disk and one Network card. The stock block renders Network Inbound and Network Outbound as two cards; the merge is not only cosmetic. Two cards for one metric makes the column seven tall and pushes the rest below a shorter fold, and the numbers are CUMULATIVE byte counts - `network.tx_bytes` is bytes sent since the process started - so printing it in a card labelled Network beside a Memory card in MB invites reading it as a current rate. This prints bytes per second from the delta between two frames, with the elapsed time floored at one second: a socket reconnect delivers two frames back to back, and dividing by the real near-zero interval produces a rate in the gigabytes that then decays over the next few pushes, a visible spike of nonsense every time the connection drops. The first frame after a connect has nothing to subtract from and reports 0 rather than the cumulative total, because a wrong number that looks plausible is worse than a zero that is merely uninteresting for two seconds. A stopped server has no stats, so CPU, memory and network read Offline rather than showing the stale zero from before the last stop. The panel's own 80%/90% pressure thresholds are kept, now as tones, because 80-to-warn and 90-to-shout is a judgement about headroom that does not change because the card got prettier. Uptime is the one red card when the server is not running, matching the reference: it is meant to be the thing that catches the eye. The Blueprint BeforeInformation/AfterInformation slots are deliberately NOT rendered: they resolve through the `@blueprint` webpack alias, which only exists when the Blueprint plugin is installed, so on a stock panel webpack emits a module that throws the moment the server chunk is evaluated - i.e. every /server/:id page blanks out with the error-boundary message while the dashboard keeps working"
         },
         {
             "path": "resources/scripts/components/server/console/ChartBlock.tsx",

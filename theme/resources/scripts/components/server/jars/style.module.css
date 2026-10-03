@@ -127,8 +127,9 @@
     @apply px-2 py-1 text-xs;
 
     border: 1px solid rgb(var(--pt-gray-500));
-    background-color: rgb(var(--pt-black));
+    background-color: #ffffff;
     color: rgb(var(--pt-gray-100));
+    caret-color: rgb(var(--pt-navy-300));
     outline: none;
 }
 
@@ -175,8 +176,9 @@
 
     border: 1px solid rgb(var(--pt-gray-500));
     border-radius: 0;
-    background-color: rgb(var(--pt-black));
+    background-color: #ffffff;
     color: rgb(var(--pt-gray-100));
+    caret-color: rgb(var(--pt-navy-300));
     outline: none;
     transition: border-color var(--pt-dur-base) ease, box-shadow var(--pt-dur-base) ease;
 }
@@ -267,9 +269,30 @@
 
     border: 1px solid rgb(var(--pt-gray-500));
     border-radius: 0;
-    background-color: rgb(var(--pt-black));
+    background-color: #ffffff;
     color: rgb(var(--pt-gray-100));
+    caret-color: rgb(var(--pt-navy-300));
     outline: none;
+}
+
+/*
+ * The version list.
+ *
+ * This was the worst-looking bug on the page: the closed control was painted on
+ * `--pt-black` (the TERMINAL colour, kept deliberately out of the palette
+ * overrides because a terminal stays dark) while every label sat on a white card,
+ * and the option list said nothing at all - so the browser painted it with its
+ * own dark default and inherited the field's near-black ink. A dropdown of
+ * version numbers came out as grey-on-black, unreadable, with only the selected
+ * row legible because that one is highlighted.
+ *
+ * Options are drawn by the browser, not the page, so both colours have to be
+ * stated here: leave either one out and the row inherits the field's.
+ */
+.select option,
+.select optgroup {
+    background-color: #ffffff;
+    color: rgb(var(--pt-gray-100));
 }
 
 .select:focus {

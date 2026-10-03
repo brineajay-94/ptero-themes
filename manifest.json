@@ -1,6 +1,6 @@
 {
     "name": "brine-theme",
-"version": "1.17.3",
+"version": "1.17.4",
     "description": "Dark monochrome theme for the Pterodactyl Panel user area - #0b0b0d page, #141417 surfaces, #c8ccd0 neutral accent, fixed sidebar shell, redesigned dashboard, login, account, console and file manager. Admin area, favicon and page title untouched.",
     "panel": {
         "min": "1.12.0",
@@ -385,7 +385,7 @@
         {
             "path": "resources/scripts/components/server/jars/style.module.css",
             "action": "create",
-            "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces. Uses the shared --pt-shadow-md and --pt-hairline"
+            "note": "Plugins and Mods page styling on the theme tokens - square corners, gray-700 surfaces, 400 for hairlines and 300 for text, since 600 is the muted fill step and 700+ are surfaces. The three form controls (.search, .versionInput, .select) are WHITE FIELDS with page ink, and the select states its option/optgroup colours: they were painted on --pt-black, the terminal colour, and the option list said nothing at all, so the browser drew it with its own dark default and inherited the field near-black ink - the SHOW VERSIONS list came out grey-on-black with only the highlighted row readableUses the shared --pt-shadow-md and --pt-hairline"
         },
         {
             "path": "app/Services/ServerSoftwareService.php",

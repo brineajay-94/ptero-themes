@@ -951,6 +951,16 @@ did wrong was the same bug wearing different clothes.
 | `dialog/style.module.css` + `Modal.tsx` | `bg-gray-600` panel with a `ring-gray-800` — two near-whites on the light ramp, so a dialog had no edge — and a `text-white` close icon sitting on white. Now a card with a real shadow, page ink, a visible close icon, and a cool 0.62 scrim with a 2px blur. |
 | `Input.tsx` / `Select.tsx` | `bg-neutral-600` / `text-neutral-200`. A field is the one place a wrong pair does not look wrong, it looks **broken**: a dark fill with dark ink, i.e. an empty box. `Select` also said nothing about `option`, and browsers paint the option list themselves — so every version in an egg picker could be dark-on-dark while the closed control looked fine. |
 
+
+Two more controls lived on this page rather than in the four primitives, and were
+the same bug again. The Plugins/Mods page has its own `.search`, `.versionInput`
+and `.select`, and all three were painted on `--pt-black` — the **terminal**
+colour, deliberately kept out of the palette overrides because a terminal stays
+dark — while every label around them sat on a white card. `.select` also said
+nothing about `option`, so the browser painted the version list with its own dark
+default and the rows inherited the field's near-black ink: **Show versions** came
+out grey-on-black, with only the highlighted row legible. They are white fields
+with page ink now, options included.
 All six are copies rather than overrides: they are rewritten in `--pt-*` tokens,
 so they follow the palette, and the parts that were already right — the menu's
 viewport positioning, the input's checkbox and disabled states, the modal's
